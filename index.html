@@ -137,10 +137,18 @@ header{
 .drawer-hosp-item.active{background:var(--accent-light);color:var(--accent);border-color:var(--accent-light);}
 .drawer-hosp-item .del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px;line-height:1;}
 .drawer-hosp-item .del:active{color:var(--danger);}
+.hosp-item .drag-handle{cursor:grab;color:var(--text3);font-size:14px;padding:0 4px;flex-shrink:0;user-select:none;}
+.hosp-item .drag-handle:active{cursor:grabbing;}
+.hosp-item.dragging{opacity:.4;background:var(--accent-light);}
+.hosp-item.drag-over{border-top:2px solid var(--accent);}
+.drawer-hosp-item .drag-handle{cursor:grab;color:var(--text3);font-size:16px;padding:0 6px;flex-shrink:0;user-select:none;}
+.doctor-card .drag-handle{cursor:grab;color:var(--text3);font-size:14px;padding:4px 6px;flex-shrink:0;user-select:none;line-height:1;}
+.doctor-card .drag-handle:active{cursor:grabbing;}
+.doctor-card.dragging{opacity:.4;}
+.doctor-card.drag-over{border-top:2px solid var(--accent);}
+
 .drawer-add{width:100%;padding:12px;border-radius:10px;border:1px dashed var(--border);background:none;cursor:pointer;font-size:14px;color:var(--text3);font-family:inherit;margin-top:8px;}
 .drawer-add:active{border-color:var(--accent);color:var(--accent);}
-
-/* ── EMPTY STATE ── */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:12px;color:var(--text3);}
 .empty-icon{font-size:36px;opacity:.4;}
 .empty-state p{font-size:14px;text-align:center;} .empty-state strong{color:var(--text2);}
@@ -169,6 +177,7 @@ header{
 .schedule-table td{padding:9px 8px;text-align:center;font-size:15px;border-top:1px solid var(--border);}
 .schedule-table td.rl{text-align:left;font-size:12px;font-weight:500;color:var(--text2);}
 .dot-on{color:var(--dot);} .dot-off{color:transparent;}
+.cell-surg{display:inline-block;font-size:10px;font-weight:600;color:#aaa;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:4px;padding:2px 5px;line-height:1.4;}
 .hcol{background:#fffbf5;}
 .memo-row td{font-size:11px;color:var(--text3);border-top:1px solid var(--border);}
 .memo-row td.mc{text-align:left;padding:6px 10px;}
@@ -268,10 +277,11 @@ header{
   .mob-tab{display:block;}
   .app{bottom:var(--tab-h);}
   header .btn-outline:not(.btn-icon){display:none;}
-  .filter-bar{padding:8px 12px;}
   .main{padding:12px;}
   .card-header{padding:10px 12px 9px;}
   .table-wrap{margin:0 -1px;}
+  /* 모바일에서 filter-bar 숨김 (시간대 제거했으므로) */
+  .filter-bar{display:none;}
 }
 </style>
 </head>
@@ -287,9 +297,9 @@ header{
   </div>
   <div class="header-btns">
     <input type="file" id="xlsx-input" accept=".xlsx" style="display:none" onchange="handleXlsx(this)">
+    <button class="btn btn-outline" onclick="downloadTemplate()">📥 양식 다운로드</button>
     <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()">📂 엑셀 업로드</button>
     <button class="btn btn-outline" onclick="openHospModal()">+ 거래처</button>
-    <button class="btn btn-primary" onclick="openDrModal()">+ 의사</button>
     <!-- mobile FAB -->
     <button class="btn btn-primary btn-icon" id="mob-add-btn" style="display:none" onclick="openDrModal()">＋</button>
   </div>
@@ -427,7 +437,7 @@ header{
 const DAYS=['월','화','수','목','금','토'];
 const TIMES=['오전','오후'];
 let S={hospitals:[],doctors:[],activeHosp:null,editHospId:null,editDrId:null,hTags:[],dTags:[],drQ:''};
-const KEY='myschedule_v6';
+const KEY='myschedule_v8';
 function save(){localStorage.setItem(KEY,JSON.stringify({hospitals:S.hospitals,doctors:S.doctors}));}
 function load(){
   try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');S.hospitals=d.hospitals||[];S.doctors=d.doctors||[];if(S.hospitals.length)S.activeHosp=S.hospitals[0].id;}catch(e){}
@@ -443,18 +453,23 @@ function hl(t,q){
 function render(){renderSidebar();renderDrawer();renderMain();}
 
 function renderSidebar(){
-  document.getElementById('hosp-list').innerHTML=S.hospitals.map(h=>
-    '<div class="hosp-item'+(h.id===S.activeHosp?' active':'')+'" data-id="'+h.id+'" onclick="selHosp(this.dataset.id)">'+
-      '<span>'+esc(h.name)+'</span>'+
+  document.getElementById('hosp-list').innerHTML=S.hospitals.map((h,i)=>
+    '<div class="hosp-item'+(h.id===S.activeHosp?' active':'')+'" data-id="'+h.id+'" data-idx="'+i+'" draggable="true" '+
+      'ondragstart="onHospDragStart(event)" ondragover="onHospDragOver(event)" ondrop="onHospDrop(event)" ondragleave="onHospDragLeave(event)" ondragend="onHospDragEnd(event)" '+
+      'onclick="selHosp(this.dataset.id)">'+
+      '<span class="drag-handle" onclick="event.stopPropagation()">⠿</span>'+
+      '<span style="flex:1">'+esc(h.name)+'</span>'+
       '<button class="del" data-id="'+h.id+'" onclick="event.stopPropagation();delHosp(this.dataset.id)" title="삭제">✕</button>'+
     '</div>'
   ).join('');
 }
 
 function renderDrawer(){
-  document.getElementById('drawer-list').innerHTML=S.hospitals.map(h=>
-    '<div class="drawer-hosp-item'+(h.id===S.activeHosp?' active':'')+'" data-id="'+h.id+'" onclick="selHosp(this.dataset.id);closeDrawer();">'+
-      '<span>'+esc(h.name)+'</span>'+
+  document.getElementById('drawer-list').innerHTML=S.hospitals.map((h,i)=>
+    '<div class="drawer-hosp-item'+(h.id===S.activeHosp?' active':'')+'" data-id="'+h.id+'" data-idx="'+i+'" draggable="true" '+
+      'ondragstart="onHospDragStart(event)" ondragover="onHospDragOver(event)" ondrop="onHospDrop(event)" ondragleave="onHospDragLeave(event)" ondragend="onHospDragEnd(event)">'+
+      '<span class="drag-handle">⠿</span>'+
+      '<span style="flex:1" onclick="selHosp(\''+h.id+'\');closeDrawer();">'+esc(h.name)+'</span>'+
       '<button class="del" data-id="'+h.id+'" onclick="event.stopPropagation();delHosp(this.dataset.id)" title="삭제">✕</button>'+
     '</div>'
   ).join('');
@@ -500,8 +515,15 @@ function renderMain(){
   const cards=docs.map(d=>{
     const rows=TIMES.map((t,ti)=>{
       const cells=d.schedule.map((day,di)=>{
-        const on=day[ti];
-        return '<td>'+(on?'<span class="dot-on">●</span>':'<span class="dot-off">·</span>')+'</td>';
+        const v=day[ti];
+        let cell;
+        const vs=String(v);
+        const boxStyle='display:inline-block;font-size:10px;font-weight:600;border-radius:4px;padding:2px 5px;line-height:1.4;';
+        if(vs==='수술') cell='<span style="'+boxStyle+'color:#999;background:#f0f0f0;border:1px solid #ddd;">수술</span>';
+        else if(vs==='내시경') cell='<span style="'+boxStyle+'color:#88a;background:#f0f0f8;border:1px solid #d0d0e8;">내시경</span>';
+        else if(v&&vs!=='false') cell='<span class="dot-on">●</span>';
+        else cell='<span class="dot-off">·</span>';
+        return '<td>'+cell+'</td>';
       }).join('');
       return '<tr><td class="rl">'+t+'</td>'+cells+'</tr>';
     }).join('');
@@ -523,9 +545,13 @@ function renderMain(){
     const dname=q?hl(d.name,q):esc(d.name);
     const ddept=d.dept?(q?hl(d.dept,q):esc(d.dept)):'';
 
-    return '<div class="doctor-card">'+
+    return '<div class="doctor-card" data-did="'+d.id+'" data-idx="'+docs.indexOf(d)+'" draggable="true" '+
+      'ondragstart="onDrDragStart(event)" ondragover="onDrDragOver(event)" ondrop="onDrDrop(event)" ondragleave="onDrDragLeave(event)" ondragend="onDrDragEnd(event)">'+
       '<div class="card-header">'+
-        '<div class="card-hd-left"><div class="doctor-name">'+dname+'</div>'+(d.dept?'<div class="doctor-dept">'+ddept+'</div>':'')+' </div>'+
+        '<div class="card-hd-left">'+
+          '<span class="drag-handle">⠿</span>'+
+          '<div class="doctor-name">'+dname+'</div>'+(d.dept?'<div class="doctor-dept">'+ddept+'</div>':'')+
+        '</div>'+
         '<div class="card-actions">'+
           '<button class="btn btn-outline btn-sm" data-id="'+d.id+'" onclick="openDrModal(this.dataset.id)">메모</button>'+
           '<button class="btn btn-danger btn-sm" data-id="'+d.id+'" onclick="delDr(this.dataset.id)">삭제</button>'+
@@ -553,6 +579,62 @@ function closeDrawer(){
   document.getElementById('drawer-overlay').classList.remove('open');
 }
 
+// ── Hospital drag & drop ──
+let _hDragIdx=null;
+function onHospDragStart(e){_hDragIdx=parseInt(e.currentTarget.dataset.idx);e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+function onHospDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
+function onHospDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function onHospDragEnd(e){e.currentTarget.classList.remove('dragging');document.querySelectorAll('.hosp-item,.drawer-hosp-item').forEach(el=>el.classList.remove('drag-over'));}
+function onHospDrop(e){
+  e.preventDefault();
+  const toIdx=parseInt(e.currentTarget.dataset.idx);
+  e.currentTarget.classList.remove('drag-over');
+  if(_hDragIdx===null||_hDragIdx===toIdx)return;
+  const moved=S.hospitals.splice(_hDragIdx,1)[0];
+  S.hospitals.splice(toIdx,0,moved);
+  _hDragIdx=null;
+  save();render();
+}
+
+// ── Doctor drag & drop ──
+let _dDragId=null;
+function onDrDragStart(e){_dDragId=e.currentTarget.dataset.did;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+function onDrDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
+function onDrDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function onDrDragEnd(e){e.currentTarget.classList.remove('dragging');document.querySelectorAll('.doctor-card').forEach(el=>el.classList.remove('drag-over'));}
+function onDrDrop(e){
+  e.preventDefault();
+  const toId=e.currentTarget.dataset.did;
+  e.currentTarget.classList.remove('drag-over');
+  if(!_dDragId||_dDragId===toId)return;
+  const hid=S.activeHosp;
+  const allOther=S.doctors.filter(d=>d.hospitalId!==hid);
+  const hospDrs=S.doctors.filter(d=>d.hospitalId===hid);
+  const fromIdx=hospDrs.findIndex(d=>d.id===_dDragId);
+  const toIdx=hospDrs.findIndex(d=>d.id===toId);
+  if(fromIdx===-1||toIdx===-1)return;
+  const moved=hospDrs.splice(fromIdx,1)[0];
+  hospDrs.splice(toIdx,0,moved);
+  S.doctors=[...allOther,...hospDrs];
+  _dDragId=null;
+  save();renderMain();
+}
+
+// ── Template download ──
+function downloadTemplate(){
+  if(typeof XLSX==='undefined'){toast('❌ 잠시 후 다시 시도해주세요.');return;}
+  const wb=XLSX.utils.book_new();
+  const headers=['거래처명','의사이름','직함/과','월오전','월오후','화오전','화오후','수오전','수오후','목오전','목오후','금오전','금오후','토오전','토오후','비고'];
+  const s1=['서울현대병원','이우태','병원장/정형외과','','O','','','O','','','','O','','','','월오전수술, 토 순환(문의)'];
+  const s2=['서울현대병원','허재우','대표원장/성형외과','','O','O','','','O','O','','','O','','','토 순환(문의)'];
+  const guide=[['※ 작성 가이드'],['O (영문 대문자) = 진료 있음'],['빈칸 = 진료 없음'],['내시경/수술 등 특수 일정은 해당 칸에 직접 입력'],['비고란에 휴진일, 대진, 격주 등 메모'],['같은 거래처명은 같은 병원으로 묶임']];
+  const ws=XLSX.utils.aoa_to_sheet([headers,s1,s2,[],...guide]);
+  ws['!cols']=[{wch:14},{wch:10},{wch:22},...Array(12).fill({wch:7}),{wch:30}];
+  XLSX.utils.book_append_sheet(wb,ws,'진료시간표');
+  XLSX.writeFile(wb,'진료시간표_입력양식.xlsx');
+  toast('✅ 양식이 다운로드됐습니다');
+}
+
 // Hospital tags
 // Init — runs after DOM is ready
 document.addEventListener('DOMContentLoaded', ()=>{
@@ -572,7 +654,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
   injectHyundai();
   injectCheok();
   injectGangbuk();
+  injectStarbone();
+  injectSeoulHosp();
+  injectUijCheok();
+  // 첫 거래처 자동 선택
+  if(S.hospitals.length && !S.activeHosp) S.activeHosp = S.hospitals[0].id;
   render();
+  // 모바일이고 거래처가 여러 개면 드로어 자동 오픈
+  if(window.innerWidth < 640 && S.hospitals.length > 0){
+    setTimeout(openDrawer, 400);
+  }
 });
 
 // Hospital tags
@@ -741,14 +832,22 @@ function gsSelectHosp(hid){
   clearGlobalSearch();
 }
 function gsSelectDr(hid,did){
+  S.drQ='';
   selHosp(hid);
-  // highlight doctor by searching name
-  const d=S.doctors.find(x=>x.id===did);
-  if(d){
-    document.getElementById('dr-q').value=d.name;
-    renderMain();
-  }
   clearGlobalSearch();
+  // DOM 업데이트 완전 반영 후 스크롤
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const card=document.querySelector('[data-did="'+did+'"]');
+      if(card){
+        card.scrollIntoView({behavior:'smooth',block:'center'});
+        // 강조 효과
+        card.style.outline='2px solid var(--accent)';
+        card.style.outlineOffset='2px';
+        setTimeout(()=>{card.style.outline='';card.style.outlineOffset='';},2000);
+      }
+    });
+  });
 }
 function clearGlobalSearch(){
   document.getElementById('gs-input').value='';
@@ -800,54 +899,149 @@ function handleXlsx(input){
 
 // Presets
 function mk(HID,d,i){return {id:HID+'_'+i,hospitalId:HID,name:d.name,dept:d.dept||'',memo:d.memo||'',note:'',bio:'',products:[],schedule:d.schedule};}
+
+// 기존 병원의 의사 schedule을 항상 최신 preset으로 덮어씀
+function syncDoctors(HID, doctors){
+  doctors.forEach((d,i)=>{
+    const id=HID+'_'+i;
+    const existing=S.doctors.find(x=>x.id===id);
+    if(existing){
+      // schedule과 memo만 덮어쓰고 나머지(note,bio,products)는 유지
+      existing.schedule=d.schedule;
+      existing.memo=d.memo||'';
+      existing.name=d.name;
+      existing.dept=d.dept||'';
+    } else {
+      S.doctors.push(mk(HID,d,i));
+    }
+  });
+}
 function injectHyundai(){
-  const HID='seoulhyundai';if(S.hospitals.find(h=>h.id===HID))return;
-  S.hospitals.push({id:HID,name:'서울현대병원',memo:'',products:[]});
-  [{name:'이우태',dept:'병원장 / 정형외과',schedule:[[false,true],[false,false],[true,false],[false,false],[true,false],[false,false]],memo:'월오전수술, 화오전수술, 목오후수술, 토 순환(문의)'},
-   {name:'허재우',dept:'대표원장 / 성형외과·수부외과',schedule:[[false,true],[true,false],[false,true],[true,false],[false,true],[false,false]],memo:'토 순환(문의)'},
-   {name:'허영우',dept:'척추관절센터장 / 정형외과 원장',schedule:[[false,true],[true,false],[false,false],[false,true],[true,false],[false,false]],memo:'토 순환(문의)'},
-   {name:'황성문',dept:'정형외과 과장',schedule:[[true,false],[true,false],[false,true],[false,true],[false,true],[false,false]],memo:'토 순환(문의)'},
-   {name:'양두근',dept:'정형외과 과장',schedule:[[true,false],[true,true],[false,true],[true,false],[false,true],[false,false]],memo:'토 순환(문의)'},
-   {name:'황성재',dept:'정형외과 과장',schedule:[[false,true],[false,true],[true,false],[true,true],[true,false],[false,false]],memo:'토 순환(문의)'},
-   {name:'허준영',dept:'척추센터장 / 신경외과 원장',schedule:[[true,false],[false,true],[true,true],[true,false],[false,true],[false,false]],memo:'토 격주'},
-   {name:'한홍석',dept:'외과 과장',schedule:[[true,true],[true,true],[true,false],[true,true],[true,false],[false,false]],memo:'수오후수술, 금오후 순환(문의)'},
-   {name:'백경원',dept:'내과 과장(소화기)',schedule:[[true,true],[false,false],[true,false],[false,true],[true,true],[true,false]],memo:'화 내시경, 목오전 내시경'},
-   {name:'김규',dept:'내과 과장(순환기)',schedule:[[true,true],[false,false],[true,true],[true,true],[true,true],[false,false]],memo:'화 미진료'},
-   {name:'채민규',dept:'내과 과장(소화기)',schedule:[[false,true],[true,true],[false,true],[true,false],[false,true],[false,false]],memo:'월오전 내시경, 수오전 내시경, 금오전 내시경, 목오후 격주, 토 격주(문의)'},
-   {name:'유어진',dept:'내과 과장(신장)',schedule:[[true,false],[true,false],[false,true],[false,true],[true,false],[false,false]],memo:'토 격주'},
-   {name:'이현기',dept:'내시경 전담의 & 가정의학과 과장',schedule:[[true,false],[true,true],[true,false],[true,false],[true,false],[false,false]],memo:'월·수·목·금 오후 내시경, 토 격주 내시경'},
-   {name:'임선영',dept:'신경과 과장',schedule:[[true,true],[false,true],[true,true],[true,false],[true,true],[false,false]],memo:'화오전 -, 목오후 격주, 토 격주'},
-  ].forEach((d,i)=>S.doctors.push(mk(HID,d,i)));
-  S.activeHosp=HID;save();
+  const HID='seoulhyundai';
+  if(!S.hospitals.find(h=>h.id===HID)) S.hospitals.push({id:HID,name:'서울현대병원',memo:'',products:[]});
+  syncDoctors(HID,[
+    // 공란=수술, 진료=true 기준으로 재정리 (월~금)
+    {name:'이우태',dept:'병원장 / 정형외과',
+     schedule:[['수술',true],['수술','수술'],[true,'수술'],['수술','수술'],[true,'수술'],[false,false]],
+     memo:'토 순환(문의)'},
+    {name:'허재우',dept:'대표원장 / 성형외과·수부외과',
+     schedule:[['수술',true],[true,'수술'],['수술',true],[true,'수술'],['수술',true],[false,false]],
+     memo:'토 순환(문의)'},
+    {name:'허영우',dept:'척추관절센터장 / 정형외과 원장',
+     schedule:[['수술',true],[true,'수술'],['수술','수술'],['수술',true],[true,'수술'],[false,false]],
+     memo:'토 순환(문의)'},
+    {name:'황성문',dept:'정형외과 과장',
+     schedule:[[true,'수술'],[true,'수술'],['수술',true],['수술',true],['수술',true],[false,false]],
+     memo:'토 순환(문의)'},
+    {name:'양두근',dept:'정형외과 과장',
+     schedule:[[true,'수술'],[true,true],['수술',true],[true,'수술'],['수술',true],[false,false]],
+     memo:'토 순환(문의)'},
+    {name:'황성재',dept:'정형외과 과장',
+     schedule:[['수술',true],['수술',true],[true,'수술'],[true,true],[true,'수술'],[false,false]],
+     memo:'토 순환(문의)'},
+    {name:'허준영',dept:'척추센터장 / 신경외과 원장',
+     schedule:[[true,'수술'],['수술',true],[true,true],[true,'수술'],['수술',true],[false,false]],
+     memo:'토 격주'},
+    {name:'한홍석',dept:'외과 과장',
+     schedule:[[true,true],[true,true],[true,'수술'],[true,true],[true,'수술'],[false,false]],
+     memo:'수오후수술, 금오후수술'},
+    {name:'백경원',dept:'내과 과장(소화기)',
+     schedule:[[true,true],['내시경','내시경'],[true,false],['내시경',true],[true,true],[true,false]],
+     memo:'화 내시경, 목오전 내시경'},
+    {name:'김규',dept:'내과 과장(순환기)',
+     schedule:[[true,true],[false,false],[true,true],[true,true],[true,true],[false,false]],
+     memo:'화 미진료'},
+    {name:'채민규',dept:'내과 과장(소화기)',
+     schedule:[['내시경',true],[true,true],['내시경',true],[true,false],['내시경',true],[false,false]],
+     memo:'월·수·금오전 내시경, 목오후 격주, 토 격주(문의)'},
+    {name:'유어진',dept:'내과 과장(신장)',
+     schedule:[[true,false],[true,false],[false,true],[false,true],[true,false],[false,false]],
+     memo:'토 격주'},
+    {name:'이현기',dept:'내시경 전담의 & 가정의학과 과장',
+     schedule:[[true,'내시경'],[true,true],[true,'내시경'],[true,'내시경'],[true,'내시경'],[false,false]],
+     memo:'월·수·목·금 오후 내시경, 토 격주 내시경'},
+    {name:'임선영',dept:'신경과 과장',
+     schedule:[[true,true],[false,true],[true,true],[true,false],[true,true],[false,false]],
+     memo:'화오전 -, 목오후 격주, 토 격주'},
+  ]);
+  if(!S.activeHosp) S.activeHosp=HID;
+  save();
 }
 function injectCheok(){
-  const HID='seoulcheok';if(S.hospitals.find(h=>h.id===HID))return;
-  S.hospitals.push({id:HID,name:'서울척병원',memo:'',products:[]});
-  [{name:'김현식 명예원장',dept:'척추센터',schedule:[[false,false],[true,false],[false,false],[false,false],[false,false],[false,false]],memo:'휴진 / 대진(수)'},
-   {name:'노원 대표원장',dept:'척추센터',schedule:[[false,true],[false,false],[false,true],[false,false],[true,false],[false,false]],memo:'토 03/01,21 / 휴진·대진(수)'},
-   {name:'박세윤 원장',dept:'척추센터',schedule:[[false,true],[true,false],[false,false],[true,false],[false,false],[false,false]],memo:'토 03/15,21 / 휴진 03/06 / 대진(수)'},
-   {name:'박지균 원장',dept:'척추센터',schedule:[[true,true],[false,false],[true,false],[true,false],[false,true],[false,false]],memo:'토 03/01,21 / 휴진·대진(수)'},
-   {name:'양현식 원장',dept:'척추센터',schedule:[[true,false],[false,false],[true,false],[false,false],[true,true],[false,false]],memo:'토 03/15,26 / 휴진·대진(수)'},
-   {name:'이석주 대표원장',dept:'척추센터',schedule:[[true,true],[false,false],[false,false],[false,false],[false,false],[false,false]],memo:'토 03/26 / 휴진 03/06,27 / 대진(수)'},
-   {name:'윤준기 원장',dept:'척추센터',schedule:[[true,false],[false,false],[false,true],[true,false],[false,false],[false,false]],memo:'토 03/15,26 / 휴진·대진(수)'},
-   {name:'김민욱 원장',dept:'관절센터',schedule:[[false,true],[true,true],[true,false],[false,false],[true,true],[false,false]],memo:'토 03/14,21 / 휴진·대진(수)'},
-   {name:'김수현 원장',dept:'관절센터',schedule:[[true,true],[false,false],[true,true],[true,false],[true,false],[false,false]],memo:'토 03/14,28 / 휴진·대진(수)'},
-   {name:'이희형 원장',dept:'관절센터',schedule:[[true,false],[true,true],[false,false],[true,true],[false,true],[false,false]],memo:'토 03/07,21 / 휴진·대진(수)'},
-   {name:'이승훈 센터장',dept:'건강검진센터',schedule:[[true,true],[false,true],[true,false],[true,true],[false,false],[false,false]],memo:'휴진·대진(수)'},
-  ].forEach((d,i)=>S.doctors.push(mk(HID,d,i)));
+  const HID='seoulcheok';
+  if(!S.hospitals.find(h=>h.id===HID)) S.hospitals.push({id:HID,name:'서울척병원',memo:'',products:[]});
+  syncDoctors(HID,[
+    {name:'김현식 명예원장',dept:'척추센터',schedule:[[false,false],[true,false],[false,false],[false,false],[false,false],[false,false]],memo:'휴진 / 대진(수)'},
+    {name:'노원 대표원장',dept:'척추센터',schedule:[[false,true],[false,false],[false,true],[false,false],[true,false],[false,false]],memo:'토 03/01,21 / 휴진·대진(수)'},
+    {name:'박세윤 원장',dept:'척추센터',schedule:[[false,true],[true,false],[false,false],[true,false],[false,false],[false,false]],memo:'토 03/15,21 / 휴진 03/06 / 대진(수)'},
+    {name:'박지균 원장',dept:'척추센터',schedule:[[true,true],[false,false],[true,false],[true,false],[false,true],[false,false]],memo:'토 03/01,21 / 휴진·대진(수)'},
+    {name:'양현식 원장',dept:'척추센터',schedule:[[true,false],[false,false],[true,false],[false,false],[true,true],[false,false]],memo:'토 03/15,26 / 휴진·대진(수)'},
+    {name:'이석주 대표원장',dept:'척추센터',schedule:[[true,true],[false,false],[false,false],[false,false],[false,false],[false,false]],memo:'토 03/26 / 휴진 03/06,27 / 대진(수)'},
+    {name:'윤준기 원장',dept:'척추센터',schedule:[[true,false],[false,false],[false,true],[true,false],[false,false],[false,false]],memo:'토 03/15,26 / 휴진·대진(수)'},
+    {name:'김민욱 원장',dept:'관절센터',schedule:[[false,true],[true,true],[true,false],[false,false],[true,true],[false,false]],memo:'토 03/14,21 / 휴진·대진(수)'},
+    {name:'김수현 원장',dept:'관절센터',schedule:[[true,true],[false,false],[true,true],[true,false],[true,false],[false,false]],memo:'토 03/14,28 / 휴진·대진(수)'},
+    {name:'이희형 원장',dept:'관절센터',schedule:[[true,false],[true,true],[false,false],[true,true],[false,true],[false,false]],memo:'토 03/07,21 / 휴진·대진(수)'},
+    {name:'이승훈 센터장',dept:'건강검진센터',schedule:[[true,true],[false,true],[true,false],[true,true],[false,false],[false,false]],memo:'휴진·대진(수)'},
+  ]);
+  save();
+}
+function injectStarbone(){
+  const HID='seoulstarbone';
+  if(!S.hospitals.find(h=>h.id===HID)) S.hospitals.push({id:HID,name:'서울스타본정형외과',memo:'주간=오전, 야간=오후로 표시',products:[]});
+  syncDoctors(HID,[
+    {name:'이시영 원장',dept:'정형외과',schedule:[[false,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'수 오전 격주 휴진(3/11,18,25) / 월 오전 미진료'},
+    {name:'이의섭 원장',dept:'정형외과',schedule:[[true,true],[true,true],[true,true],[false,true],[true,true],[false,false]],memo:'화 오전 격주 휴진(3/10,24) / 목 오전 미진료 / 3/2 대체공휴일 단축진료'},
+  ]);
   save();
 }
 function injectGangbuk(){
-  const HID='gangbukeum';if(S.hospitals.find(h=>h.id===HID))return;
-  S.hospitals.push({id:HID,name:'강북으뜸병원',memo:'',products:[]});
-  [{name:'김태완 병원장',dept:'정형외과 전문의',schedule:[[true,false],[false,true],[true,false],[false,true],[true,false],[true,false]],memo:'목 야간진료 / 월·수·금오후 수술 / 화·목오전 수술'},
-   {name:'전성만 원장',dept:'정형외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'토 순환진료'},
-   {name:'감진화 원장',dept:'정형외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'토 순환진료'},
-   {name:'문지원 원장',dept:'신경외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],[false,true],[false,false]],memo:'금오전 수술 / 토 격주휴무'},
-   {name:'문지미 원장',dept:'내과 전문의',schedule:[[true,true],[true,true],[true,false],[true,true],[true,false],[false,false]],memo:'수오후 휴진 / 금오후 휴무 / 토 순환진료'},
-   {name:'김민 원장',dept:'내과 전문의',schedule:[[true,true],[true,false],[true,true],[true,true],[true,false],[false,false]],memo:'화오후·금오후 휴진 / 토 순환진료'},
-   {name:'홍승환 마취원장',dept:'마취통증의학과',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'월~금 오전·오후'},
-  ].forEach((d,i)=>S.doctors.push(mk(HID,d,i)));
+  const HID='gangbukeum';
+  if(!S.hospitals.find(h=>h.id===HID)) S.hospitals.push({id:HID,name:'강북으뜸병원',memo:'',products:[]});
+  syncDoctors(HID,[
+    {name:'김태완 병원장',dept:'정형외과 전문의',schedule:[[true,'수술'],['수술',true],[true,'수술'],['수술',true],[true,'수술'],[true,false]],memo:'월·수·금오후 수술 / 화·목오전 수술 / 목 야간진료'},
+    {name:'전성만 원장',dept:'정형외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'토 순환진료'},
+    {name:'감진화 원장',dept:'정형외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'토 순환진료'},
+    {name:'문지원 원장',dept:'신경외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],['수술',true],[false,false]],memo:'금오전 수술 / 토 격주휴무'},
+    {name:'문지미 원장',dept:'내과 전문의',schedule:[[true,true],[true,true],[true,false],[true,true],[true,false],[false,false]],memo:'수오후 휴진 / 금오후 휴무 / 토 순환진료'},
+    {name:'김민 원장',dept:'내과 전문의',schedule:[[true,true],[true,false],[true,true],[true,true],[true,false],[false,false]],memo:'화오후·금오후 휴진 / 토 순환진료'},
+    {name:'홍승환 마취원장',dept:'마취통증의학과',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'월~금 오전·오후'},
+  ]);
+  save();
+}
+
+function injectSeoulHosp(){
+  const HID='seoulhosp';
+  if(!S.hospitals.find(h=>h.id===HID)) S.hospitals.push({id:HID,name:'송파 서울병원',memo:'진료일정은 참고용이며 휴진·검사·수술이 변동될 수 있습니다',products:[]});
+  syncDoctors(HID,[
+    {name:'한원석 원장',dept:'신경외과',schedule:[['수술',true],[true,'수술'],['수술',true],[true,'수술'],[true,'수술'],[true,false]],memo:'토 1·3주 진료'},
+    {name:'임대철 원장',dept:'신경외과',schedule:[[true,'수술'],['수술',true],['수술','수술'],['수술',true],[false,true],[true,false]],memo:'토 2·4주 진료'},
+    {name:'강창민 원장',dept:'정형외과',schedule:[[true,'수술'],['수술',true],[true,'수술'],[true,'수술'],['수술','수술'],[true,false]],memo:'토 2·4주 진료'},
+    {name:'오명재 원장',dept:'정형외과',schedule:[['수술',true],['수술','수술'],['수술',true],['수술',true],['수술','수술'],[true,false]],memo:'토 1·3주 진료'},
+    {name:'황의남 원장',dept:'내과',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'화·목 오전 내시경 / 금 오후 내과·내시경'},
+    {name:'권슨기 원장',dept:'내과',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[true,false]],memo:'토 오전 진료'},
+    {name:'최정혜 원장',dept:'내과',schedule:[[true,false],[true,false],[true,false],[true,false],[true,false],[true,false]],memo:'월~토 오전 진료'},
+    {name:'이혜린 원장',dept:'내과',schedule:[[true,false],[true,false],[true,false],[true,false],[true,false],[false,false]],memo:'월~금 오전 진료'},
+    {name:'조기재 원장',dept:'내과',schedule:[[true,true],[true,false],[true,true],[true,false],[true,true],[true,false]],memo:'화·목 오후 미진료 / 토 오전 진료'},
+    {name:'조성태 원장',dept:'성형외과',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'월~금 오전·오후 진료'},
+    {name:'조혜진 원장',dept:'신경과',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[true,false]],memo:'토 1·3주 오전 진료'},
+    {name:'박진수 원장',dept:'직업환경의학과',schedule:[[true,false],[true,false],[true,false],[true,false],[true,false],[false,false]],memo:'월~금 오전 진료'},
+    {name:'류진희 원장',dept:'산부인과',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'월~금 오전·오후 진료'},
+  ]);
+  save();
+}
+
+function injectUijCheok(){
+  const HID='uijcheok';
+  if(!S.hospitals.find(h=>h.id===HID)) S.hospitals.push({id:HID,name:'의정부 서울척병원',memo:'수요일 공통 대진',products:[]});
+  syncDoctors(HID,[
+    {name:'윤종석 원장',dept:'척추센터',schedule:[[true,true],[true,false],[false,false],[true,true],[false,true],[false,false]],memo:'토 03/07,14 / 휴진 03/20 / 대진(수)'},
+    {name:'정상기 원장',dept:'척추센터',schedule:[[true,false],[true,true],[false,false],[false,false],[true,true],[false,false]],memo:'토 03/07,21,28 / 대진(수)'},
+    {name:'주형석 센터장',dept:'척추센터',schedule:[[true,true],[false,false],[true,true],[false,true],[true,false],[false,false]],memo:'토 03/14 / 휴진 03/20 / 대진(수)'},
+    {name:'안수철 원장',dept:'관절센터 어깨클리닉',schedule:[[true,true],[false,false],[true,true],[true,false],[true,false],[false,false]],memo:'토 03/14,28 / 대진(수)'},
+    {name:'정승희 센터장',dept:'관절센터',schedule:[[true,false],[true,true],[false,false],[true,true],[false,true],[false,false]],memo:'토 03/14,28 / 휴진 03/20 / 대진(수)'},
+    {name:'황교선 원장',dept:'관절센터',schedule:[[false,true],[true,true],[true,false],[false,false],[true,true],[false,false]],memo:'토 03/07,21 / 휴진 03/13,16 / 대진(수)'},
+    {name:'박지영 원장',dept:'내과',schedule:[[true,true],[true,true],[true,false],[true,true],[true,true],[false,false]],memo:'휴진 03/03,18 / 대진(수)'},
+  ]);
   save();
 }
 
