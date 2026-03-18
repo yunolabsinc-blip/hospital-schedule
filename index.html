@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>진료시간표</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f4f3ef;--surface:#fff;--surface2:#f9f8f5;--border:#e5e3dc;
+  --text:#1a1a18;--text2:#6b6b65;--text3:#a8a8a0;
+  --accent:#2d5a3d;--accent-light:#e8f0eb;
+  --accent2:#c4792a;--accent2-light:#fdf0e4;
+  --dot:#2d5a3d;--danger:#c0392b;
+  --shadow:0 2px 12px rgba(0,0,0,.07);--radius:12px;
+  --header-h:54px;--tab-h:58px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);}
+
+/* ── HEADER ── */
+header{
+  position:fixed;top:0;left:0;right:0;height:var(--header-h);
+  background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;z-index:200;gap:8px;
+}
+.logo{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;}
+.logo span{color:var(--text2);font-weight:400;font-size:11px;margin-left:4px;}
+.header-btns{display:flex;gap:6px;flex-shrink:0;}
+.btn{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit;white-space:nowrap;line-height:1;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover,.btn-primary:active{background:#224830;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2);}
+.btn-outline:hover,.btn-outline:active{background:var(--surface2);color:var(--text);}
+.btn-danger{background:transparent;border:1px solid #e8c4c0;color:var(--danger);}
+.btn-danger:hover,.btn-danger:active{background:#fdf0ef;}
+.btn-sm{padding:4px 9px;font-size:11px;}
+.btn-icon{padding:7px;border-radius:8px;font-size:16px;line-height:1;}
+
+/* ── LAYOUT ── */
+.app{
+  position:fixed;top:var(--header-h);left:0;right:0;bottom:0;
+  display:flex;overflow:hidden;
+}
+
+/* ── DESKTOP SIDEBAR ── */
+.sidebar{
+  width:210px;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:14px 10px;gap:3px;
+  overflow-y:auto;flex-shrink:0;
+}
+.sidebar-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;padding:2px 8px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+.hosp-item{padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);font-weight:500;transition:all .12s;display:flex;align-items:center;justify-content:space-between;gap:4px;}
+.hosp-item:hover{background:var(--surface2);color:var(--text);}
+.hosp-item.active{background:var(--accent-light);color:var(--accent);}
+.hosp-item.hidden{display:none;}
+.hosp-item .del{opacity:0;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:0 2px;line-height:1;flex-shrink:0;transition:.1s;}
+.hosp-item:hover .del{opacity:1;} .hosp-item .del:hover{color:var(--danger);}
+.add-hosp{margin-top:6px;padding:8px 10px;border-radius:8px;border:1px dashed var(--border);background:none;cursor:pointer;font-size:12px;color:var(--text3);font-family:inherit;transition:.12s;text-align:left;width:100%;}
+.add-hosp:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+
+/* ── SEARCH INPUT ── */
+.search-wrap{position:relative;margin-bottom:8px;}
+.search-wrap input{width:100%;padding:7px 28px 7px 30px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;transition:border-color .12s;}
+.search-wrap input:focus{border-color:var(--accent);background:var(--surface);}
+.search-wrap .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none;}
+.search-wrap .sc{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);padding:2px;line-height:1;display:none;}
+.search-wrap input:not(:placeholder-shown)~.sc{display:block;}
+
+/* ── CONTENT AREA ── */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* ── FILTER BAR ── */
+.filter-bar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:8px 16px;display:flex;align-items:center;gap:8px;
+  overflow-x:auto;flex-shrink:0;scrollbar-width:none;
+}
+.filter-bar::-webkit-scrollbar{display:none;}
+.filter-label{font-size:11px;color:var(--text3);font-weight:600;white-space:nowrap;}
+.chips{display:flex;gap:4px;flex-shrink:0;}
+.chip{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:.12s;white-space:nowrap;font-family:inherit;}
+.chip:hover,.chip:active{border-color:var(--accent);color:var(--accent);}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.fsep{width:1px;height:16px;background:var(--border);flex-shrink:0;}
+.dr-search{position:relative;flex-shrink:0;width:180px;}
+.dr-search input{width:100%;padding:5px 24px 5px 26px;border-radius:20px;border:1px solid var(--border);font-size:11px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;transition:.12s;}
+.dr-search input:focus{border-color:var(--accent);background:var(--surface);}
+.dr-search .si{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text3);pointer-events:none;}
+.dr-search .sc{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:2px;line-height:1;display:none;}
+.dr-search input:not(:placeholder-shown)~.sc{display:block;}
+.hl{background:#fff3cd;border-radius:2px;padding:0 1px;}
+
+/* ── MAIN SCROLL ── */
+.main{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
+
+/* ── MOBILE BOTTOM TAB ── */
+.mob-tab{
+  display:none;position:fixed;bottom:0;left:0;right:0;height:var(--tab-h);
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:0 4px env(safe-area-inset-bottom);
+  z-index:200;
+}
+.mob-tab-inner{display:flex;height:100%;}
+.tab-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;
+  color:var(--text3);font-size:10px;font-weight:600;padding:6px 2px;
+  transition:.12s;border-radius:10px;
+}
+.tab-btn.active{color:var(--accent);}
+.tab-btn .ti{font-size:20px;line-height:1;}
+
+/* ── MOBILE HOSPITAL DRAWER ── */
+.mob-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;}
+.mob-drawer-overlay.open{display:block;}
+.mob-drawer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);border-radius:16px 16px 0 0;
+  padding:12px 16px calc(16px + env(safe-area-inset-bottom));
+  z-index:301;max-height:70vh;overflow-y:auto;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.mob-drawer.open{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px;}
+.drawer-title{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text);}
+.drawer-hosp-item{
+  padding:12px 14px;border-radius:10px;cursor:pointer;font-size:14px;
+  font-weight:500;color:var(--text2);transition:.12s;
+  display:flex;align-items:center;justify-content:space-between;
+  border:1px solid transparent;margin-bottom:4px;
+}
+.drawer-hosp-item:active{background:var(--surface2);}
+.drawer-hosp-item.active{background:var(--accent-light);color:var(--accent);border-color:var(--accent-light);}
+.drawer-hosp-item .del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px;line-height:1;}
+.drawer-hosp-item .del:active{color:var(--danger);}
+.drawer-add{width:100%;padding:12px;border-radius:10px;border:1px dashed var(--border);background:none;cursor:pointer;font-size:14px;color:var(--text3);font-family:inherit;margin-top:8px;}
+.drawer-add:active{border-color:var(--accent);color:var(--accent);}
+
+/* ── EMPTY STATE ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:12px;color:var(--text3);}
+.empty-icon{font-size:36px;opacity:.4;}
+.empty-state p{font-size:14px;text-align:center;} .empty-state strong{color:var(--text2);}
+
+/* ── HOSPITAL INFO PANEL ── */
+.info-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow);}
+.info-panel-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;}
+.info-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;flex-wrap:wrap;}
+.info-row:last-child{margin-bottom:0;}
+.info-label{font-size:11px;font-weight:700;color:var(--text2);min-width:46px;padding-top:3px;}
+
+/* ── DOCTOR CARDS ── */
+.doctor-grid{display:flex;flex-direction:column;gap:12px;}
+.doctor-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow);}
+.card-header{padding:12px 14px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);gap:8px;}
+.card-hd-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;}
+.doctor-name{font-size:14px;font-weight:700;color:var(--text);}
+.doctor-dept{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--accent-light);color:var(--accent);white-space:nowrap;}
+.card-actions{display:flex;gap:5px;flex-shrink:0;}
+
+/* ── SCHEDULE TABLE (horizontal scroll on mobile) ── */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.schedule-table{width:100%;border-collapse:collapse;min-width:360px;}
+.schedule-table th{padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);text-align:center;background:var(--surface2);white-space:nowrap;}
+.schedule-table th.rl{text-align:left;width:52px;}
+.schedule-table td{padding:9px 8px;text-align:center;font-size:15px;border-top:1px solid var(--border);}
+.schedule-table td.rl{text-align:left;font-size:12px;font-weight:500;color:var(--text2);}
+.dot-on{color:var(--dot);} .dot-off{color:transparent;}
+.hcol{background:#fffbf5;}
+.memo-row td{font-size:11px;color:var(--text3);border-top:1px solid var(--border);}
+.memo-row td.mc{text-align:left;padding:6px 10px;}
+
+/* ── CARD INFO (products / note) ── */
+.card-info{padding:10px 14px;border-top:1px solid var(--border);background:var(--surface2);display:flex;gap:12px;flex-wrap:wrap;}
+.ci-col{flex:1;min-width:120px;}
+.ci-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px;}
+.ci-text{font-size:12px;color:var(--text2);line-height:1.55;}
+
+/* ── BIO ACCORDION ── */
+.bio-toggle{width:100%;padding:9px 14px;background:none;border:none;border-top:1px solid var(--border);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;color:var(--text3);transition:background .12s;text-align:left;}
+.bio-toggle:hover,.bio-toggle:active{background:var(--surface2);color:var(--text2);}
+.bio-arrow{font-size:10px;transition:transform .2s;display:inline-block;}
+.bio-toggle.open .bio-arrow{transform:rotate(180deg);}
+.bio-body{display:none;padding:10px 14px 14px;border-top:1px solid var(--border);background:var(--surface2);}
+.bio-body.open{display:block;}
+.bio-body ul{list-style:none;padding:0;margin:0;}
+.bio-body ul li{font-size:12px;color:var(--text2);padding:3px 0 3px 14px;position:relative;line-height:1.5;}
+.bio-body ul li::before{content:'·';position:absolute;left:4px;color:var(--text3);}
+
+/* ── TAGS ── */
+.tag-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:var(--accent2-light);color:var(--accent2);border:1px solid #f0d4b0;}
+.tag-blue{background:#e8f0fb;color:#2a4a8a;border-color:#c0d0f0;}
+.tag-rm{cursor:pointer;color:inherit;opacity:.5;font-size:12px;line-height:1;background:none;border:none;padding:0;font-family:inherit;}
+.tag-rm:hover,.tag-rm:active{opacity:1;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--surface);border-radius:16px 16px 0 0;
+  padding:24px 20px calc(20px + env(safe-area-inset-bottom));
+  width:100%;max-width:520px;max-height:92vh;overflow-y:auto;
+  box-shadow:0 -4px 40px rgba(0,0,0,.15);
+}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text);}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;transition:border-color .12s;-webkit-appearance:none;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--accent);}
+.form-row textarea{resize:vertical;min-height:64px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
+
+/* Schedule grid in modal */
+.sched-grid{display:grid;grid-template-columns:52px repeat(6,1fr);gap:4px;margin-top:6px;}
+.sched-grid .dl{font-size:11px;font-weight:600;color:var(--text3);text-align:center;padding:3px 0;}
+.sched-grid .rl{font-size:12px;color:var(--text2);font-weight:500;display:flex;align-items:center;}
+.sched-cell{display:flex;align-items:center;justify-content:center;height:34px;border-radius:8px;border:1px solid var(--border);cursor:pointer;background:var(--surface2);transition:.12s;font-size:14px;user-select:none;}
+.sched-cell:active{border-color:var(--accent);background:var(--accent-light);}
+.sched-cell.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
+
+/* Tag input in modal */
+.tag-input-row{display:flex;gap:6px;margin-top:7px;}
+.tag-input-row input{flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;}
+.tag-input-row input:focus{border-color:var(--accent);}
+.tag-input-row button{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
+
+/* ── GLOBAL SEARCH ── */
+.global-search{position:relative;flex:1;max-width:260px;min-width:120px;}
+.global-search input{width:100%;padding:7px 28px 7px 30px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;transition:border-color .12s;}
+.global-search input:focus{border-color:var(--accent);background:var(--surface);}
+.global-search .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none;}
+.global-search .sc{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);padding:2px;line-height:1;display:none;}
+.global-search input:not(:placeholder-shown)~.sc{display:block;}
+
+/* ── GLOBAL SEARCH RESULTS ── */
+.gs-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:300;max-height:360px;overflow-y:auto;display:none;}
+.gs-results.open{display:block;}
+.gs-group-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;padding:10px 14px 4px;}
+.gs-item{padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .1s;}
+.gs-item:hover,.gs-item:active{background:var(--surface2);}
+.gs-item-name{font-size:13px;font-weight:600;color:var(--text);}
+.gs-item-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.gs-empty{padding:20px 14px;font-size:13px;color:var(--text3);text-align:center;}
+.gs-divider{height:1px;background:var(--border);margin:4px 0;}
+.toast{position:fixed;bottom:calc(var(--tab-h) + 12px);left:50%;transform:translateX(-50%) translateY(40px);background:var(--text);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .25s;z-index:500;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── DESKTOP OVERRIDES ── */
+@media(min-width:640px){
+  .sidebar{display:flex;}
+  .mob-tab{display:none;}
+  .mob-drawer,.mob-drawer-overlay{display:none!important;}
+  .modal-overlay{align-items:center;}
+  .modal{border-radius:var(--radius);max-height:88vh;padding:26px;}
+  .modal-handle{display:none;}
+  .main{padding:20px;}
+  .toast{bottom:22px;}
+}
+
+/* ── MOBILE OVERRIDES ── */
+@media(max-width:639px){
+  .sidebar{display:none;}
+  .mob-tab{display:block;}
+  .app{bottom:var(--tab-h);}
+  header .btn-outline:not(.btn-icon){display:none;}
+  .filter-bar{padding:8px 12px;}
+  .main{padding:12px;}
+  .card-header{padding:10px 12px 9px;}
+  .table-wrap{margin:0 -1px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📋 진료시간표 <span>거래처 관리</span></div>
+  <div class="global-search" id="gs-wrap">
+    <span class="si">🔍</span>
+    <input type="text" id="gs-input" placeholder="의사·거래처 전체 검색..." oninput="onGlobalSearch(this.value)" onfocus="onGlobalSearch(this.value)" autocomplete="off">
+    <button class="sc" onclick="clearGlobalSearch()">✕</button>
+    <div class="gs-results" id="gs-results"></div>
+  </div>
+  <div class="header-btns">
+    <input type="file" id="xlsx-input" accept=".xlsx" style="display:none" onchange="handleXlsx(this)">
+    <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()">📂 엑셀 업로드</button>
+    <button class="btn btn-outline" onclick="openHospModal()">+ 거래처</button>
+    <button class="btn btn-primary" onclick="openDrModal()">+ 의사</button>
+    <!-- mobile FAB -->
+    <button class="btn btn-primary btn-icon" id="mob-add-btn" style="display:none" onclick="openDrModal()">＋</button>
+  </div>
+</header>
+
+<div class="app">
+  <!-- Desktop sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-title">거래처 목록</div>
+    <div id="hosp-list"></div>
+    <button class="add-hosp" onclick="openHospModal()">+ 거래처 추가</button>
+  </aside>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="main" id="main"></div>
+  </div>
+</div>
+
+<!-- Mobile bottom tab -->
+<nav class="mob-tab">
+  <div class="mob-tab-inner">
+    <button class="tab-btn active" id="tab-list" onclick="openDrawer()">
+      <span class="ti">🏥</span><span>거래처</span>
+    </button>
+    <button class="tab-btn" id="tab-add-hosp" onclick="openHospModal()">
+      <span class="ti">＋</span><span>거래처 추가</span>
+    </button>
+    <button class="tab-btn" id="tab-add-dr" onclick="openDrModal()">
+      <span class="ti">👨‍⚕️</span><span>의사 추가</span>
+    </button>
+    <button class="tab-btn" id="tab-upload" onclick="document.getElementById('xlsx-input').click()">
+      <span class="ti">📂</span><span>엑셀 업로드</span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile hospital drawer -->
+<div class="mob-drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="mob-drawer" id="mob-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">거래처 목록</div>
+  <div id="drawer-list"></div>
+  <button class="drawer-add" onclick="closeDrawer();openHospModal();">+ 거래처 추가</button>
+</div>
+
+<!-- Hospital Modal -->
+<div class="modal-overlay" id="hosp-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="hosp-modal-title">거래처 추가</h3>
+    <div class="form-row"><label>병원명 *</label><input type="text" id="h-name" placeholder="예: 서울척병원"></div>
+    <div class="form-row">
+      <label>거래 품목 <span style="font-weight:400;color:var(--text3)">(Enter 또는 + 추가)</span></label>
+      <div class="tag-list" id="h-tag-list"></div>
+      <div class="tag-input-row">
+        <input type="text" id="h-tag-input" placeholder="품목명 입력" onkeydown="if(event.key==='Enter'){event.preventDefault();addHTag();}">
+        <button onclick="addHTag()">+ 추가</button>
+      </div>
+    </div>
+    <div class="form-row"><label>메모</label><textarea id="h-memo" placeholder="연락처, 계약조건, 특이사항 등"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('hosp-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveHosp()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Doctor Modal -->
+<div class="modal-overlay" id="dr-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="dr-modal-title">의사 추가</h3>
+    <div class="form-row"><label>거래처 *</label><select id="d-hosp"></select></div>
+    <div class="form-row"><label>의사 이름 *</label><input type="text" id="d-name" placeholder="예: 김민욱 원장"></div>
+    <div class="form-row"><label>진료과 / 센터</label><input type="text" id="d-dept" placeholder="예: 관절센터"></div>
+    <div class="form-row">
+      <label>진료시간</label>
+      <div class="sched-grid">
+        <div></div>
+        <div class="dl">월</div><div class="dl">화</div><div class="dl">수</div>
+        <div class="dl">목</div><div class="dl">금</div><div class="dl">토</div>
+        <div class="rl">오전</div>
+        <div class="sched-cell" data-s="0-0" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="1-0" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="2-0" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="3-0" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="4-0" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="5-0" onclick="toggleCell(this)"></div>
+        <div class="rl">오후</div>
+        <div class="sched-cell" data-s="0-1" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="1-1" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="2-1" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="3-1" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="4-1" onclick="toggleCell(this)"></div>
+        <div class="sched-cell" data-s="5-1" onclick="toggleCell(this)"></div>
+      </div>
+    </div>
+    <div class="form-row"><label>비고 (휴진·대진 등)</label><input type="text" id="d-memo" placeholder="예: 토 03/14,21 / 수 대진"></div>
+    <div class="form-row">
+      <label>담당 품목 <span style="font-weight:400;color:var(--text3)">(Enter 또는 + 추가)</span></label>
+      <div class="tag-list" id="d-tag-list"></div>
+      <div class="tag-input-row">
+        <input type="text" id="d-tag-input" placeholder="품목명 입력" onkeydown="if(event.key==='Enter'){event.preventDefault();addDTag();}">
+        <button onclick="addDTag()">+ 추가</button>
+      </div>
+    </div>
+    <div class="form-row"><label>영업 메모</label><textarea id="d-note" placeholder="관심 분야, 미팅 내용, 특이사항 등" style="min-height:70px;"></textarea></div>
+    <div class="form-row">
+      <label>약력 <span style="font-weight:400;color:var(--text3)">(한 줄씩 입력 → 카드에서 접기/펼치기)</span></label>
+      <textarea id="d-bio" placeholder="예: 연세대학교 의과대학 졸업&#10;前 세브란스병원 정형외과 전임의&#10;대한정형외과학회 정회원" style="min-height:78px;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('dr-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveDr()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirm-modal" style="z-index:500;">
+  <div class="modal" style="max-width:320px;padding:24px 20px;">
+    <div class="modal-handle"></div>
+    <p id="confirm-msg" style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:20px;text-align:center;"></p>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button class="btn btn-outline" style="flex:1;" onclick="closeModal('confirm-modal')">취소</button>
+      <button class="btn btn-danger" style="flex:1;" onclick="confirmOk()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DAYS=['월','화','수','목','금','토'];
+const TIMES=['오전','오후'];
+let S={hospitals:[],doctors:[],activeHosp:null,editHospId:null,editDrId:null,hTags:[],dTags:[],drQ:''};
+const KEY='myschedule_v6';
+function save(){localStorage.setItem(KEY,JSON.stringify({hospitals:S.hospitals,doctors:S.doctors}));}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');S.hospitals=d.hospitals||[];S.doctors=d.doctors||[];if(S.hospitals.length)S.activeHosp=S.hospitals[0].id;}catch(e){}
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function hl(t,q){
+  if(!q)return esc(t);
+  return esc(t).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>'<span class="hl">'+m+'</span>');
+}
+
+// ── Render ──
+function render(){renderSidebar();renderDrawer();renderMain();}
+
+function renderSidebar(){
+  document.getElementById('hosp-list').innerHTML=S.hospitals.map(h=>
+    '<div class="hosp-item'+(h.id===S.activeHosp?' active':'')+'" data-id="'+h.id+'" onclick="selHosp(this.dataset.id)">'+
+      '<span>'+esc(h.name)+'</span>'+
+      '<button class="del" data-id="'+h.id+'" onclick="event.stopPropagation();delHosp(this.dataset.id)" title="삭제">✕</button>'+
+    '</div>'
+  ).join('');
+}
+
+function renderDrawer(){
+  document.getElementById('drawer-list').innerHTML=S.hospitals.map(h=>
+    '<div class="drawer-hosp-item'+(h.id===S.activeHosp?' active':'')+'" data-id="'+h.id+'" onclick="selHosp(this.dataset.id);closeDrawer();">'+
+      '<span>'+esc(h.name)+'</span>'+
+      '<button class="del" data-id="'+h.id+'" onclick="event.stopPropagation();delHosp(this.dataset.id)" title="삭제">✕</button>'+
+    '</div>'
+  ).join('');
+}
+
+function renderMain(){
+  const el=document.getElementById('main');
+  if(!S.hospitals.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">🏥</div><p><strong>거래처를 추가</strong>하고 의사 진료시간표를 관리하세요</p><button class="btn btn-primary" onclick="openHospModal()">거래처 추가하기</button></div>';
+    return;
+  }
+  const h=S.hospitals.find(x=>x.id===S.activeHosp);
+  if(!h){el.innerHTML='<div class="empty-state"><div class="empty-icon">👈</div><p>거래처를 선택하세요</p></div>';return;}
+
+  let docs=S.doctors.filter(d=>d.hospitalId===h.id);
+  const q=S.drQ||'';
+  if(q)docs=docs.filter(d=>d.name.includes(q)||(d.dept||'').includes(q));
+
+  const hProds=h.products||[],hMemo=h.memo||'';
+  const infoHtml=(hProds.length||hMemo)?
+    '<div class="info-panel">'+
+      '<div class="info-panel-title">거래처 정보</div>'+
+      (hProds.length?'<div class="info-row"><span class="info-label">📦 품목</span><div class="tag-list">'+hProds.map(p=>'<span class="tag tag-blue">'+esc(p)+'</span>').join('')+'</div></div>':'')+
+      (hMemo?'<div class="info-row"><span class="info-label">📝 메모</span><span style="font-size:12px;color:var(--text2);line-height:1.6;">'+esc(hMemo).replace(/\n/g,'<br>')+'</span></div>':'')+
+    '</div>':'';
+
+  const headerHtml=
+    '<div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">'+
+      '<div style="font-size:18px;font-weight:700;">'+esc(h.name)+'</div>'+
+      '<div style="display:flex;gap:6px;">'+
+        '<button class="btn btn-outline btn-sm" data-id="'+h.id+'" onclick="openHospModal(this.dataset.id)">메모</button>'+
+        '<button class="btn btn-primary btn-sm" onclick="openDrModal()">+ 의사 추가</button>'+
+      '</div>'+
+    '</div>';
+
+  if(!docs.length){
+    const emptyMsg=q?('"'+esc(q)+'" 검색 결과 없음'):'의사 정보를 추가해보세요';
+    const addBtn=!q?'<button class="btn btn-primary" onclick="openDrModal()">의사 추가하기</button>':'';
+    el.innerHTML=headerHtml+infoHtml+'<div class="empty-state" style="min-height:160px;"><div class="empty-icon">👨‍⚕️</div><p>'+emptyMsg+'</p>'+addBtn+'</div>';
+    return;
+  }
+
+  const cards=docs.map(d=>{
+    const rows=TIMES.map((t,ti)=>{
+      const cells=d.schedule.map((day,di)=>{
+        const on=day[ti];
+        return '<td>'+(on?'<span class="dot-on">●</span>':'<span class="dot-off">·</span>')+'</td>';
+      }).join('');
+      return '<tr><td class="rl">'+t+'</td>'+cells+'</tr>';
+    }).join('');
+    const memoRow=d.memo?'<tr class="memo-row"><td class="rl">비고</td><td class="mc" colspan="6">'+esc(d.memo)+'</td></tr>':'';
+    const thRow='<tr><th class="rl"></th>'+DAYS.map(day=>'<th>'+day+'</th>').join('')+'</tr>';
+
+    const prods=d.products||[],note=d.note||'';
+    const infoSec=(prods.length||note)?
+      '<div class="card-info">'+
+        (prods.length?'<div class="ci-col"><div class="ci-label">📦 담당 품목</div><div class="tag-list">'+prods.map(p=>'<span class="tag">'+esc(p)+'</span>').join('')+'</div></div>':'')+
+        (note?'<div class="ci-col"><div class="ci-label">📝 영업 메모</div><div class="ci-text">'+esc(note).replace(/\n/g,'<br>')+'</div></div>':'')+
+      '</div>':'';
+
+    const bioLines=(d.bio||'').split('\n').map(l=>l.trim()).filter(Boolean);
+    const bioSec=bioLines.length?
+      '<button class="bio-toggle" onclick="toggleBio(this)"><span>📋 약력 ('+bioLines.length+'건)</span><span class="bio-arrow">▼</span></button>'+
+      '<div class="bio-body"><ul>'+bioLines.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul></div>':'';
+
+    const dname=q?hl(d.name,q):esc(d.name);
+    const ddept=d.dept?(q?hl(d.dept,q):esc(d.dept)):'';
+
+    return '<div class="doctor-card">'+
+      '<div class="card-header">'+
+        '<div class="card-hd-left"><div class="doctor-name">'+dname+'</div>'+(d.dept?'<div class="doctor-dept">'+ddept+'</div>':'')+' </div>'+
+        '<div class="card-actions">'+
+          '<button class="btn btn-outline btn-sm" data-id="'+d.id+'" onclick="openDrModal(this.dataset.id)">메모</button>'+
+          '<button class="btn btn-danger btn-sm" data-id="'+d.id+'" onclick="delDr(this.dataset.id)">삭제</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="table-wrap"><table class="schedule-table"><thead>'+thRow+'</thead><tbody>'+rows+memoRow+'</tbody></table></div>'+
+      infoSec+bioSec+
+    '</div>';
+  }).join('');
+
+  el.innerHTML=headerHtml+infoHtml+'<div class="doctor-grid">'+cards+'</div>';
+}
+
+// Bio toggle
+function toggleBio(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+// Drawer
+function openDrawer(){
+  renderDrawer();
+  document.getElementById('mob-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('mob-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+
+// Hospital tags
+// Init — runs after DOM is ready
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Modal close on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(el=>{
+    el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
+  });
+  // Global search close on outside click
+  document.addEventListener('click',e=>{
+    const wrap=document.getElementById('gs-wrap');
+    if(wrap&&!wrap.contains(e.target)) document.getElementById('gs-results').classList.remove('open');
+  });
+  // Mobile
+  checkMobile();
+  // Data
+  load();
+  injectHyundai();
+  injectCheok();
+  injectGangbuk();
+  render();
+});
+
+// Hospital tags
+function renderHTags(){document.getElementById('h-tag-list').innerHTML=S.hTags.map((p,i)=>'<span class="tag tag-blue">'+esc(p)+'<button class="tag-rm" onclick="rmHTag('+i+')">✕</button></span>').join('');}
+function addHTag(){const inp=document.getElementById('h-tag-input');const v=inp.value.trim();if(v&&!S.hTags.includes(v)){S.hTags.push(v);renderHTags();}inp.value='';}
+function rmHTag(i){S.hTags.splice(i,1);renderHTags();}
+
+// Doctor tags
+function renderDTags(){document.getElementById('d-tag-list').innerHTML=S.dTags.map((p,i)=>'<span class="tag">'+esc(p)+'<button class="tag-rm" onclick="rmDTag('+i+')">✕</button></span>').join('');}
+function addDTag(){const inp=document.getElementById('d-tag-input');const v=inp.value.trim();if(v&&!S.dTags.includes(v)){S.dTags.push(v);renderDTags();}inp.value='';}
+function rmDTag(i){S.dTags.splice(i,1);renderDTags();}
+
+// Hospital CRUD
+function openHospModal(id){
+  S.editHospId=id||null;
+  const h=id?S.hospitals.find(x=>x.id===id):null;
+  document.getElementById('hosp-modal-title').textContent=id?'거래처 메모':'거래처 추가';
+  document.getElementById('h-name').value=h?h.name:'';
+  document.getElementById('h-memo').value=h?(h.memo||''):'';
+  S.hTags=h?[...(h.products||[])]:[];
+  renderHTags();
+  document.getElementById('hosp-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('h-name').focus(),50);
+}
+function saveHosp(){
+  const name=document.getElementById('h-name').value.trim();
+  if(!name){toast('병원명을 입력해주세요');return;}
+  const obj={memo:document.getElementById('h-memo').value.trim(),products:[...S.hTags]};
+  if(S.editHospId){const h=S.hospitals.find(x=>x.id===S.editHospId);if(h)Object.assign(h,{name,...obj});}
+  else{const h={id:uid(),name,...obj};S.hospitals.push(h);S.activeHosp=h.id;}
+  save();closeModal('hosp-modal');render();toast('저장되었습니다');
+}
+function delHosp(id){
+  showConfirm('이 거래처와 모든 의사 정보를 삭제할까요?', ()=>{
+    S.hospitals=S.hospitals.filter(h=>h.id!==id);
+    S.doctors=S.doctors.filter(d=>d.hospitalId!==id);
+    if(S.activeHosp===id)S.activeHosp=S.hospitals[0]?.id||null;
+    save();render();toast('삭제되었습니다');
+  });
+}
+function selHosp(id){
+  S.activeHosp=id;
+  S.drQ='';
+  renderSidebar();renderDrawer();renderMain();
+}
+
+// Doctor CRUD
+function openDrModal(id){
+  S.editDrId=id||null;
+  const d=id?S.doctors.find(x=>x.id===id):null;
+  document.getElementById('dr-modal-title').textContent=id?'의사 메모':'의사 추가';
+  document.getElementById('d-hosp').innerHTML=S.hospitals.map(h=>'<option value="'+h.id+'"'+((d?d.hospitalId:S.activeHosp)===h.id?' selected':'')+'>'+esc(h.name)+'</option>').join('');
+  document.getElementById('d-name').value=d?d.name:'';
+  document.getElementById('d-dept').value=d?(d.dept||''):'';
+  document.getElementById('d-memo').value=d?(d.memo||''):'';
+  document.getElementById('d-note').value=d?(d.note||''):'';
+  document.getElementById('d-bio').value=d?(d.bio||''):'';
+  S.dTags=d?[...(d.products||[])]:[];
+  renderDTags();
+  document.querySelectorAll('.sched-cell').forEach(cell=>{
+    const [di,ti]=cell.dataset.s.split('-').map(Number);
+    const on=!!(d&&d.schedule&&d.schedule[di]&&d.schedule[di][ti]);
+    cell.classList.toggle('on',on);cell.textContent=on?'●':'';
+  });
+  document.getElementById('dr-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('d-name').focus(),50);
+}
+function toggleCell(el){el.classList.toggle('on');el.textContent=el.classList.contains('on')?'●':'';}
+function saveDr(){
+  const name=document.getElementById('d-name').value.trim();
+  if(!name){toast('의사 이름을 입력해주세요');return;}
+  const schedule=Array.from({length:6},()=>[false,false]);
+  document.querySelectorAll('.sched-cell').forEach(cell=>{
+    const [di,ti]=cell.dataset.s.split('-').map(Number);
+    schedule[di][ti]=cell.classList.contains('on');
+  });
+  const obj={
+    hospitalId:document.getElementById('d-hosp').value,name,
+    dept:document.getElementById('d-dept').value.trim(),
+    memo:document.getElementById('d-memo').value.trim(),
+    note:document.getElementById('d-note').value.trim(),
+    bio:document.getElementById('d-bio').value.trim(),
+    products:[...S.dTags],schedule
+  };
+  if(S.editDrId){const d=S.doctors.find(x=>x.id===S.editDrId);if(d)Object.assign(d,obj);}
+  else S.doctors.push({id:uid(),...obj});
+  save();closeModal('dr-modal');render();toast('저장되었습니다');
+}
+function delDr(id){
+  showConfirm('이 의사 정보를 삭제할까요?', ()=>{
+    S.doctors=S.doctors.filter(d=>d.id!==id);
+    save();render();toast('삭제되었습니다');
+  });
+}
+
+// Modal
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  document.querySelectorAll('.modal-overlay.open').forEach(el=>el.classList.remove('open'));
+  closeDrawer();
+  clearGlobalSearch();
+});
+
+// Toast
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// Custom confirm
+function showConfirm(msg, onOk){
+  document.getElementById('confirm-msg').textContent=msg;
+  S._confirmCb=onOk;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function confirmOk(){
+  closeModal('confirm-modal');
+  if(S._confirmCb){S._confirmCb();S._confirmCb=null;}
+}
+
+// Global search
+function onGlobalSearch(q){
+  const box=document.getElementById('gs-results');
+  q=q.trim();
+  if(!q){box.classList.remove('open');return;}
+
+  // Search hospitals
+  const matchedHosps=S.hospitals.filter(h=>h.name.includes(q));
+  // Search doctors across all hospitals
+  const matchedDrs=S.doctors.filter(d=>
+    d.name.includes(q)||(d.dept||'').includes(q)
+  );
+
+  if(!matchedHosps.length&&!matchedDrs.length){
+    box.innerHTML='<div class="gs-empty">검색 결과가 없습니다</div>';
+    box.classList.add('open');return;
+  }
+
+  let html='';
+  if(matchedHosps.length){
+    html+='<div class="gs-group-title">거래처</div>';
+    html+=matchedHosps.map(h=>
+      '<div class="gs-item" data-hid="'+h.id+'" onclick="gsSelectHosp(this.dataset.hid)">'+
+        '<span style="font-size:16px;">🏥</span>'+
+        '<div><div class="gs-item-name">'+hl(h.name,q)+'</div></div>'+
+      '</div>'
+    ).join('');
+  }
+  if(matchedHosps.length&&matchedDrs.length) html+='<div class="gs-divider"></div>';
+  if(matchedDrs.length){
+    html+='<div class="gs-group-title">의사</div>';
+    html+=matchedDrs.map(d=>{
+      const hosp=S.hospitals.find(h=>h.id===d.hospitalId);
+      return '<div class="gs-item" data-hid="'+d.hospitalId+'" data-did="'+d.id+'" onclick="gsSelectDr(this.dataset.hid,this.dataset.did)">'+
+        '<span style="font-size:16px;">👨‍⚕️</span>'+
+        '<div>'+
+          '<div class="gs-item-name">'+hl(d.name,q)+(d.dept?' <span style="font-size:11px;font-weight:400;color:var(--text3);">'+esc(d.dept)+'</span>':'')+'</div>'+
+          '<div class="gs-item-sub">'+(hosp?esc(hosp.name):'')+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+  box.innerHTML=html;
+  box.classList.add('open');
+}
+function gsSelectHosp(hid){
+  selHosp(hid);
+  clearGlobalSearch();
+}
+function gsSelectDr(hid,did){
+  selHosp(hid);
+  // highlight doctor by searching name
+  const d=S.doctors.find(x=>x.id===did);
+  if(d){
+    document.getElementById('dr-q').value=d.name;
+    renderMain();
+  }
+  clearGlobalSearch();
+}
+function clearGlobalSearch(){
+  document.getElementById('gs-input').value='';
+  document.getElementById('gs-results').classList.remove('open');
+}
+function checkMobile(){
+  const mob=window.innerWidth<640;
+  document.getElementById('mob-add-btn').style.display=mob?'':'none';
+}
+window.addEventListener('resize',checkMobile);
+
+// Excel Upload
+function handleXlsx(input){
+  const file=input.files[0];if(!file)return;input.value='';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const sn=wb.SheetNames.includes('진료시간표')?'진료시간표':wb.SheetNames[0];
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''});
+      let hr=-1;for(let i=0;i<rows.length;i++){if(rows[i].some(c=>String(c).includes('거래처명'))){hr=i;break;}}
+      if(hr===-1){toast('❌ 헤더를 찾을 수 없어요');return;}
+      const heads=rows[hr].map(h=>String(h).trim());
+      const ci=n=>heads.findIndex(h=>h===n);
+      const C={hosp:ci('거래처명'),name:ci('의사이름'),dept:ci('직함/과'),
+        월오전:ci('월오전'),월오후:ci('월오후'),화오전:ci('화오전'),화오후:ci('화오후'),
+        수오전:ci('수오전'),수오후:ci('수오후'),목오전:ci('목오전'),목오후:ci('목오후'),
+        금오전:ci('금오전'),금오후:ci('금오후'),토오전:ci('토오전'),토오후:ci('토오후'),memo:ci('비고')};
+      let added=0,skipped=0;
+      rows.slice(hr+1).forEach(row=>{
+        const hN=String(row[C.hosp]||'').trim(),dN=String(row[C.name]||'').trim();
+        if(!hN||!dN)return;
+        let hosp=S.hospitals.find(h=>h.name===hN);
+        if(!hosp){hosp={id:uid(),name:hN,memo:'',products:[]};S.hospitals.push(hosp);if(!S.activeHosp)S.activeHosp=hosp.id;}
+        if(S.doctors.find(d=>d.hospitalId===hosp.id&&d.name===dN)){skipped++;return;}
+        const isOn=v=>String(v).trim().toUpperCase()==='O';
+        const schedule=[[isOn(row[C.월오전]),isOn(row[C.월오후])],[isOn(row[C.화오전]),isOn(row[C.화오후])],[isOn(row[C.수오전]),isOn(row[C.수오후])],[isOn(row[C.목오전]),isOn(row[C.목오후])],[isOn(row[C.금오전]),isOn(row[C.금오후])],[isOn(row[C.토오전]),isOn(row[C.토오후])]];
+        const dks=[['월오전','월오후'],['화오전','화오후'],['수오전','수오후'],['목오전','목오후'],['금오전','금오후'],['토오전','토오후']];
+        let sn=[];dks.forEach(([am,pm],di)=>{[[C[am],0],[C[pm],1]].forEach(([col,ti])=>{const v=String(row[col]||'').trim();if(v&&v.toUpperCase()!=='O')sn.push(DAYS[di]+TIMES[ti]+': '+v);});});
+        const uMemo=String(row[C.memo]||'').trim();
+        S.doctors.push({id:uid(),hospitalId:hosp.id,name:dN,dept:String(row[C.dept]||'').trim(),memo:[...(uMemo?[uMemo]:[]),...sn].join(' / '),note:'',bio:'',products:[],schedule});
+        added++;
+      });
+      save();render();toast('✅ '+added+'명 추가'+(skipped?' ('+skipped+'명 중복 건너뜀)':''));
+    }catch(err){console.error(err);toast('❌ 파일 읽기 실패');}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Presets
+function mk(HID,d,i){return {id:HID+'_'+i,hospitalId:HID,name:d.name,dept:d.dept||'',memo:d.memo||'',note:'',bio:'',products:[],schedule:d.schedule};}
+function injectHyundai(){
+  const HID='seoulhyundai';if(S.hospitals.find(h=>h.id===HID))return;
+  S.hospitals.push({id:HID,name:'서울현대병원',memo:'',products:[]});
+  [{name:'이우태',dept:'병원장 / 정형외과',schedule:[[false,true],[false,false],[true,false],[false,false],[true,false],[false,false]],memo:'월오전수술, 화오전수술, 목오후수술, 토 순환(문의)'},
+   {name:'허재우',dept:'대표원장 / 성형외과·수부외과',schedule:[[false,true],[true,false],[false,true],[true,false],[false,true],[false,false]],memo:'토 순환(문의)'},
+   {name:'허영우',dept:'척추관절센터장 / 정형외과 원장',schedule:[[false,true],[true,false],[false,false],[false,true],[true,false],[false,false]],memo:'토 순환(문의)'},
+   {name:'황성문',dept:'정형외과 과장',schedule:[[true,false],[true,false],[false,true],[false,true],[false,true],[false,false]],memo:'토 순환(문의)'},
+   {name:'양두근',dept:'정형외과 과장',schedule:[[true,false],[true,true],[false,true],[true,false],[false,true],[false,false]],memo:'토 순환(문의)'},
+   {name:'황성재',dept:'정형외과 과장',schedule:[[false,true],[false,true],[true,false],[true,true],[true,false],[false,false]],memo:'토 순환(문의)'},
+   {name:'허준영',dept:'척추센터장 / 신경외과 원장',schedule:[[true,false],[false,true],[true,true],[true,false],[false,true],[false,false]],memo:'토 격주'},
+   {name:'한홍석',dept:'외과 과장',schedule:[[true,true],[true,true],[true,false],[true,true],[true,false],[false,false]],memo:'수오후수술, 금오후 순환(문의)'},
+   {name:'백경원',dept:'내과 과장(소화기)',schedule:[[true,true],[false,false],[true,false],[false,true],[true,true],[true,false]],memo:'화 내시경, 목오전 내시경'},
+   {name:'김규',dept:'내과 과장(순환기)',schedule:[[true,true],[false,false],[true,true],[true,true],[true,true],[false,false]],memo:'화 미진료'},
+   {name:'채민규',dept:'내과 과장(소화기)',schedule:[[false,true],[true,true],[false,true],[true,false],[false,true],[false,false]],memo:'월오전 내시경, 수오전 내시경, 금오전 내시경, 목오후 격주, 토 격주(문의)'},
+   {name:'유어진',dept:'내과 과장(신장)',schedule:[[true,false],[true,false],[false,true],[false,true],[true,false],[false,false]],memo:'토 격주'},
+   {name:'이현기',dept:'내시경 전담의 & 가정의학과 과장',schedule:[[true,false],[true,true],[true,false],[true,false],[true,false],[false,false]],memo:'월·수·목·금 오후 내시경, 토 격주 내시경'},
+   {name:'임선영',dept:'신경과 과장',schedule:[[true,true],[false,true],[true,true],[true,false],[true,true],[false,false]],memo:'화오전 -, 목오후 격주, 토 격주'},
+  ].forEach((d,i)=>S.doctors.push(mk(HID,d,i)));
+  S.activeHosp=HID;save();
+}
+function injectCheok(){
+  const HID='seoulcheok';if(S.hospitals.find(h=>h.id===HID))return;
+  S.hospitals.push({id:HID,name:'서울척병원',memo:'',products:[]});
+  [{name:'김현식 명예원장',dept:'척추센터',schedule:[[false,false],[true,false],[false,false],[false,false],[false,false],[false,false]],memo:'휴진 / 대진(수)'},
+   {name:'노원 대표원장',dept:'척추센터',schedule:[[false,true],[false,false],[false,true],[false,false],[true,false],[false,false]],memo:'토 03/01,21 / 휴진·대진(수)'},
+   {name:'박세윤 원장',dept:'척추센터',schedule:[[false,true],[true,false],[false,false],[true,false],[false,false],[false,false]],memo:'토 03/15,21 / 휴진 03/06 / 대진(수)'},
+   {name:'박지균 원장',dept:'척추센터',schedule:[[true,true],[false,false],[true,false],[true,false],[false,true],[false,false]],memo:'토 03/01,21 / 휴진·대진(수)'},
+   {name:'양현식 원장',dept:'척추센터',schedule:[[true,false],[false,false],[true,false],[false,false],[true,true],[false,false]],memo:'토 03/15,26 / 휴진·대진(수)'},
+   {name:'이석주 대표원장',dept:'척추센터',schedule:[[true,true],[false,false],[false,false],[false,false],[false,false],[false,false]],memo:'토 03/26 / 휴진 03/06,27 / 대진(수)'},
+   {name:'윤준기 원장',dept:'척추센터',schedule:[[true,false],[false,false],[false,true],[true,false],[false,false],[false,false]],memo:'토 03/15,26 / 휴진·대진(수)'},
+   {name:'김민욱 원장',dept:'관절센터',schedule:[[false,true],[true,true],[true,false],[false,false],[true,true],[false,false]],memo:'토 03/14,21 / 휴진·대진(수)'},
+   {name:'김수현 원장',dept:'관절센터',schedule:[[true,true],[false,false],[true,true],[true,false],[true,false],[false,false]],memo:'토 03/14,28 / 휴진·대진(수)'},
+   {name:'이희형 원장',dept:'관절센터',schedule:[[true,false],[true,true],[false,false],[true,true],[false,true],[false,false]],memo:'토 03/07,21 / 휴진·대진(수)'},
+   {name:'이승훈 센터장',dept:'건강검진센터',schedule:[[true,true],[false,true],[true,false],[true,true],[false,false],[false,false]],memo:'휴진·대진(수)'},
+  ].forEach((d,i)=>S.doctors.push(mk(HID,d,i)));
+  save();
+}
+function injectGangbuk(){
+  const HID='gangbukeum';if(S.hospitals.find(h=>h.id===HID))return;
+  S.hospitals.push({id:HID,name:'강북으뜸병원',memo:'',products:[]});
+  [{name:'김태완 병원장',dept:'정형외과 전문의',schedule:[[true,false],[false,true],[true,false],[false,true],[true,false],[true,false]],memo:'목 야간진료 / 월·수·금오후 수술 / 화·목오전 수술'},
+   {name:'전성만 원장',dept:'정형외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'토 순환진료'},
+   {name:'감진화 원장',dept:'정형외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'토 순환진료'},
+   {name:'문지원 원장',dept:'신경외과 전문의',schedule:[[true,true],[true,true],[true,true],[true,true],[false,true],[false,false]],memo:'금오전 수술 / 토 격주휴무'},
+   {name:'문지미 원장',dept:'내과 전문의',schedule:[[true,true],[true,true],[true,false],[true,true],[true,false],[false,false]],memo:'수오후 휴진 / 금오후 휴무 / 토 순환진료'},
+   {name:'김민 원장',dept:'내과 전문의',schedule:[[true,true],[true,false],[true,true],[true,true],[true,false],[false,false]],memo:'화오후·금오후 휴진 / 토 순환진료'},
+   {name:'홍승환 마취원장',dept:'마취통증의학과',schedule:[[true,true],[true,true],[true,true],[true,true],[true,true],[false,false]],memo:'월~금 오전·오후'},
+  ].forEach((d,i)=>S.doctors.push(mk(HID,d,i)));
+  save();
+}
+
+
+</script>
+</body>
+</html>
