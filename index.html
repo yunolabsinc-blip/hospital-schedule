@@ -73,6 +73,51 @@ header{
 /* ── CONTENT AREA ── */
 .content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 
+
+/* ── DESKTOP TABS ── */
+.desk-tabs{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+.desk-tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;cursor:pointer;font-family:inherit;border-bottom:3px solid transparent;transition:.15s;margin-bottom:-1px;}
+.desk-tab:hover{color:var(--text2);}
+.desk-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* ── ACTIVITY PLAN ── */
+.plan-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.plan-date-nav{display:flex;align-items:center;gap:8px;}
+.plan-date-nav button{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:14px;color:var(--text2);font-family:inherit;}
+.plan-date-nav button:hover{background:var(--surface2);}
+.plan-date-label{font-size:16px;font-weight:700;color:var(--text);min-width:140px;text-align:center;}
+.plan-today-btn{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:none;cursor:pointer;font-family:inherit;}
+.plan-today-btn:hover{background:var(--accent-light);}
+.plan-section-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;padding:8px 0 6px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+.plan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:8px;transition:opacity .2s;}
+.plan-card.done{opacity:.55;}
+.plan-card-header{display:flex;align-items:center;gap:10px;padding:12px 14px;}
+.plan-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;background:var(--surface);}
+.plan-check:hover{border-color:var(--accent);}
+.plan-check.checked{background:var(--accent);border-color:var(--accent);}
+.plan-check-mark{display:none;color:#fff;font-size:12px;font-weight:700;}
+.plan-check.checked .plan-check-mark{display:block;}
+.plan-dr-name{font-size:14px;font-weight:700;color:var(--text);flex:1;}
+.plan-hosp-name{font-size:11px;color:var(--text3);margin-top:2px;}
+.plan-dept-badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--accent-light);color:var(--accent);white-space:nowrap;}
+.plan-time-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#fef9e7;color:#b7770d;border:1px solid #f9e79f;white-space:nowrap;}
+.plan-note-area{border-top:1px solid var(--border);background:var(--surface2);padding:0;}
+.plan-note-area textarea{width:100%;padding:10px 14px;font-size:13px;font-family:inherit;border:none;background:transparent;resize:vertical;min-height:64px;color:var(--text);outline:none;display:block;}
+.plan-note-footer{display:flex;justify-content:flex-end;align-items:center;padding:4px 14px 8px;gap:8px;}
+.plan-save-btn{font-size:11px;font-weight:600;padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;background:var(--accent);color:#fff;}
+.plan-save-btn:hover{background:#224830;}
+.plan-note-saved{font-size:11px;color:var(--text3);}
+.plan-empty{display:flex;flex-direction:column;align-items:center;padding:60px 20px;color:var(--text3);gap:12px;}
+.plan-empty-icon{font-size:40px;opacity:.4;}
+.plan-add-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:var(--shadow);}
+.plan-add-box .add-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;}
+.plan-add-row{display:flex;gap:6px;flex-wrap:wrap;}
+.plan-add-row select,.plan-add-row input{padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;}
+.plan-add-row select{flex-shrink:0;}
+.plan-add-row input{flex:1;min-width:100px;}
+.plan-add-row input:focus,.plan-add-row select:focus{border-color:var(--accent);}
+.plan-add-btn{padding:8px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;}
+
 /* ── FILTER BAR ── */
 .filter-bar{
   background:var(--surface);border-bottom:1px solid var(--border);
@@ -256,6 +301,31 @@ header{
 .gs-item-sub{font-size:11px;color:var(--text3);margin-top:1px;}
 .gs-empty{padding:20px 14px;font-size:13px;color:var(--text3);text-align:center;}
 .gs-divider{height:1px;background:var(--border);margin:4px 0;}
+/* ── VISIT/CALL LOG ── */
+.log-toggle{width:100%;padding:9px 14px;background:none;border:none;border-top:1px solid var(--border);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;color:var(--text3);transition:background .12s;text-align:left;}
+.log-toggle:hover,.log-toggle:active{background:var(--surface2);color:var(--text2);}
+.log-arrow{font-size:10px;transition:transform .2s;display:inline-block;}
+.log-toggle.open .log-arrow{transform:rotate(180deg);}
+.log-body{display:none;border-top:1px solid var(--border);background:var(--surface2);}
+.log-body.open{display:block;}
+.log-list{padding:10px 14px;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;}
+.log-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;gap:8px;align-items:flex-start;}
+.log-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:1px;}
+.log-badge.visit{background:#e8f5e9;color:#2e7d32;}
+.log-badge.call{background:#e3f2fd;color:#1565c0;}
+.log-badge.etc{background:#fce4ec;color:#ad1457;}
+.log-date{font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;padding-top:1px;}
+.log-content{font-size:12px;color:var(--text2);flex:1;line-height:1.5;}
+.log-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:0 2px;flex-shrink:0;line-height:1;}
+.log-del:hover{color:var(--danger);}
+.log-add-row{padding:8px 14px 12px;display:flex;gap:6px;border-top:1px solid var(--border);}
+.log-add-row select{padding:7px 8px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;flex-shrink:0;}
+.log-add-row input{flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;min-width:0;}
+.log-add-row input:focus,.log-add-row select:focus{border-color:var(--accent);}
+.log-add-row button{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;flex-shrink:0;}
+.phone-btn{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;text-decoration:none;margin-left:6px;vertical-align:middle;}
+.phone-btn:hover{background:#c8e6c9;}
+
 .toast{position:fixed;bottom:calc(var(--tab-h) + 12px);left:50%;transform:translateX(-50%) translateY(40px);background:var(--text);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .25s;z-index:500;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
@@ -297,9 +367,12 @@ header{
   </div>
   <div class="header-btns">
     <input type="file" id="xlsx-input" accept=".xlsx" style="display:none" onchange="handleXlsx(this)">
+    <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImgUpload(this)">
     <button class="btn btn-outline" onclick="downloadTemplate()">📥 양식 다운로드</button>
     <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()">📂 엑셀 업로드</button>
+    <button class="btn btn-outline" onclick="document.getElementById('img-input').click()">🖼️ 이미지 분석</button>
     <button class="btn btn-outline" onclick="openHospModal()">+ 거래처</button>
+    <button class="btn btn-outline btn-icon" onclick="openSettings()" title="설정">⚙️</button>
     <!-- mobile FAB -->
     <button class="btn btn-primary btn-icon" id="mob-add-btn" style="display:none" onclick="openDrModal()">＋</button>
   </div>
@@ -315,7 +388,13 @@ header{
 
   <!-- Content -->
   <div class="content">
+    <!-- 데스크톱 탭 -->
+    <div class="desk-tabs">
+      <button class="desk-tab active" id="dt-schedule" onclick="switchTab('schedule')">📋 진료시간표</button>
+      <button class="desk-tab" id="dt-plan" onclick="switchTab('plan')">📅 활동계획</button>
+    </div>
     <div class="main" id="main"></div>
+    <div class="main" id="plan-main" style="display:none;"></div>
   </div>
 </div>
 
@@ -325,11 +404,11 @@ header{
     <button class="tab-btn active" id="tab-list" onclick="openDrawer()">
       <span class="ti">🏥</span><span>거래처</span>
     </button>
+    <button class="tab-btn" id="tab-plan-mob" onclick="switchTab('plan');closeMobMenus()">
+      <span class="ti">📅</span><span>활동계획</span>
+    </button>
     <button class="tab-btn" id="tab-add-hosp" onclick="openHospModal()">
       <span class="ti">＋</span><span>거래처 추가</span>
-    </button>
-    <button class="tab-btn" id="tab-add-dr" onclick="openDrModal()">
-      <span class="ti">👨‍⚕️</span><span>의사 추가</span>
     </button>
     <button class="tab-btn" id="tab-upload" onclick="document.getElementById('xlsx-input').click()">
       <span class="ti">📂</span><span>엑셀 업로드</span>
@@ -352,6 +431,7 @@ header{
     <div class="modal-handle"></div>
     <h3 id="hosp-modal-title">거래처 추가</h3>
     <div class="form-row"><label>병원명 *</label><input type="text" id="h-name" placeholder="예: 서울척병원"></div>
+    <div class="form-row"><label>전화번호</label><input type="tel" id="h-phone" placeholder="예: 02-1234-5678"></div>
     <div class="form-row">
       <label>거래 품목 <span style="font-weight:400;color:var(--text3)">(Enter 또는 + 추가)</span></label>
       <div class="tag-list" id="h-tag-list"></div>
@@ -431,6 +511,81 @@ header{
   </div>
 </div>
 
+<!-- Plan Date Picker Modal -->
+<div class="modal-overlay" id="plan-pick-modal" style="z-index:500;">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-handle"></div>
+    <h3>📅 활동계획 추가</h3>
+    <input type="hidden" id="plan-pick-did">
+    <p id="plan-pick-name" style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:14px;"></p>
+    <div class="form-row">
+      <label>방문 날짜 선택</label>
+      <select id="plan-pick-date" style="font-size:14px;padding:10px 12px;width:100%;border-radius:10px;border:1px solid var(--border);font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"></select>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-outline" onclick="closeModal('plan-pick-modal')">취소</button>
+      <button class="btn btn-primary" onclick="confirmAddToPlan()">활동계획에 추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal" style="z-index:500;">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-handle"></div>
+    <h3>⚙️ 설정</h3>
+
+    <!-- 플랜 상태 -->
+    <div id="plan-status-box" style="border-radius:10px;padding:16px;margin-bottom:18px;"></div>
+
+    <!-- API 키 -->
+    <div class="form-row">
+      <label>🔑 Claude API 키 <span style="font-weight:400;color:var(--text3)">(이미지 분석 기능에 필요)</span></label>
+      <div style="display:flex;gap:8px;">
+        <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1;">
+        <button class="btn btn-outline btn-sm" onclick="toggleApiKeyVisibility()" id="api-key-toggle" style="flex-shrink:0;">보기</button>
+      </div>
+      <p style="font-size:11px;color:var(--text3);margin-top:5px;">
+        <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a>에서 발급 · 이 기기에만 저장됩니다
+      </p>
+    </div>
+
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-outline" onclick="closeModal('settings-modal')">닫기</button>
+      <button class="btn btn-primary" onclick="saveSettings()">저장</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="ai-modal" style="z-index:500;">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-handle"></div>
+    <h3 id="ai-modal-title">🖼️ 이미지 분석 중...</h3>
+    <div id="ai-loading" style="text-align:center;padding:30px 0;">
+      <div style="font-size:36px;margin-bottom:12px;">🤖</div>
+      <p style="font-size:14px;color:var(--text2);">AI가 진료시간표를 분석하고 있어요...<br>잠시만 기다려주세요</p>
+      <div style="margin-top:16px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+        <div id="ai-progress" style="height:100%;background:var(--accent);width:0%;transition:width .3s;border-radius:2px;"></div>
+      </div>
+    </div>
+    <div id="ai-result" style="display:none;">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">분석 결과를 확인하고 추가할 거래처와 의사를 선택하세요.</p>
+      <div id="ai-preview" style="background:var(--surface2);border-radius:8px;padding:14px;max-height:320px;overflow-y:auto;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;"></div>
+      <div class="form-row" style="margin-top:14px;">
+        <label>추가할 거래처명</label>
+        <input type="text" id="ai-hosp-name" placeholder="예: 서울척병원">
+      </div>
+    </div>
+    <div id="ai-error" style="display:none;text-align:center;padding:20px 0;">
+      <div style="font-size:32px;margin-bottom:10px;">⚠️</div>
+      <p id="ai-error-msg" style="font-size:13px;color:var(--danger);"></p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('ai-modal')">닫기</button>
+      <button class="btn btn-primary" id="ai-confirm-btn" style="display:none" onclick="applyAiResult()">진료시간표 추가</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -438,9 +593,9 @@ const DAYS=['월','화','수','목','금','토'];
 const TIMES=['오전','오후'];
 let S={hospitals:[],doctors:[],activeHosp:null,editHospId:null,editDrId:null,hTags:[],dTags:[],drQ:''};
 const KEY='myschedule_v9';
-function save(){localStorage.setItem(KEY,JSON.stringify({hospitals:S.hospitals,doctors:S.doctors}));}
+function save(){localStorage.setItem(KEY,JSON.stringify({hospitals:S.hospitals,doctors:S.doctors,plans:S.plans||{}}));}
 function load(){
-  try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');S.hospitals=d.hospitals||[];S.doctors=d.doctors||[];if(S.hospitals.length)S.activeHosp=S.hospitals[0].id;}catch(e){}
+  try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');S.hospitals=d.hospitals||[];S.doctors=d.doctors||[];S.plans=d.plans||{};if(S.hospitals.length)S.activeHosp=S.hospitals[0].id;}catch(e){}
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -544,6 +699,37 @@ function renderMain(){
 
     const dname=q?hl(d.name,q):esc(d.name);
     const ddept=d.dept?(q?hl(d.dept,q):esc(d.dept)):'';
+    // 방문/콜 로그
+    const logs=(d.logs||[]).slice().reverse();
+    const logCount=logs.length;
+    const logItems=logs.map((lg,ri)=>{
+      const i=logs.length-1-ri;
+      const realIdx=(d.logs||[]).length-1-ri;
+      const badgeCls=lg.type==='방문'?'visit':lg.type==='콜'?'call':'etc';
+      return '<div class="log-item">'+
+        '<span class="log-badge '+badgeCls+'">'+esc(lg.type)+'</span>'+
+        '<span class="log-date">'+esc(lg.date)+'</span>'+
+        '<span class="log-content">'+esc(lg.content)+'</span>'+
+        '<button class="log-del" data-did="'+d.id+'" data-idx="'+realIdx+'" onclick="delLog(this.dataset.did,parseInt(this.dataset.idx))">✕</button>'+
+      '</div>';
+    }).join('');
+    const logEmpty=logCount===0?'<div style="font-size:12px;color:var(--text3);padding:10px 14px;">기록이 없습니다</div>':'';
+    const logSec=
+      '<button class="log-toggle" onclick="toggleLog(this)">'+
+        '<span>📞 방문·콜 기록 ('+logCount+'건)</span><span class="log-arrow">▼</span>'+
+      '</button>'+
+      '<div class="log-body">'+
+        '<div class="log-list">'+logEmpty+logItems+'</div>'+
+        '<div class="log-add-row">'+
+          '<select data-did="'+d.id+'" class="log-type-sel">'+
+            '<option value="방문">방문</option>'+
+            '<option value="콜">콜</option>'+
+            '<option value="기타">기타</option>'+
+          '</select>'+
+          '<input type="text" class="log-input" data-did="'+d.id+'" placeholder="메모 입력 후 Enter" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addLogFromRow(this);}">'+
+          '<button data-did="'+d.id+'" onclick="addLogFromBtn(this)">+</button>'+
+        '</div>'+
+      '</div>';
 
     return '<div class="doctor-card" data-did="'+d.id+'" data-idx="'+docs.indexOf(d)+'" draggable="true" '+
       'ondragstart="onDrDragStart(event)" ondragover="onDrDragOver(event)" ondrop="onDrDrop(event)" ondragleave="onDrDragLeave(event)" ondragend="onDrDragEnd(event)">'+
@@ -551,14 +737,16 @@ function renderMain(){
         '<div class="card-hd-left">'+
           '<span class="drag-handle">⠿</span>'+
           '<div class="doctor-name">'+dname+'</div>'+(d.dept?'<div class="doctor-dept">'+ddept+'</div>':'')+
+          (h.phone?'<a class="phone-btn" href="tel:'+esc(h.phone)+'">📞 '+esc(h.phone)+'</a>':'')+
         '</div>'+
         '<div class="card-actions">'+
+          '<button class="btn btn-outline btn-sm" data-id="'+d.id+'" onclick="addToPlan(this.dataset.id)" title="활동계획 추가">📅</button>'+
           '<button class="btn btn-outline btn-sm" data-id="'+d.id+'" onclick="openDrModal(this.dataset.id)">메모</button>'+
           '<button class="btn btn-danger btn-sm" data-id="'+d.id+'" onclick="delDr(this.dataset.id)">삭제</button>'+
         '</div>'+
       '</div>'+
       '<div class="table-wrap"><table class="schedule-table"><thead>'+thRow+'</thead><tbody>'+rows+memoRow+'</tbody></table></div>'+
-      infoSec+bioSec+
+      infoSec+bioSec+logSec+
     '</div>';
   }).join('');
 
@@ -567,6 +755,277 @@ function renderMain(){
 
 // Bio toggle
 function toggleBio(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+// ── Tab switching ──
+let currentTab='schedule';
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('main').style.display=tab==='schedule'?'':'none';
+  document.getElementById('plan-main').style.display=tab==='plan'?'':'none';
+  // desktop tabs
+  document.getElementById('dt-schedule').classList.toggle('active',tab==='schedule');
+  document.getElementById('dt-plan').classList.toggle('active',tab==='plan');
+  // mobile tabs
+  document.getElementById('tab-list').classList.toggle('active',tab==='schedule');
+  document.getElementById('tab-plan-mob').classList.toggle('active',tab==='plan');
+  if(tab==='plan') renderPlan();
+}
+function closeMobMenus(){
+  closeDrawer();
+}
+
+// ── Activity Plan ──
+let planDate = todayStr(); // YYYY-MM-DD
+
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
+}
+function planDateLabel(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const today=todayStr();
+  const days=['일','월','화','수','목','금','토'];
+  const label=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+days[d.getDay()]+')';
+  return label+(dateStr===today?' · 오늘':'');
+}
+function planDayOfWeek(dateStr){
+  // 0=일,1=월,...,6=토 → schedule index: 월=0,...,토=5
+  const d=new Date(dateStr+'T00:00:00');
+  const jsDay=d.getDay(); // 0=일
+  if(jsDay===0) return -1; // 일요일
+  return jsDay-1; // 월=0,...,토=5
+}
+function movePlanDate(delta){
+  const d=new Date(planDate+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  planDate=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
+  renderPlan();
+}
+
+// 플랜 데이터 구조: S.plans[did][dateStr] = { checked:bool, note:string, savedAt:string }
+function getPlanData(did, dateStr){
+  if(!S.plans) S.plans={};
+  if(!S.plans[did]) S.plans[did]={};
+  if(!S.plans[did][dateStr]) S.plans[did][dateStr]={checked:false,note:'',savedAt:''};
+  return S.plans[did][dateStr];
+}
+function savePlanData(did, dateStr, data){
+  if(!S.plans) S.plans={};
+  if(!S.plans[did]) S.plans[did]={};
+  S.plans[did][dateStr]=data;
+  save();
+}
+
+function renderPlan(){
+  const el=document.getElementById('plan-main');
+  const di=planDayOfWeek(planDate);
+  const today=todayStr();
+
+  // 헤더
+  let html=
+    '<div class="plan-header">'+
+      '<div class="plan-date-nav">'+
+        '<button onclick="movePlanDate(-1)">‹</button>'+
+        '<span class="plan-date-label">'+planDateLabel(planDate)+'</span>'+
+        '<button onclick="movePlanDate(1)">›</button>'+
+      '</div>'+
+      '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">오늘로</button>'+
+    '</div>';
+
+  // 이 날짜에 수동으로 추가된 의사만 표시
+  const addedDids=Object.keys(S.plans||{}).filter(did=>{
+    const pd=S.plans[did][planDate];
+    return pd && pd.added;
+  });
+  const addedDrs=addedDids.map(did=>{
+    const d=S.doctors.find(x=>x.id===did);
+    if(!d) return null;
+    const h=S.hospitals.find(x=>x.id===d.hospitalId);
+    return d?{...d,hospName:h?h.name:'',hospPhone:h?h.phone||'':''}:null;
+  }).filter(Boolean);
+
+  const doneDrs=addedDrs.filter(d=>getPlanData(d.id,planDate).checked);
+  const todoDrs=addedDrs.filter(d=>!getPlanData(d.id,planDate).checked);
+
+  if(!addedDrs.length){
+    html+=
+      '<div class="plan-empty">'+
+        '<div class="plan-empty-icon">📅</div>'+
+        '<p style="font-size:14px;font-weight:600;color:var(--text2);">활동 계획이 없습니다</p>'+
+        '<p style="font-size:13px;color:var(--text3);text-align:center;">진료시간표 탭에서 의사 카드의<br><strong style="color:var(--accent);">📅 계획 추가</strong> 버튼을 눌러주세요</p>'+
+      '</div>';
+  } else {
+    if(todoDrs.length){
+      html+='<div class="plan-section-title">방문 예정 ('+todoDrs.length+')</div>';
+      html+=todoDrs.map(d=>planCard(d,planDate,false)).join('');
+    }
+    if(doneDrs.length){
+      html+='<div class="plan-section-title" style="margin-top:20px;">완료 ('+doneDrs.length+')</div>';
+      html+=doneDrs.map(d=>planCard(d,planDate,true)).join('');
+    }
+  }
+
+  el.innerHTML=html;
+
+  // textarea 복원
+  addedDrs.forEach(d=>{
+    const pd=getPlanData(d.id,planDate);
+    const ta=document.getElementById('plan-ta-'+d.id);
+    if(ta) ta.value=pd.note||'';
+    if(pd.savedAt){
+      const si=document.getElementById('plan-saved-'+d.id);
+      if(si) si.textContent='저장됨 '+pd.savedAt;
+    }
+  });
+}
+
+function planCard(d, dateStr, done){
+  const di=planDayOfWeek(dateStr);
+  const times=[];
+  if(di>=0 && d.schedule && d.schedule[di]){
+    const amV=d.schedule[di][0], pmV=d.schedule[di][1];
+    if(amV) times.push('오전'+(amV!==true?' ('+amV+')':''));
+    if(pmV) times.push('오후'+(pmV!==true?' ('+pmV+')':''));
+  }
+  const timeBadge=times.length?times.map(t=>'<span class="plan-time-badge">'+esc(t)+'</span>').join(' '):'';
+  const phone=d.hospPhone?'<a class="phone-btn" href="tel:'+esc(d.hospPhone)+'" onclick="event.stopPropagation()">📞</a>':'';
+
+  return '<div class="plan-card'+(done?' done':'')+'" id="plan-card-'+d.id+'">'+
+    '<div class="plan-card-header">'+
+      '<div class="plan-check'+(done?' checked':'')+'" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="togglePlanCheck(this)">'+
+        '<span class="plan-check-mark">✓</span>'+
+      '</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
+          '<span class="plan-dr-name">'+esc(d.name)+'</span>'+
+          (d.dept?'<span class="plan-dept-badge">'+esc(d.dept)+'</span>':'')+
+          timeBadge+
+        '</div>'+
+        '<div class="plan-hosp-name">'+esc(d.hospName)+phone+'</div>'+
+      '</div>'+
+      '<button style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:4px;flex-shrink:0;" title="계획에서 제거" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="removePlanEntry(this.dataset.did,this.dataset.date)">✕</button>'+
+    '</div>'+
+    '<div class="plan-note-area">'+
+      '<textarea id="plan-ta-'+d.id+'" placeholder="방문 내용, 미팅 결과, 전달 사항 등..."></textarea>'+
+      '<div class="plan-note-footer">'+
+        '<span class="plan-note-saved" id="plan-saved-'+d.id+'"></span>'+
+        '<button class="plan-save-btn" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="savePlanNote(this)">저장</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function togglePlanCheck(el){
+  const did=el.dataset.did, date=el.dataset.date;
+  const pd=getPlanData(did,date);
+  pd.checked=!pd.checked;
+  savePlanData(did,date,pd);
+  renderPlan();
+}
+
+function savePlanNote(btn){
+  const did=btn.dataset.did, date=btn.dataset.date;
+  const ta=document.getElementById('plan-ta-'+did);
+  const pd=getPlanData(did,date);
+  pd.note=ta?ta.value:'';
+  const now=new Date();
+  pd.savedAt=(now.getHours()).toString().padStart(2,'0')+':'+(now.getMinutes()).toString().padStart(2,'0');
+  savePlanData(did,date,pd);
+  // 로그에도 자동 추가
+  const d=S.doctors.find(x=>x.id===did);
+  if(d && pd.note.trim()){
+    if(!d.logs) d.logs=[];
+    // 오늘 날짜 기록 중복 체크 후 업데이트
+    const existing=d.logs.find(l=>l.date===date&&l.type==='방문');
+    if(existing) existing.content=pd.note.trim();
+    else d.logs.push({date,type:'방문',content:pd.note.trim()});
+    save();
+  }
+  const si=document.getElementById('plan-saved-'+did);
+  if(si) si.textContent='저장됨 '+pd.savedAt;
+  toast('✅ 저장됐습니다');
+}
+
+// 의사 카드에서 날짜 선택 후 계획 추가
+function addToPlan(did){
+  const d=S.doctors.find(x=>x.id===did);
+  if(!d){return;}
+  // 날짜 선택 팝업 (오늘 기준 7일)
+  const today=todayStr();
+  const opts=[];
+  for(let i=0;i<7;i++){
+    const dt=new Date(today+'T00:00:00');
+    dt.setDate(dt.getDate()+i);
+    const ds=dt.getFullYear()+'-'+(dt.getMonth()+1).toString().padStart(2,'0')+'-'+dt.getDate().toString().padStart(2,'0');
+    const days=['일','월','화','수','목','금','토'];
+    const label=(i===0?'오늘 ':'')+( dt.getMonth()+1)+'월'+dt.getDate()+'일('+days[dt.getDay()]+')';
+    opts.push({ds,label});
+  }
+
+  // 날짜 선택 모달
+  document.getElementById('plan-pick-did').value=did;
+  document.getElementById('plan-pick-name').textContent=esc(d.name)+(d.dept?' · '+esc(d.dept):'');
+  const sel=document.getElementById('plan-pick-date');
+  sel.innerHTML=opts.map(o=>'<option value="'+o.ds+'">'+o.label+'</option>').join('');
+  sel.value=today;
+  document.getElementById('plan-pick-modal').classList.add('open');
+}
+
+function confirmAddToPlan(){
+  const did=document.getElementById('plan-pick-did').value;
+  const date=document.getElementById('plan-pick-date').value;
+  if(!did||!date) return;
+  const pd=getPlanData(did,date);
+  pd.added=true;
+  savePlanData(did,date,pd);
+  closeModal('plan-pick-modal');
+  // 활동계획 탭으로 이동하고 해당 날짜로 이동
+  planDate=date;
+  switchTab('plan');
+  toast('📅 활동계획에 추가됐습니다');
+}
+
+function removePlanEntry(did, date){
+  if(!S.plans||!S.plans[did]||!S.plans[did][date]) return;
+  S.plans[did][date].added=false;
+  save();
+  renderPlan();
+  toast('계획에서 제거됐습니다');
+}
+
+// state에 plans 추가
+if(!S.plans) S.plans={};
+// Log toggle
+function toggleLog(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+// ── Visit/Call Log ──
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');}
+function addLog(did, type, content){
+  if(!content.trim())return;
+  const d=S.doctors.find(x=>x.id===did);
+  if(!d)return;
+  if(!d.logs)d.logs=[];
+  d.logs.push({date:todayStr(),type,content:content.trim()});
+  save();renderMain();toast('기록 추가됨');
+}
+function addLogFromRow(input){
+  const did=input.dataset.did;
+  const sel=input.closest('.log-add-row').querySelector('.log-type-sel');
+  addLog(did, sel.value, input.value);
+}
+function addLogFromBtn(btn){
+  const did=btn.dataset.did;
+  const row=btn.closest('.log-add-row');
+  const sel=row.querySelector('.log-type-sel');
+  const inp=row.querySelector('.log-input');
+  addLog(did, sel.value, inp.value);
+}
+function delLog(did, idx){
+  const d=S.doctors.find(x=>x.id===did);
+  if(!d||!d.logs)return;
+  d.logs.splice(idx,1);
+  save();renderMain();toast('삭제됨');
+}
 
 // Drawer
 function openDrawer(){
@@ -682,6 +1141,7 @@ function openHospModal(id){
   const h=id?S.hospitals.find(x=>x.id===id):null;
   document.getElementById('hosp-modal-title').textContent=id?'거래처 메모':'거래처 추가';
   document.getElementById('h-name').value=h?h.name:'';
+  document.getElementById('h-phone').value=h?(h.phone||''):'';
   document.getElementById('h-memo').value=h?(h.memo||''):'';
   S.hTags=h?[...(h.products||[])]:[];
   renderHTags();
@@ -691,7 +1151,11 @@ function openHospModal(id){
 function saveHosp(){
   const name=document.getElementById('h-name').value.trim();
   if(!name){toast('병원명을 입력해주세요');return;}
-  const obj={memo:document.getElementById('h-memo').value.trim(),products:[...S.hTags]};
+  const obj={
+    phone:document.getElementById('h-phone').value.trim(),
+    memo:document.getElementById('h-memo').value.trim(),
+    products:[...S.hTags]
+  };
   if(S.editHospId){const h=S.hospitals.find(x=>x.id===S.editHospId);if(h)Object.assign(h,{name,...obj});}
   else{const h={id:uid(),name,...obj};S.hospitals.push(h);S.activeHosp=h.id;}
   save();closeModal('hosp-modal');render();toast('저장되었습니다');
@@ -858,6 +1322,240 @@ function checkMobile(){
   document.getElementById('mob-add-btn').style.display=mob?'':'none';
 }
 window.addEventListener('resize',checkMobile);
+
+// ── Settings & Plan Management ──
+const PLAN_KEY='hs_plan';
+const API_KEY_KEY='hs_apikey';
+const TRIAL_KEY='hs_trial';
+const FREE_IMG_LIMIT=3; // 무료 이미지 분석 횟수
+
+function getPlan(){return localStorage.getItem(PLAN_KEY)||'free';}
+function getApiKey(){return localStorage.getItem(API_KEY_KEY)||'';}
+function getTrialUsed(){return parseInt(localStorage.getItem(TRIAL_KEY)||'0');}
+function addTrialUsed(){localStorage.setItem(TRIAL_KEY,String(getTrialUsed()+1));}
+
+function openSettings(){
+  const plan=getPlan();
+  const used=getTrialUsed();
+  const remaining=Math.max(0,FREE_IMG_LIMIT-used);
+  const key=getApiKey();
+
+  // 플랜 박스
+  const planBox=document.getElementById('plan-status-box');
+  if(plan==='pro'){
+    planBox.style.background='#e8f5e9';planBox.style.border='1px solid #a5d6a7';
+    planBox.innerHTML='<div style="font-size:14px;font-weight:700;color:#1b5e20;margin-bottom:4px;">🟢 Pro 플랜 사용 중</div>'+
+      '<div style="font-size:12px;color:#2e7d32;">이미지 분석 무제한 · 방문·콜 기록 · 모든 기능 사용 가능</div>';
+  } else if(plan==='basic'){
+    planBox.style.background='#ebf5fb';planBox.style.border='1px solid #90caf9';
+    planBox.innerHTML='<div style="font-size:14px;font-weight:700;color:#1e5fa8;margin-bottom:4px;">🔵 Basic 플랜 사용 중</div>'+
+      '<div style="font-size:12px;color:#1565c0;">진료시간표 관리 · 검색 · 엑셀 업로드 사용 가능</div>';
+  } else {
+    const barW=Math.round((remaining/FREE_IMG_LIMIT)*100);
+    planBox.style.background=remaining>0?'#fff8e1':'#fce4ec';
+    planBox.style.border=remaining>0?'1px solid #ffe082':'1px solid #f48fb1';
+    planBox.innerHTML=
+      '<div style="font-size:14px;font-weight:700;color:'+(remaining>0?'#e65100':'#c62828')+';margin-bottom:6px;">'+
+        (remaining>0?'🆓 무료 체험 중':'⛔ 무료 체험 종료')+
+      '</div>'+
+      '<div style="font-size:12px;color:#555;margin-bottom:8px;">이미지 분석 무료 체험: <strong>'+remaining+'회</strong> 남음 (총 '+FREE_IMG_LIMIT+'회)</div>'+
+      '<div style="height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;margin-bottom:10px;">'+
+        '<div style="height:100%;width:'+barW+'%;background:'+(remaining>0?'#ff9800':'#ef5350')+';border-radius:3px;transition:width .3s;"></div>'+
+      '</div>'+
+      (remaining===0?
+        '<div style="font-size:12px;color:#c62828;margin-bottom:8px;">무료 체험이 종료됐습니다. API 키를 입력하거나 플랜을 업그레이드하세요.</div>':
+        '<div style="font-size:12px;color:#777;">API 키를 입력하면 횟수 제한 없이 사용 가능합니다.</div>'
+      )+
+      '<div style="display:flex;gap:8px;margin-top:10px;">'+
+        '<a href="mailto:?subject=진료시간표%20서비스%20Pro%20플랜%20문의" style="display:inline-block;padding:6px 14px;border-radius:8px;background:#1e5fa8;color:#fff;font-size:12px;font-weight:700;text-decoration:none;">🔵 Basic — 월 15,000원</a>'+
+        '<a href="mailto:?subject=진료시간표%20서비스%20Pro%20플랜%20문의" style="display:inline-block;padding:6px 14px;border-radius:8px;background:#1b5e20;color:#fff;font-size:12px;font-weight:700;text-decoration:none;">🟢 Pro — 월 25,000원</a>'+
+      '</div>';
+  }
+
+  document.getElementById('api-key-input').value=key;
+  document.getElementById('settings-modal').classList.add('open');
+}
+
+function toggleApiKeyVisibility(){
+  const inp=document.getElementById('api-key-input');
+  const btn=document.getElementById('api-key-toggle');
+  if(inp.type==='password'){inp.type='text';btn.textContent='숨기기';}
+  else{inp.type='password';btn.textContent='보기';}
+}
+
+function saveSettings(){
+  const key=document.getElementById('api-key-input').value.trim();
+  localStorage.setItem(API_KEY_KEY,key);
+  closeModal('settings-modal');
+  toast(key?'✅ API 키가 저장됐습니다':'API 키가 삭제됐습니다');
+}
+
+// ── AI Image Analysis ──
+let _aiDoctors = [];
+
+function handleImgUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  input.value = '';
+
+  // 플랜/무료체험 체크
+  const plan=getPlan();
+  const apiKey=getApiKey();
+  const used=getTrialUsed();
+  const remaining=Math.max(0,FREE_IMG_LIMIT-used);
+
+  if(!apiKey && plan==='free' && remaining<=0){
+    openSettings();
+    toast('⛔ 무료 체험이 종료됐습니다. API 키를 입력하거나 플랜을 업그레이드하세요.');
+    return;
+  }
+
+  // 모달 열기 + 로딩 상태
+  document.getElementById('ai-modal-title').textContent = '🖼️ 이미지 분석 중...';
+  document.getElementById('ai-loading').style.display = 'block';
+  document.getElementById('ai-result').style.display = 'none';
+  document.getElementById('ai-error').style.display = 'none';
+  document.getElementById('ai-confirm-btn').style.display = 'none';
+  document.getElementById('ai-modal').classList.add('open');
+
+  // 프로그레스 애니메이션
+  let prog = 0;
+  const progEl = document.getElementById('ai-progress');
+  const progTimer = setInterval(()=>{
+    prog = Math.min(prog + Math.random()*8, 85);
+    progEl.style.width = prog + '%';
+  }, 300);
+
+  // 이미지 → base64
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    const mediaType = file.type || 'image/jpeg';
+
+    const prompt = `이 이미지는 병원 진료시간표입니다. 이미지에서 의사별 진료시간 정보를 추출해주세요.
+
+다음 JSON 형식으로만 응답해주세요 (다른 텍스트 없이):
+{
+  "hospital": "병원명 (이미지에서 찾을 수 없으면 빈 문자열)",
+  "doctors": [
+    {
+      "name": "의사 이름",
+      "dept": "진료과/센터",
+      "schedule": [[월오전,월오후],[화오전,화오후],[수오전,수오후],[목오전,목오후],[금오전,금오후],[토오전,토오후]],
+      "memo": "휴진/수술/특이사항 등"
+    }
+  ]
+}
+
+schedule 값 규칙:
+- true = 진료
+- false = 없음/휴진
+- "수술" = 수술
+- "내시경" = 내시경
+
+이미지에서 읽을 수 없는 정보는 false로 처리하세요.`;
+
+    try {
+      // API 키: 저장된 키 우선, 없으면 무료 체험 차감
+      const useKey = apiKey;
+      if(!apiKey){ addTrialUsed(); } // 무료 체험 차감
+
+      const headers = { 'Content-Type': 'application/json' };
+      if(useKey) headers['x-api-key'] = useKey;
+      headers['anthropic-version'] = '2023-06-01';
+      headers['anthropic-dangerous-direct-browser-access'] = 'true';
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+              { type: 'text', text: prompt }
+            ]
+          }]
+        })
+      });
+
+      clearInterval(progTimer);
+      progEl.style.width = '100%';
+
+      const data = await res.json();
+      if(data.error){ throw new Error(data.error.message); }
+
+      const text = data.content.map(c=>c.text||'').join('').trim();
+      const clean = text.replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(clean);
+
+      _aiDoctors = parsed.doctors || [];
+      const hospName = parsed.hospital || '';
+
+      // 결과 표시
+      document.getElementById('ai-loading').style.display = 'none';
+      document.getElementById('ai-result').style.display = 'block';
+      document.getElementById('ai-confirm-btn').style.display = 'inline-block';
+      document.getElementById('ai-modal-title').textContent = '✅ 분석 완료!';
+      document.getElementById('ai-hosp-name').value = hospName;
+
+      const preview = _aiDoctors.map(d=>{
+        const days = ['월','화','수','목','금','토'];
+        const times = ['오전','오후'];
+        const sched = d.schedule.map((day,di)=>
+          day.map((v,ti)=> v ? days[di]+times[ti]+(v===true?'':' ('+v+')') : null)
+             .filter(Boolean)
+        ).flat().join(', ');
+        return `👨‍⚕️ ${d.name} (${d.dept||'진료과 미확인'})\n   ${sched||'진료 정보 없음'}${d.memo?'\n   📝 '+d.memo:''}`;
+      }).join('\n\n');
+
+      document.getElementById('ai-preview').textContent =
+        `총 ${_aiDoctors.length}명 인식됨\n${'─'.repeat(30)}\n${preview}`;
+
+    } catch(err) {
+      clearInterval(progTimer);
+      document.getElementById('ai-loading').style.display = 'none';
+      document.getElementById('ai-error').style.display = 'block';
+      document.getElementById('ai-error-msg').textContent = '분석 중 오류가 발생했습니다: ' + err.message;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyAiResult(){
+  const hospName = document.getElementById('ai-hosp-name').value.trim();
+  if(!hospName){ toast('거래처명을 입력해주세요'); return; }
+  if(!_aiDoctors.length){ toast('추가할 의사 정보가 없습니다'); return; }
+
+  let hosp = S.hospitals.find(h=>h.name===hospName);
+  if(!hosp){
+    hosp = {id:uid(), name:hospName, phone:'', memo:'', products:[]};
+    S.hospitals.push(hosp);
+    S.activeHosp = hosp.id;
+  }
+
+  let added = 0;
+  _aiDoctors.forEach(d=>{
+    if(S.doctors.find(x=>x.hospitalId===hosp.id && x.name===d.name)) return;
+    S.doctors.push({
+      id: uid(),
+      hospitalId: hosp.id,
+      name: d.name,
+      dept: d.dept||'',
+      memo: d.memo||'',
+      note:'', bio:'', products:[],
+      schedule: d.schedule
+    });
+    added++;
+  });
+
+  save(); render();
+  closeModal('ai-modal');
+  toast('✅ '+added+'명 추가됐습니다');
+  _aiDoctors = [];
+}
 
 // Excel Upload
 function handleXlsx(input){
