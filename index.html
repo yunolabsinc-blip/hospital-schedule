@@ -95,16 +95,24 @@ header{
 .memo-row td{background:var(--surface2)!important;}
 .schedule-table th.rl{background:var(--surface2);}
 
-/* ── PREVIEW PANEL ── */
+/* ── PREVIEW PANEL (우측 고정 사이드패널) ── */
 .schedule-wrap{display:flex;flex:1;overflow:hidden;min-width:0;}
 .schedule-area{flex:1;overflow-y:auto;padding:20px;min-width:0;}
-.preview-panel{width:256px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:none;flex-direction:column;overflow-y:auto;}
+.preview-panel{
+  width:264px;flex-shrink:0;
+  background:var(--surface);border-left:1px solid var(--border);
+  display:none;flex-direction:column;overflow:hidden;
+}
 .preview-panel.open{display:flex;}
-.preview-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.preview-header{
+  padding:11px 14px 9px;border-bottom:1px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface2);
+}
 .preview-title{font-size:13px;font-weight:700;color:var(--text);}
 .preview-close{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px;line-height:1;}
 .preview-close:hover{color:var(--text);}
-.preview-body{padding:10px 14px;flex:1;}
+.preview-body{padding:10px 14px;flex:1;overflow-y:auto;}
 .preview-date-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin:10px 0 5px;padding-bottom:4px;border-bottom:1px solid var(--border);}
 .preview-chip{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;margin-bottom:4px;font-size:12px;cursor:pointer;transition:.12s;border:1px solid transparent;}
 .preview-chip:hover{background:var(--surface2);border-color:var(--border);}
@@ -427,23 +435,25 @@ header{
     <!-- 데스크톱 탭 -->
     <div class="desk-tabs">
       <button class="desk-tab active" id="dt-schedule" onclick="switchTab('schedule')">📋 진료시간표</button>
+      <button class="desk-tab" id="dt-fav" onclick="switchTab('fav')">⭐ 즐겨찾기</button>
       <button class="desk-tab" id="dt-plan" onclick="switchTab('plan')">📅 활동계획</button>
       <button class="desk-tab" id="dt-report" onclick="switchTab('report')">📊 활동기록</button>
     </div>
-    <!-- 진료시간표 + 활동계획 현황 패널 -->
     <div class="schedule-wrap" id="schedule-wrap">
       <div class="schedule-area" id="main"></div>
-      <!-- 이번주 활동계획 현황 패널 (항상 표시) -->
+      <!-- 이번주 활동계획 현황 패널 (우측 고정) -->
       <div class="preview-panel open" id="preview-panel">
-        <div class="preview-header">
+        <div class="preview-header" id="preview-drag-handle">
           <div>
             <div class="preview-title">📅 이번주 활동계획</div>
             <div style="font-size:11px;color:var(--text3);" id="preview-week-range"></div>
           </div>
+          <button class="preview-close" onclick="closePreview()" title="닫기">✕</button>
         </div>
         <div class="preview-body" id="preview-body"></div>
       </div>
     </div>
+    <div class="main" id="fav-main" style="display:none;"></div>
     <div class="main" id="plan-main" style="display:none;"></div>
     <div class="main" id="report-main" style="display:none;"></div>
   </div>
@@ -454,6 +464,9 @@ header{
   <div class="mob-tab-inner">
     <button class="tab-btn active" id="tab-list" onclick="openDrawer()">
       <span class="ti">🏥</span><span>거래처</span>
+    </button>
+    <button class="tab-btn" id="tab-fav-mob" onclick="switchTab('fav');closeMobMenus()">
+      <span class="ti">⭐</span><span>즐겨찾기</span>
     </button>
     <button class="tab-btn" id="tab-plan-mob" onclick="switchTab('plan');closeMobMenus()">
       <span class="ti">📅</span><span>활동계획</span>
@@ -482,7 +495,6 @@ header{
     <div class="modal-handle"></div>
     <h3 id="hosp-modal-title">거래처 추가</h3>
     <div class="form-row"><label>병원명 *</label><input type="text" id="h-name" placeholder="예: 서울척병원"></div>
-    <div class="form-row"><label>전화번호</label><input type="tel" id="h-phone" placeholder="예: 02-1234-5678"></div>
     <div class="form-row">
       <label>거래 품목 <span style="font-weight:400;color:var(--text3)">(Enter 또는 + 추가)</span></label>
       <div class="tag-list" id="h-tag-list"></div>
@@ -598,10 +610,13 @@ header{
     </div>
     <!-- 제품명 -->
     <div class="form-row">
-      <label>📦 제품명 <span style="font-weight:400;color:var(--text3);">(선택)</span></label>
+      <label>📦 제품 <span style="font-weight:400;color:var(--text3);">(복수 선택 가능)</span></label>
       <!-- 등록 제품 빠른 선택 -->
       <div id="plan-quick-products" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
-      <input type="text" id="plan-pick-product" placeholder="직접 입력 또는 위에서 선택" style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;">
+      <!-- 선택된 제품 태그 표시 -->
+      <div id="plan-selected-products" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;min-height:0;"></div>
+      <input type="text" id="plan-pick-product" placeholder="직접 입력 후 Enter" style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();addManualProduct();}">
     </div>
     <!-- 계획 내용 -->
     <div class="form-row">
@@ -632,7 +647,6 @@ header{
       <div class="form-row"><label>이름</label><input type="text" id="my-name" placeholder="예: 홍길동"></div>
       <div class="form-row"><label>회사명</label><input type="text" id="my-company" placeholder="예: ABC 제약"></div>
       <div class="form-row"><label>직책</label><input type="text" id="my-title" placeholder="예: 영업팀 과장"></div>
-      <div class="form-row"><label>전화번호</label><input type="tel" id="my-phone" placeholder="예: 010-1234-5678"></div>
       <div class="form-row"><label>이메일</label><input type="email" id="my-email" placeholder="예: hong@abc.com"></div>
       <div class="form-row"><label>메모</label><textarea id="my-memo" placeholder="담당 구역, 특이사항 등..." style="min-height:60px;resize:vertical;"></textarea></div>
     </div>
@@ -819,7 +833,7 @@ function renderMain(){
     const logEmpty=logCount===0?'<div style="font-size:12px;color:var(--text3);padding:10px 14px;">기록이 없습니다</div>':'';
     const logSec=
       '<button class="log-toggle" onclick="toggleLog(this)">'+
-        '<span>📞 방문·콜 기록 ('+logCount+'건)</span><span class="log-arrow">▼</span>'+
+        '<span>💼 활동기록 ('+logCount+'건)</span><span class="log-arrow">▼</span>'+
       '</button>'+
       '<div class="log-body">'+
         '<div class="log-list">'+logEmpty+logItems+'</div>'+
@@ -841,10 +855,8 @@ function renderMain(){
       '<div class="card-header">'+
         '<div class="card-hd-left">'+
           '<span class="drag-handle">⠿</span>'+
-          '<button class="fav-btn'+(isFav?' active':'')+'" data-id="'+d.id+'" onclick="toggleFav(this.dataset.id)" title="'+(isFav?'즐겨찾기 해제':'주요 의료진 즐겨찾기')+'">'+(isFav?'⭐':'☆')+'</button>'+
+          '<button class="fav-btn'+(isFav?' active':'')+'" data-id="'+d.id+'" onclick="toggleFav(this.dataset.id)" title="'+(isFav?'즐겨찾기 해제':'즐겨찾기')+'">'+(isFav?'⭐':'☆')+'</button>'+
           '<div class="doctor-name">'+dname+'</div>'+(d.dept?'<div class="doctor-dept">'+ddept+'</div>':'')+
-          (isFav?'<span class="fav-badge">⭐ KEY</span>':'')+
-          (h.phone?'<a class="phone-btn" href="tel:'+esc(h.phone)+'">📞 '+esc(h.phone)+'</a>':'')+
         '</div>'+
         '<div class="card-actions">'+
           '<button class="btn btn-outline btn-sm" data-id="'+d.id+'" onclick="addToPlan(this.dataset.id)" title="활동계획 추가">📅</button>'+
@@ -863,7 +875,16 @@ function renderMain(){
 // Bio toggle
 function toggleBio(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
 
-// ── Preview Panel (주간 활동계획 현황) ──
+// ── Preview Panel (우측 고정 사이드패널) ──
+function openPreview(){
+  const panel=document.getElementById('preview-panel');
+  panel.classList.add('open');
+  renderPreview();
+}
+function closePreview(){
+  document.getElementById('preview-panel').classList.remove('open');
+}
+
 function renderPreview(){
   const today=todayStr();
   // 이번주 월~일
@@ -903,24 +924,32 @@ function renderPreview(){
           allPlans.filter(p=>p.pd.checked).length+'/'+allPlans.length+
         '</span>'+
       '</div>';
-    allPlans.forEach(p=>{
+    allPlans.forEach((p,idx)=>{
       const pd=p.pd;
       const done=pd.checked;
       const timeBg  =pd.time==='오전'?'#dceeff':'#ffe8cc';
       const timeColor=pd.time==='오전'?'#1565c0':'#c45000';
-      html+='<div class="preview-chip'+(done?' done':'')+'" onclick="planDate=\''+ds+'\';switchTab(\'plan\')">'+
-        '<span style="font-size:12px;">'+(done?'✅':'📋')+'</span>'+
-        '<div style="flex:1;min-width:0;">'+
-          '<div style="font-size:12px;font-weight:600;color:'+(done?'var(--text3)':'var(--text)')+';'+(done?'text-decoration:line-through;':'')+'">'+
-            (p.dr.fav?'⭐':'')+esc(p.dr.name)+
-            '<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:3px;">'+esc(p.dr.hospName)+'</span>'+
+      html+=
+        '<div class="preview-chip'+(done?' done':'')+'" '+
+          'data-did="'+p.did+'" data-date="'+ds+'" draggable="true" '+
+          'ondragstart="onPreviewDragStart(event)" '+
+          'ondragover="onPreviewDragOver(event)" '+
+          'ondrop="onPreviewDrop(event)" '+
+          'ondragleave="onPreviewDragLeave(event)" '+
+          'ondragend="onPreviewDragEnd(event)">'+
+          '<span style="cursor:grab;color:var(--text3);font-size:13px;padding:0 3px;flex-shrink:0;">⠿</span>'+
+          '<span style="font-size:12px;flex-shrink:0;">'+(done?'✅':'📋')+'</span>'+
+          '<div style="flex:1;min-width:0;cursor:pointer;" onclick="planDate=\''+ds+'\';switchTab(\'plan\')">'+
+            '<div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:1px;">'+esc(p.dr.hospName)+'</div>'+
+            '<div style="font-size:12px;font-weight:600;color:'+(done?'var(--text3)':'var(--text)')+';'+(done?'text-decoration:line-through;':'')+'">'+
+              (p.dr.fav?'⭐':'')+esc(p.dr.name)+
+            '</div>'+
+            '<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;">'+
+              (pd.time?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:'+timeBg+';color:'+timeColor+';">'+pd.time+'</span>':'')+
+              (pd.product?'<span style="font-size:10px;padding:1px 5px;border-radius:8px;background:var(--surface2);color:var(--text2);">'+esc(pd.product)+'</span>':'')+
+            '</div>'+
           '</div>'+
-          '<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;">'+
-            (pd.time?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:'+timeBg+';color:'+timeColor+';">'+pd.time+'</span>':'')+
-            (pd.product?'<span style="font-size:10px;padding:1px 5px;border-radius:8px;background:var(--surface2);color:var(--text2);">'+esc(pd.product)+'</span>':'')+
-          '</div>'+
-        '</div>'+
-      '</div>';
+        '</div>';
     });
     html+='</div>';
   });
@@ -954,7 +983,11 @@ function _initPicker(){
   _pickerMonth=today.getMonth();
 }
 
+let _selectedProducts=[]; // 팝업에서 선택된 제품 목록
+
 function renderQuickProducts(){
+  _selectedProducts=[];
+  renderSelectedProductTags();
   const products=getMyProducts();
   const el=document.getElementById('plan-quick-products');
   if(!el) return;
@@ -963,25 +996,72 @@ function renderQuickProducts(){
     return;
   }
   el.innerHTML=products.map(p=>
-    '<button onclick="selectQuickProduct(\''+esc(p)+'\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.12s;" '+
-    'onmouseover="this.style.background=\'var(--accent-light)\';this.style.borderColor=\'var(--accent)\';this.style.color=\'var(--accent)\'" '+
-    'onmouseout="this.style.background=\'var(--surface2)\';this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text2)\'">'+
+    '<button id="qprod-'+btoa(encodeURIComponent(p)).replace(/[^a-zA-Z0-9]/g,'')+'" '+
+    'onclick="toggleQuickProduct(\''+esc(p)+'\')" '+
+    'style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.12s;">'+
     esc(p)+'</button>'
   ).join('');
 }
 
-function selectQuickProduct(name){
-  document.getElementById('plan-pick-product').value=name;
-  // 선택된 칩 강조
-  const el=document.getElementById('plan-quick-products');
-  if(!el) return;
-  el.querySelectorAll('button').forEach(btn=>{
-    const active=btn.textContent===name;
+function toggleQuickProduct(name){
+  const idx=_selectedProducts.indexOf(name);
+  if(idx===-1){
+    _selectedProducts.push(name);
+  } else {
+    _selectedProducts.splice(idx,1);
+  }
+  // 칩 스타일 업데이트
+  const products=getMyProducts();
+  products.forEach(p=>{
+    const id='qprod-'+btoa(encodeURIComponent(p)).replace(/[^a-zA-Z0-9]/g,'');
+    const btn=document.getElementById(id);
+    if(!btn) return;
+    const active=_selectedProducts.includes(p);
     btn.style.background=active?'var(--accent)':'var(--surface2)';
     btn.style.borderColor=active?'var(--accent)':'var(--border)';
     btn.style.color=active?'#fff':'var(--text2)';
+    btn.style.fontWeight=active?'700':'500';
   });
+  renderSelectedProductTags();
 }
+
+function addManualProduct(){
+  const inp=document.getElementById('plan-pick-product');
+  const val=inp.value.trim();
+  if(!val) return;
+  if(!_selectedProducts.includes(val)) _selectedProducts.push(val);
+  inp.value='';
+  renderSelectedProductTags();
+}
+
+function renderSelectedProductTags(){
+  const el=document.getElementById('plan-selected-products');
+  if(!el) return;
+  if(!_selectedProducts.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="width:100%;font-size:10px;font-weight:700;color:var(--text3);margin-bottom:3px;">선택됨:</div>'+
+    _selectedProducts.map(p=>
+      '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;">'+
+        esc(p)+
+        '<button onclick="removeSelectedProduct(\''+esc(p)+'\')" style="background:none;border:none;color:#fff;cursor:pointer;font-size:11px;padding:0;line-height:1;opacity:.8;">✕</button>'+
+      '</span>'
+    ).join('');
+}
+
+function removeSelectedProduct(name){
+  const idx=_selectedProducts.indexOf(name);
+  if(idx!==-1) _selectedProducts.splice(idx,1);
+  // 칩 스타일도 업데이트
+  const products=getMyProducts();
+  products.forEach(p=>{
+    if(p!==name) return;
+    const id='qprod-'+btoa(encodeURIComponent(p)).replace(/[^a-zA-Z0-9]/g,'');
+    const btn=document.getElementById(id);
+    if(btn){btn.style.background='var(--surface2)';btn.style.borderColor='var(--border)';btn.style.color='var(--text2)';btn.style.fontWeight='500';}
+  });
+  renderSelectedProductTags();
+}
+
+function selectQuickProduct(name){ toggleQuickProduct(name); } // 하위 호환
 
 function renderPickerCal(){
   const title=document.getElementById('plan-cal-title');
@@ -1041,7 +1121,77 @@ function toggleFav(did){
   if(!d) return;
   d.fav=!d.fav;
   save();renderMain();
-  toast(d.fav?'⭐ 주요 의료진으로 등록됐습니다':'즐겨찾기가 해제됐습니다');
+  toast(d.fav?'⭐ 즐겨찾기에 추가됐습니다':'즐겨찾기가 해제됐습니다');
+}
+
+// ── Favorites Tab ──
+function renderFav(){
+  const el=document.getElementById('fav-main');
+  const favDrs=S.doctors.filter(d=>d.fav);
+
+  if(!favDrs.length){
+    el.innerHTML=
+      '<div class="empty-state" style="min-height:240px;">'+
+        '<div class="empty-icon">⭐</div>'+
+        '<p>즐겨찾기한 의료진이 없습니다</p>'+
+        '<p style="font-size:12px;color:var(--text3);">진료시간표에서 ☆ 버튼을 눌러 추가하세요</p>'+
+      '</div>';
+    return;
+  }
+
+  // 거래처별로 묶기
+  const byHosp={};
+  favDrs.forEach(d=>{
+    if(!byHosp[d.hospitalId]) byHosp[d.hospitalId]=[];
+    byHosp[d.hospitalId].push(d);
+  });
+
+  const DAYS=['월','화','수','목','금','토'];
+  const TIMES=['오전','오후'];
+  const thRow='<tr><th class="rl"></th>'+DAYS.map(day=>'<th>'+day+'</th>').join('')+'</tr>';
+
+  let html='<div style="padding:16px;">';
+  html+='<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:14px;">⭐ 즐겨찾기 의료진 ('+favDrs.length+'명)</div>';
+
+  S.hospitals.forEach(h=>{
+    if(!byHosp[h.id]) return;
+    html+='<div style="margin-bottom:10px;font-size:12px;font-weight:700;color:var(--accent);padding:4px 0;border-bottom:1px solid var(--border);">'+esc(h.name)+'</div>';
+    html+='<div class="doctor-grid" style="margin-bottom:18px;">';
+    byHosp[h.id].forEach(d=>{
+      const rows=TIMES.map((t,ti)=>{
+        const cells=d.schedule.map((day,di)=>{
+          const v=day[ti]; const vs=String(v);
+          const boxStyle='display:inline-block;font-size:10px;font-weight:600;border-radius:4px;padding:2px 5px;line-height:1.4;';
+          let cell;
+          if(vs==='수술') cell='<span style="'+boxStyle+'color:#999;background:#f0f0f0;border:1px solid #ddd;">수술</span>';
+          else if(vs==='내시경') cell='<span style="'+boxStyle+'color:#88a;background:#f0f0f8;border:1px solid #d0d0e8;">내시경</span>';
+          else if(v&&vs!=='false') cell='<span class="dot-on">●</span>';
+          else cell='<span class="dot-off">·</span>';
+          return '<td style="cursor:pointer;border-radius:6px;transition:background .12s;" onclick="addToPlanFromCell(\''+d.id+'\','+di+','+ti+')" title="활동계획 추가">'+cell+'</td>';
+        }).join('');
+        return '<tr><td class="rl">'+t+'</td>'+cells+'</tr>';
+      }).join('');
+      const memoRow=d.memo?'<tr class="memo-row"><td class="rl">비고</td><td class="mc" colspan="6">'+esc(d.memo)+'</td></tr>':'';
+      html+=
+        '<div class="doctor-card is-fav" style="margin-bottom:8px;">'+
+          '<div class="card-header">'+
+            '<div class="card-hd-left">'+
+              '<span style="font-size:14px;">⭐</span>'+
+              '<div class="doctor-name">'+esc(d.name)+'</div>'+
+              (d.dept?'<div class="doctor-dept">'+esc(d.dept)+'</div>':'')+
+            '</div>'+
+            '<div class="card-actions">'+
+              '<button class="btn btn-outline btn-sm" data-id="'+d.id+'" onclick="addToPlan(this.dataset.id)" title="활동계획 추가">📅</button>'+
+              '<button class="btn btn-outline btn-sm" data-id="'+d.id+'" onclick="toggleFav(this.dataset.id)">★ 해제</button>'+
+            '</div>'+
+          '</div>'+
+          '<div class="table-wrap"><table class="schedule-table"><thead>'+thRow+'</thead><tbody>'+rows+memoRow+'</tbody></table></div>'+
+        '</div>';
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
 }
 
 // ── Plan Drag & Drop ──
@@ -1081,28 +1231,67 @@ function onPlanDrop(e){
   save();renderPlan();
 }
 
+// ── Preview Panel Drag & Drop (순서 변경) ──
+let _prevDragDid=null, _prevDragDate=null;
+function onPreviewDragStart(e){
+  _prevDragDid=e.currentTarget.dataset.did;
+  _prevDragDate=e.currentTarget.dataset.date;
+  e.currentTarget.style.opacity='.4';
+  e.dataTransfer.effectAllowed='move';
+}
+function onPreviewDragOver(e){
+  e.preventDefault();
+  e.currentTarget.style.borderTop='2px solid var(--accent)';
+}
+function onPreviewDragLeave(e){e.currentTarget.style.borderTop='';}
+function onPreviewDragEnd(e){
+  e.currentTarget.style.opacity='';
+  document.querySelectorAll('.preview-chip').forEach(el=>{el.style.borderTop='';el.style.opacity='';});
+}
+function onPreviewDrop(e){
+  e.preventDefault();
+  const toDid=e.currentTarget.dataset.did;
+  const toDate=e.currentTarget.dataset.date;
+  e.currentTarget.style.borderTop='';
+  if(!_prevDragDid||_prevDragDid===toDid||_prevDragDate!==toDate){_prevDragDid=null;return;}
+  // planOrder에서 해당 날짜 순서 조정
+  if(!S.planOrder) S.planOrder={};
+  const date=_prevDragDate;
+  if(!S.planOrder[date]){
+    S.planOrder[date]=Object.keys(S.plans||{}).filter(did=>S.plans[did][date]&&S.plans[did][date].added);
+  }
+  const order=S.planOrder[date];
+  const fromIdx=order.indexOf(_prevDragDid);
+  const toIdx=order.indexOf(toDid);
+  if(fromIdx!==-1&&toIdx!==-1){
+    const moved=order.splice(fromIdx,1)[0];
+    order.splice(toIdx,0,moved);
+  }
+  _prevDragDid=null; _prevDragDate=null;
+  save(); renderPreview();
+}
+
 // ── Tab switching ──
 let currentTab='schedule';
 function switchTab(tab){
   currentTab=tab;
-  document.getElementById('main').style.display=tab==='schedule'?'':'none';
-  document.getElementById('plan-main').style.display=tab==='plan'?'':'none';
-  document.getElementById('report-main').style.display=tab==='report'?'':'none';
-  // schedule-wrap (미리보기 포함)
   const sw=document.getElementById('schedule-wrap');
   if(sw) sw.style.display=tab==='schedule'?'flex':'none';
+  document.getElementById('fav-main').style.display=tab==='fav'?'':'none';
+  document.getElementById('plan-main').style.display=tab==='plan'?'':'none';
+  document.getElementById('report-main').style.display=tab==='report'?'':'none';
   // desktop tabs
-  document.getElementById('dt-schedule').classList.toggle('active',tab==='schedule');
-  document.getElementById('dt-plan').classList.toggle('active',tab==='plan');
-  document.getElementById('dt-report').classList.toggle('active',tab==='report');
+  ['schedule','fav','plan','report'].forEach(t=>{
+    const el=document.getElementById('dt-'+t);
+    if(el) el.classList.toggle('active',t===tab);
+  });
   // mobile tabs
   document.getElementById('tab-list').classList.toggle('active',tab==='schedule');
+  const ft=document.getElementById('tab-fav-mob'); if(ft) ft.classList.toggle('active',tab==='fav');
   document.getElementById('tab-plan-mob').classList.toggle('active',tab==='plan');
   document.getElementById('tab-report-mob').classList.toggle('active',tab==='report');
-  if(tab==='schedule'){
-    // 미리보기 패널 자동 열기 + 갱신
-    openPreview();
-  }
+  if(tab==='schedule') openPreview();
+  if(tab==='fav') renderFav();
   if(tab==='plan') renderPlan();
   if(tab==='report') renderReport();
 }
@@ -1282,14 +1471,21 @@ function getPlansForDateAndTime(date, time){
 }
 
 function getAllPlansForDate(date){
-  return Object.keys(S.plans||{}).filter(did=>{
+  let dids=Object.keys(S.plans||{}).filter(did=>{
     const pd=S.plans[did][date];
     return pd && pd.added;
-  }).map(did=>{
+  });
+  // planOrder 적용
+  if(S.planOrder&&S.planOrder[date]){
+    const order=S.planOrder[date].filter(did=>dids.includes(did));
+    const rest=dids.filter(did=>!order.includes(did));
+    dids=[...order,...rest];
+  }
+  return dids.map(did=>{
     const d=S.doctors.find(x=>x.id===did);
     const h=d?S.hospitals.find(x=>x.id===d.hospitalId):null;
     const pd=S.plans[did][date];
-    return {did,dr:{...d,hospName:h?h.name:'',hospPhone:h?h.phone||'':''},pd};
+    return {did,dr:{...d,hospName:h?h.name:'',hospPhone:''},pd};
   }).filter(x=>x.dr&&x.dr.id);
 }
 
@@ -1337,7 +1533,7 @@ function planCard(d, dateStr, done, isToday){
     return '<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:20px;background:'+bg+';color:'+c+';">'+esc(label)+'</span>';
   }).join(' ');
 
-  const phone=d.hospPhone?'<a class="phone-btn" href="tel:'+esc(d.hospPhone)+'" onclick="event.stopPropagation()">📞</a>':'';
+  const phone='';
   const locked=!isToday;
 
   return '<div class="plan-card'+(done?' done':'')+'" id="plan-card-'+d.id+'" data-did="'+d.id+'" draggable="true" '+
@@ -1499,18 +1695,22 @@ function confirmAddToPlan(){
   const did=document.getElementById('plan-pick-did').value;
   const date=document.getElementById('plan-pick-selected-date').value;
   const time=document.getElementById('plan-pick-time').value||'오전';
-  const product=(document.getElementById('plan-pick-product').value||'').trim();
+  // 직접 입력된 제품도 추가
+  const manualInput=(document.getElementById('plan-pick-product').value||'').trim();
+  if(manualInput && !_selectedProducts.includes(manualInput)) _selectedProducts.push(manualInput);
   const note=(document.getElementById('plan-pick-note').value||'').trim();
   if(!did||!date){toast('날짜를 선택해주세요');return;}
   const pd=getPlanData(did,date);
   pd.added=true;
   pd.time=time;
-  if(product) pd.product=product;
+  pd.products=_selectedProducts.length?[..._selectedProducts]:[];
+  pd.product=_selectedProducts.join(', '); // 기존 호환용
   if(note) pd.note=note;
   savePlanData(did,date,pd);
   // 입력 초기화
   document.getElementById('plan-pick-product').value='';
   document.getElementById('plan-pick-note').value='';
+  _selectedProducts=[];
   closeModal('plan-pick-modal');
   renderPreview();
   toast('📅 활동계획이 추가됐습니다 ('+time+')');
@@ -1528,17 +1728,48 @@ function removePlanEntry(did, date){
 }
 
 // ── Activity Report ──
+// ── Report 필터 상태 전역 변수 ──
+let _repFrom='', _repTo='', _repType='all', _repHosp='all', _repQ='';
+
+function setRepRange(range){
+  const today=todayStr();
+  if(range==='week'){
+    const d=new Date(today+'T00:00:00');
+    const day=d.getDay();
+    const mon=new Date(d); mon.setDate(d.getDate()-(day===0?6:day-1));
+    _repFrom=mon.getFullYear()+'-'+(mon.getMonth()+1).toString().padStart(2,'0')+'-'+mon.getDate().toString().padStart(2,'0');
+    _repTo=today;
+  } else if(range==='month'){
+    _repFrom=today.slice(0,7)+'-01';
+    _repTo=today;
+  } else if(range==='all'){
+    _repFrom='2020-01-01';
+    _repTo=today;
+  }
+  renderReport();
+}
+
 function renderReport(){
   const el=document.getElementById('report-main');
 
   // 기간 기본값: 이번 달 1일 ~ 오늘
   const today=todayStr();
   const thisMonthStart=today.slice(0,7)+'-01';
-  const fFrom=document.getElementById('rep-f-from')?document.getElementById('rep-f-from').value:thisMonthStart;
-  const fTo=document.getElementById('rep-f-to')?document.getElementById('rep-f-to').value:today;
-  const fType=document.getElementById('rep-f-type')?document.getElementById('rep-f-type').value:'all';
-  const fHosp=document.getElementById('rep-f-hosp')?document.getElementById('rep-f-hosp').value:'all';
-  const fQ=document.getElementById('rep-f-q')?document.getElementById('rep-f-q').value.trim():'';
+  // 전역 상태 초기화 (첫 진입 시)
+  if(!_repFrom) _repFrom=thisMonthStart;
+  if(!_repTo)   _repTo=today;
+  // DOM에서 변경된 값 반영
+  const fromEl=document.getElementById('rep-f-from');
+  const toEl=document.getElementById('rep-f-to');
+  const typeEl=document.getElementById('rep-f-type');
+  const hospEl=document.getElementById('rep-f-hosp');
+  const qEl=document.getElementById('rep-f-q');
+  if(fromEl) _repFrom=fromEl.value||_repFrom;
+  if(toEl)   _repTo=toEl.value||_repTo;
+  if(typeEl) _repType=typeEl.value;
+  if(hospEl) _repHosp=hospEl.value;
+  if(qEl)    _repQ=qEl.value.trim();
+  const fFrom=_repFrom, fTo=_repTo, fType=_repType, fHosp=_repHosp, fQ=_repQ;
 
   // 데이터 수집
   const allLogs=[];
@@ -1691,35 +1922,15 @@ function renderReport(){
   }
 
   el.innerHTML=html;
-  // 필터값 복원
-  if(fFrom) document.getElementById('rep-f-from').value=fFrom;
-  if(fTo)   document.getElementById('rep-f-to').value=fTo;
-  if(fType!=='all') document.getElementById('rep-f-type').value=fType;
-  if(fHosp!=='all') document.getElementById('rep-f-hosp').value=fHosp;
-  if(fQ)    document.getElementById('rep-f-q').value=fQ;
+  // 필터값 복원 (전역 변수 기준)
+  const f1=document.getElementById('rep-f-from'); if(f1) f1.value=_repFrom;
+  const f2=document.getElementById('rep-f-to');   if(f2) f2.value=_repTo;
+  const f3=document.getElementById('rep-f-type'); if(f3) f3.value=_repType;
+  const f4=document.getElementById('rep-f-hosp'); if(f4) f4.value=_repHosp;
+  const f5=document.getElementById('rep-f-q');    if(f5) f5.value=_repQ;
 }
 
-function setRepRange(range){
-  const today=todayStr();
-  let from=today, to=today;
-  if(range==='week'){
-    const d=new Date(today+'T00:00:00');
-    const day=d.getDay(); // 0=일
-    const mon=new Date(d); mon.setDate(d.getDate()-(day===0?6:day-1));
-    from=mon.getFullYear()+'-'+(mon.getMonth()+1).toString().padStart(2,'0')+'-'+mon.getDate().toString().padStart(2,'0');
-    to=today;
-  } else if(range==='month'){
-    from=today.slice(0,7)+'-01';
-    to=today;
-  } else if(range==='all'){
-    from='2020-01-01'; to=today;
-  }
-  const fromEl=document.getElementById('rep-f-from');
-  const toEl=document.getElementById('rep-f-to');
-  if(fromEl) fromEl.value=from;
-  if(toEl) toEl.value=to;
-  renderReport();
-}
+
 // Log toggle
 function toggleLog(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
 
@@ -2094,7 +2305,6 @@ function saveSettings(){
     name:document.getElementById('my-name').value.trim(),
     company:document.getElementById('my-company').value.trim(),
     title:document.getElementById('my-title').value.trim(),
-    phone:document.getElementById('my-phone').value.trim(),
     email:document.getElementById('my-email').value.trim(),
     memo:document.getElementById('my-memo').value.trim(),
   };
