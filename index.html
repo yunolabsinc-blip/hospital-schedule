@@ -74,7 +74,44 @@ header{
 .content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 
 
-/* ── DESKTOP TABS ── */
+/* ── FAVORITE (KEY) ── */
+.fav-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:2px 4px;line-height:1;transition:transform .15s;flex-shrink:0;}
+.fav-btn:hover{transform:scale(1.2);}
+.fav-btn.active{filter:drop-shadow(0 0 3px #f5a623);}
+.doctor-card.is-fav{border-color:#f5a623;border-width:2px;}
+.fav-badge{font-size:10px;font-weight:700;color:#f5a623;background:#fff8e8;border:1px solid #f5d98a;padding:2px 6px;border-radius:20px;white-space:nowrap;}
+
+/* ── PLAN DRAG ── */
+.plan-card{position:relative;}
+.plan-drag-handle{cursor:grab;color:var(--text3);font-size:14px;padding:4px 6px;line-height:1;user-select:none;flex-shrink:0;}
+.plan-drag-handle:active{cursor:grabbing;}
+.plan-card.dragging{opacity:.4;border:2px dashed var(--accent);}
+.plan-card.drag-over-plan{border-top:3px solid var(--accent);}
+/* ── AM/PM ROW COLORS ── */
+.schedule-table tr:nth-child(1) td{background:#f0f7ff;}
+.schedule-table tr:nth-child(2) td{background:#fff8f0;}
+.schedule-table tr:nth-child(1) td.rl{background:#dceeff;color:#1565c0;font-weight:700;}
+.schedule-table tr:nth-child(2) td.rl{background:#ffe8cc;color:#c45000;font-weight:700;}
+.memo-row td{background:var(--surface2)!important;}
+.schedule-table th.rl{background:var(--surface2);}
+
+/* ── PREVIEW PANEL ── */
+.schedule-wrap{display:flex;flex:1;overflow:hidden;min-width:0;}
+.schedule-area{flex:1;overflow-y:auto;padding:20px;min-width:0;}
+.preview-panel{width:256px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:none;flex-direction:column;overflow-y:auto;}
+.preview-panel.open{display:flex;}
+.preview-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.preview-title{font-size:13px;font-weight:700;color:var(--text);}
+.preview-close{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px;line-height:1;}
+.preview-close:hover{color:var(--text);}
+.preview-body{padding:10px 14px;flex:1;}
+.preview-date-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin:10px 0 5px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.preview-chip{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;margin-bottom:4px;font-size:12px;cursor:pointer;transition:.12s;border:1px solid transparent;}
+.preview-chip:hover{background:var(--surface2);border-color:var(--border);}
+.preview-chip.done{opacity:.65;}
+.preview-empty{font-size:12px;color:var(--text3);text-align:center;padding:24px 0;}
+@media(max-width:900px){.preview-panel{display:none!important;}.schedule-area{padding:12px;}}
+
 .desk-tabs{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
 .desk-tab{padding:12px 20px;font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;cursor:pointer;font-family:inherit;border-bottom:3px solid transparent;transition:.15s;margin-bottom:-1px;}
 .desk-tab:hover{color:var(--text2);}
@@ -221,6 +258,7 @@ header{
 .schedule-table th.rl{text-align:left;width:58px;}
 .schedule-table td{padding:9px 4px;text-align:center;font-size:15px;border-top:1px solid var(--border);width:calc((100% - 58px)/6);}
 .schedule-table td.rl{text-align:left;font-size:12px;font-weight:500;color:var(--text2);width:58px;}
+.schedule-table td[onclick]:hover{background:var(--accent-light);}
 .dot-on{color:var(--dot);} .dot-off{color:transparent;}
 .cell-surg{display:inline-block;font-size:10px;font-weight:600;color:#aaa;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:4px;padding:2px 5px;line-height:1.4;}
 .hcol{background:#fffbf5;}
@@ -367,10 +405,8 @@ header{
   </div>
   <div class="header-btns">
     <input type="file" id="xlsx-input" accept=".xlsx" style="display:none" onchange="handleXlsx(this)">
-    <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImgUpload(this)">
     <button class="btn btn-outline" onclick="downloadTemplate()">📥 양식 다운로드</button>
     <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()">📂 엑셀 업로드</button>
-    <button class="btn btn-outline" onclick="document.getElementById('img-input').click()">🖼️ 이미지 분석</button>
     <button class="btn btn-outline" onclick="openHospModal()">+ 거래처</button>
     <button class="btn btn-outline btn-icon" onclick="openSettings()" title="설정">⚙️</button>
     <!-- mobile FAB -->
@@ -392,9 +428,24 @@ header{
     <div class="desk-tabs">
       <button class="desk-tab active" id="dt-schedule" onclick="switchTab('schedule')">📋 진료시간표</button>
       <button class="desk-tab" id="dt-plan" onclick="switchTab('plan')">📅 활동계획</button>
+      <button class="desk-tab" id="dt-report" onclick="switchTab('report')">📊 활동기록</button>
     </div>
-    <div class="main" id="main"></div>
+    <!-- 진료시간표 + 활동계획 현황 패널 -->
+    <div class="schedule-wrap" id="schedule-wrap">
+      <div class="schedule-area" id="main"></div>
+      <!-- 이번주 활동계획 현황 패널 (항상 표시) -->
+      <div class="preview-panel open" id="preview-panel">
+        <div class="preview-header">
+          <div>
+            <div class="preview-title">📅 이번주 활동계획</div>
+            <div style="font-size:11px;color:var(--text3);" id="preview-week-range"></div>
+          </div>
+        </div>
+        <div class="preview-body" id="preview-body"></div>
+      </div>
+    </div>
     <div class="main" id="plan-main" style="display:none;"></div>
+    <div class="main" id="report-main" style="display:none;"></div>
   </div>
 </div>
 
@@ -407,8 +458,8 @@ header{
     <button class="tab-btn" id="tab-plan-mob" onclick="switchTab('plan');closeMobMenus()">
       <span class="ti">📅</span><span>활동계획</span>
     </button>
-    <button class="tab-btn" id="tab-add-hosp" onclick="openHospModal()">
-      <span class="ti">＋</span><span>거래처 추가</span>
+    <button class="tab-btn" id="tab-report-mob" onclick="switchTab('report');closeMobMenus()">
+      <span class="ti">📊</span><span>활동기록</span>
     </button>
     <button class="tab-btn" id="tab-upload" onclick="document.getElementById('xlsx-input').click()">
       <span class="ti">📂</span><span>엑셀 업로드</span>
@@ -513,14 +564,37 @@ header{
 
 <!-- Plan Date Picker Modal -->
 <div class="modal-overlay" id="plan-pick-modal" style="z-index:500;">
-  <div class="modal" style="max-width:340px;">
+  <div class="modal" style="max-width:360px;">
     <div class="modal-handle"></div>
     <h3>📅 활동계획 추가</h3>
     <input type="hidden" id="plan-pick-did">
-    <p id="plan-pick-name" style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:14px;"></p>
+    <input type="hidden" id="plan-pick-time">
+    <input type="hidden" id="plan-pick-selected-date">
+    <p id="plan-pick-name" style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px;"></p>
+
+    <!-- 인라인 달력 -->
+    <div id="plan-cal-wrap" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <button onclick="movePickerMonth(-1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;font-family:inherit;">‹</button>
+        <span id="plan-cal-title" style="font-size:14px;font-weight:700;color:var(--text);"></span>
+        <button onclick="movePickerMonth(1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;font-family:inherit;">›</button>
+      </div>
+      <div id="plan-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;"></div>
+    </div>
+
+    <!-- 선택된 날짜 표시 -->
+    <div id="plan-cal-selected" style="font-size:13px;color:var(--text2);background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:12px;min-height:36px;display:flex;align-items:center;gap:6px;">
+      <span style="color:var(--text3);">선택된 날짜:</span>
+      <span id="plan-cal-selected-label" style="font-weight:600;color:var(--accent);">없음</span>
+    </div>
+
+    <!-- 시간대 -->
     <div class="form-row">
-      <label>방문 날짜 선택</label>
-      <select id="plan-pick-date" style="font-size:14px;padding:10px 12px;width:100%;border-radius:10px;border:1px solid var(--border);font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"></select>
+      <label>시간대</label>
+      <div style="display:flex;gap:8px;">
+        <button id="plan-time-am" onclick="setPlanTime('오전')" style="flex:1;padding:10px;border-radius:10px;border:2px solid #1565c0;background:#1565c0;color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">오전</button>
+        <button id="plan-time-pm" onclick="setPlanTime('오후')" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">오후</button>
+      </div>
     </div>
     <div class="modal-actions" style="margin-top:16px;">
       <button class="btn btn-outline" onclick="closeModal('plan-pick-modal')">취소</button>
@@ -593,9 +667,9 @@ const DAYS=['월','화','수','목','금','토'];
 const TIMES=['오전','오후'];
 let S={hospitals:[],doctors:[],activeHosp:null,editHospId:null,editDrId:null,hTags:[],dTags:[],drQ:''};
 const KEY='myschedule_v9';
-function save(){localStorage.setItem(KEY,JSON.stringify({hospitals:S.hospitals,doctors:S.doctors,plans:S.plans||{}}));}
+function save(){localStorage.setItem(KEY,JSON.stringify({hospitals:S.hospitals,doctors:S.doctors,plans:S.plans||{},planOrder:S.planOrder||{}}));}
 function load(){
-  try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');S.hospitals=d.hospitals||[];S.doctors=d.doctors||[];S.plans=d.plans||{};if(S.hospitals.length)S.activeHosp=S.hospitals[0].id;}catch(e){}
+  try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');S.hospitals=d.hospitals||[];S.doctors=d.doctors||[];S.plans=d.plans||{};S.planOrder=d.planOrder||{};if(S.hospitals.length)S.activeHosp=S.hospitals[0].id;}catch(e){}
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -640,6 +714,8 @@ function renderMain(){
   if(!h){el.innerHTML='<div class="empty-state"><div class="empty-icon">👈</div><p>거래처를 선택하세요</p></div>';return;}
 
   let docs=S.doctors.filter(d=>d.hospitalId===h.id);
+  // 즐겨찾기 상단 표시
+  docs.sort((a,b)=>(b.fav?1:0)-(a.fav?1:0));
   const q=S.drQ||'';
   if(q)docs=docs.filter(d=>d.name.includes(q)||(d.dept||'').includes(q));
 
@@ -678,7 +754,9 @@ function renderMain(){
         else if(vs==='내시경') cell='<span style="'+boxStyle+'color:#88a;background:#f0f0f8;border:1px solid #d0d0e8;">내시경</span>';
         else if(v&&vs!=='false') cell='<span class="dot-on">●</span>';
         else cell='<span class="dot-off">·</span>';
-        return '<td>'+cell+'</td>';
+        // 셀 클릭 → 바로 활동계획 추가 팝업
+        return '<td style="cursor:pointer;border-radius:6px;transition:background .12s;" '+
+          'onclick="addToPlanFromCell(\''+d.id+'\','+di+','+ti+')" title="활동계획 추가">'+cell+'</td>';
       }).join('');
       return '<tr><td class="rl">'+t+'</td>'+cells+'</tr>';
     }).join('');
@@ -709,6 +787,7 @@ function renderMain(){
       return '<div class="log-item">'+
         '<span class="log-badge '+badgeCls+'">'+esc(lg.type)+'</span>'+
         '<span class="log-date">'+esc(lg.date)+'</span>'+
+        (lg.product?'<span style="font-size:11px;font-weight:600;color:var(--accent2);background:var(--accent2-light);padding:1px 6px;border-radius:10px;flex-shrink:0;">'+esc(lg.product)+'</span>':'')+
         '<span class="log-content">'+esc(lg.content)+'</span>'+
         '<button class="log-del" data-did="'+d.id+'" data-idx="'+realIdx+'" onclick="delLog(this.dataset.did,parseInt(this.dataset.idx))">✕</button>'+
       '</div>';
@@ -726,17 +805,21 @@ function renderMain(){
             '<option value="콜">콜</option>'+
             '<option value="기타">기타</option>'+
           '</select>'+
-          '<input type="text" class="log-input" data-did="'+d.id+'" placeholder="메모 입력 후 Enter" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addLogFromRow(this);}">'+
+          '<input type="text" class="log-prod-input" data-did="'+d.id+'" placeholder="제품명" style="flex:0.8;min-width:70px;">'+
+          '<input type="text" class="log-input" data-did="'+d.id+'" placeholder="내용 입력 후 Enter" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addLogFromRow(this);}">'+
           '<button data-did="'+d.id+'" onclick="addLogFromBtn(this)">+</button>'+
         '</div>'+
       '</div>';
 
-    return '<div class="doctor-card" data-did="'+d.id+'" data-idx="'+docs.indexOf(d)+'" draggable="true" '+
+    const isFav=!!(d.fav);
+    return '<div class="doctor-card'+(isFav?' is-fav':'')+'" data-did="'+d.id+'" data-idx="'+docs.indexOf(d)+'" draggable="true" '+
       'ondragstart="onDrDragStart(event)" ondragover="onDrDragOver(event)" ondrop="onDrDrop(event)" ondragleave="onDrDragLeave(event)" ondragend="onDrDragEnd(event)">'+
       '<div class="card-header">'+
         '<div class="card-hd-left">'+
           '<span class="drag-handle">⠿</span>'+
+          '<button class="fav-btn'+(isFav?' active':'')+'" data-id="'+d.id+'" onclick="toggleFav(this.dataset.id)" title="'+(isFav?'즐겨찾기 해제':'주요 의료진 즐겨찾기')+'">'+(isFav?'⭐':'☆')+'</button>'+
           '<div class="doctor-name">'+dname+'</div>'+(d.dept?'<div class="doctor-dept">'+ddept+'</div>':'')+
+          (isFav?'<span class="fav-badge">⭐ KEY</span>':'')+
           (h.phone?'<a class="phone-btn" href="tel:'+esc(h.phone)+'">📞 '+esc(h.phone)+'</a>':'')+
         '</div>'+
         '<div class="card-actions">'+
@@ -756,19 +839,219 @@ function renderMain(){
 // Bio toggle
 function toggleBio(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
 
+// ── Preview Panel (주간 활동계획 현황) ──
+function renderPreview(){
+  const today=todayStr();
+  // 이번주 월~일
+  const base=new Date(today+'T00:00:00');
+  const jsDay=base.getDay();
+  const mondayDiff=jsDay===0?-6:1-jsDay;
+  const weekStart=new Date(base); weekStart.setDate(base.getDate()+mondayDiff);
+  const weekDates=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart); d.setDate(weekStart.getDate()+i);
+    const ds=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
+    weekDates.push({ds,d,day:['일','월','화','수','목','금','토'][d.getDay()]});
+  }
+  const w0=weekDates[0].d, w6=weekDates[6].d;
+  const rangeLabel=(w0.getMonth()+1)+'월'+w0.getDate()+'일 ~ '+(w6.getMonth()+1)+'월'+w6.getDate()+'일';
+  const rangeEl=document.getElementById('preview-week-range');
+  if(rangeEl) rangeEl.textContent=rangeLabel;
+
+  let html='';
+  let totalPlan=0, totalDone=0;
+  weekDates.forEach(({ds,d,day})=>{
+    const isT=ds===today;
+    const allPlans=getAllPlansForDate(ds);
+    if(!allPlans.length) return;
+    totalPlan+=allPlans.length;
+    totalDone+=allPlans.filter(p=>p.pd.checked).length;
+    const dayLabel=(d.getMonth()+1)+'월'+d.getDate()+'일('+day+')';
+    html+='<div style="margin-bottom:14px;">'+
+      '<div style="font-size:11px;font-weight:700;color:'+(isT?'var(--accent)':'var(--text2)')+
+        ';padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;">'+
+        '<span>'+(isT?'📍 ':'')+
+          '<span style="cursor:pointer;" onclick="planDate=\''+ds+'\';switchTab(\'plan\')">'+dayLabel+'</span>'+
+        '</span>'+
+        '<span style="font-size:10px;background:'+(allPlans.filter(p=>p.pd.checked).length===allPlans.length?'#e8f5e9':'var(--surface2)')+
+          ';color:'+(allPlans.filter(p=>p.pd.checked).length===allPlans.length?'#1b5e20':'var(--text3)')+
+          ';padding:1px 6px;border-radius:10px;font-weight:600;">'+
+          allPlans.filter(p=>p.pd.checked).length+'/'+allPlans.length+
+        '</span>'+
+      '</div>';
+    allPlans.forEach(p=>{
+      const pd=p.pd;
+      const done=pd.checked;
+      const timeBg  =pd.time==='오전'?'#dceeff':'#ffe8cc';
+      const timeColor=pd.time==='오전'?'#1565c0':'#c45000';
+      html+='<div class="preview-chip'+(done?' done':'')+'" onclick="planDate=\''+ds+'\';switchTab(\'plan\')">'+
+        '<span style="font-size:12px;">'+(done?'✅':'📋')+'</span>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:12px;font-weight:600;color:'+(done?'var(--text3)':'var(--text)')+';'+(done?'text-decoration:line-through;':'')+'">'+
+            (p.dr.fav?'⭐':'')+esc(p.dr.name)+
+            '<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:3px;">'+esc(p.dr.hospName)+'</span>'+
+          '</div>'+
+          '<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;">'+
+            (pd.time?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:'+timeBg+';color:'+timeColor+';">'+pd.time+'</span>':'')+
+            (pd.product?'<span style="font-size:10px;padding:1px 5px;border-radius:8px;background:var(--surface2);color:var(--text2);">'+esc(pd.product)+'</span>':'')+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  });
+
+  const bodyEl=document.getElementById('preview-body');
+  if(!bodyEl) return;
+
+  if(!html){
+    bodyEl.innerHTML='<div class="preview-empty">📭<br><span style="font-size:13px;font-weight:600;color:var(--text2);">이번주 계획 없음</span><br><span style="font-size:11px;color:var(--text3);margin-top:6px;display:block;line-height:1.6;">진료시간표에서<br>셀을 클릭해 계획을 추가하세요</span></div>';
+  } else {
+    bodyEl.innerHTML=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">'+
+        '<div style="background:#ebf5fb;border-radius:8px;padding:8px;text-align:center;">'+
+          '<div style="font-size:10px;color:#1e5fa8;font-weight:700;margin-bottom:2px;">📋 계획</div>'+
+          '<div style="font-size:22px;font-weight:800;color:#1e5fa8;">'+totalPlan+'</div>'+
+        '</div>'+
+        '<div style="background:#e8f5e9;border-radius:8px;padding:8px;text-align:center;">'+
+          '<div style="font-size:10px;color:#1b5e20;font-weight:700;margin-bottom:2px;">✅ 완료</div>'+
+          '<div style="font-size:22px;font-weight:800;color:#1b5e20;">'+totalDone+'</div>'+
+        '</div>'+
+      '</div>'+html;
+  }
+}
+
+// ── 달력 피커 JS ──
+let _pickerYear=0, _pickerMonth=0;
+
+function _initPicker(){
+  const today=new Date();
+  _pickerYear=today.getFullYear();
+  _pickerMonth=today.getMonth();
+}
+
+function renderPickerCal(){
+  const title=document.getElementById('plan-cal-title');
+  const grid=document.getElementById('plan-cal-grid');
+  if(!title||!grid) return;
+
+  title.textContent=_pickerYear+'년 '+(_pickerMonth+1)+'월';
+
+  const today=todayStr();
+  const selectedDs=document.getElementById('plan-pick-selected-date').value;
+  const firstDay=new Date(_pickerYear,_pickerMonth,1).getDay(); // 0=일
+  const daysInMonth=new Date(_pickerYear,_pickerMonth+1,0).getDate();
+
+  let html='';
+  // 요일 헤더
+  ['일','월','화','수','목','금','토'].forEach(d=>{
+    html+='<div style="font-size:10px;font-weight:700;color:var(--text3);padding:3px 0;">'+d+'</div>';
+  });
+  // 빈칸
+  for(let i=0;i<firstDay;i++) html+='<div></div>';
+  // 날짜
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=_pickerYear+'-'+String(_pickerMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=ds===today;
+    const isSelected=ds===selectedDs;
+    const isPast=ds<today;
+    html+='<div onclick="selectPickerDate(\''+ds+'\')" style="'+
+      'padding:5px 2px;border-radius:6px;font-size:13px;font-weight:'+(isToday||isSelected?'700':'400')+';cursor:'+(isPast?'default':'pointer')+';'+
+      'color:'+(isPast?'#ccc':isSelected?'#fff':isToday?'var(--accent)':'var(--text)')+';'+
+      'background:'+(isSelected?'var(--accent)':isToday?'var(--accent-light)':'transparent')+';'+
+      'text-align:center;transition:.1s;">'+d+'</div>';
+  }
+  grid.innerHTML=html;
+}
+
+function movePickerMonth(delta){
+  _pickerMonth+=delta;
+  if(_pickerMonth>11){_pickerMonth=0;_pickerYear++;}
+  if(_pickerMonth<0){_pickerMonth=11;_pickerYear--;}
+  renderPickerCal();
+}
+
+function selectPickerDate(ds){
+  const today=todayStr();
+  if(ds<today) return; // 과거 선택 불가
+  document.getElementById('plan-pick-selected-date').value=ds;
+  const d=new Date(ds+'T00:00:00');
+  const days=['일','월','화','수','목','금','토'];
+  const label=(ds===today?'오늘 ':'')+(d.getMonth()+1)+'월'+d.getDate()+'일('+days[d.getDay()]+')';
+  document.getElementById('plan-cal-selected-label').textContent=label;
+  renderPickerCal();
+}
+
+// ── Favorite (Key) ──
+function toggleFav(did){
+  const d=S.doctors.find(x=>x.id===did);
+  if(!d) return;
+  d.fav=!d.fav;
+  save();renderMain();
+  toast(d.fav?'⭐ 주요 의료진으로 등록됐습니다':'즐겨찾기가 해제됐습니다');
+}
+
+// ── Plan Drag & Drop ──
+let _planDragDid=null;
+function onPlanDragStart(e){
+  _planDragDid=e.currentTarget.dataset.did;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function onPlanDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drag-over-plan');
+}
+function onPlanDragLeave(e){e.currentTarget.classList.remove('drag-over-plan');}
+function onPlanDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.plan-card').forEach(el=>el.classList.remove('drag-over-plan'));
+}
+function onPlanDrop(e){
+  e.preventDefault();
+  const toDid=e.currentTarget.dataset.did;
+  e.currentTarget.classList.remove('drag-over-plan');
+  if(!_planDragDid||_planDragDid===toDid){_planDragDid=null;return;}
+  if(!S.planOrder) S.planOrder={};
+  if(!S.planOrder[planDate]){
+    S.planOrder[planDate]=Object.keys(S.plans||{}).filter(did=>S.plans[did][planDate]&&S.plans[did][planDate].added);
+  }
+  const order=S.planOrder[planDate];
+  const fromIdx=order.indexOf(_planDragDid);
+  const toIdx=order.indexOf(toDid);
+  if(fromIdx!==-1&&toIdx!==-1){
+    const moved=order.splice(fromIdx,1)[0];
+    order.splice(toIdx,0,moved);
+  }
+  _planDragDid=null;
+  save();renderPlan();
+}
+
 // ── Tab switching ──
 let currentTab='schedule';
 function switchTab(tab){
   currentTab=tab;
   document.getElementById('main').style.display=tab==='schedule'?'':'none';
   document.getElementById('plan-main').style.display=tab==='plan'?'':'none';
+  document.getElementById('report-main').style.display=tab==='report'?'':'none';
+  // schedule-wrap (미리보기 포함)
+  const sw=document.getElementById('schedule-wrap');
+  if(sw) sw.style.display=tab==='schedule'?'flex':'none';
   // desktop tabs
   document.getElementById('dt-schedule').classList.toggle('active',tab==='schedule');
   document.getElementById('dt-plan').classList.toggle('active',tab==='plan');
+  document.getElementById('dt-report').classList.toggle('active',tab==='report');
   // mobile tabs
   document.getElementById('tab-list').classList.toggle('active',tab==='schedule');
   document.getElementById('tab-plan-mob').classList.toggle('active',tab==='plan');
+  document.getElementById('tab-report-mob').classList.toggle('active',tab==='report');
+  if(tab==='schedule'){
+    // 미리보기 패널 자동 열기 + 갱신
+    openPreview();
+  }
   if(tab==='plan') renderPlan();
+  if(tab==='report') renderReport();
 }
 function closeMobMenus(){
   closeDrawer();
@@ -813,212 +1096,599 @@ function savePlanData(did, dateStr, data){
   if(!S.plans) S.plans={};
   if(!S.plans[did]) S.plans[did]={};
   S.plans[did][dateStr]=data;
-  save();
+  save(); // ← 핵심: 반드시 저장
 }
 
 function renderPlan(){
   const el=document.getElementById('plan-main');
-  const di=planDayOfWeek(planDate);
   const today=todayStr();
 
-  // 헤더
-  let html=
-    '<div class="plan-header">'+
-      '<div class="plan-date-nav">'+
-        '<button onclick="movePlanDate(-1)">‹</button>'+
-        '<span class="plan-date-label">'+planDateLabel(planDate)+'</span>'+
-        '<button onclick="movePlanDate(1)">›</button>'+
-      '</div>'+
-      '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">오늘로</button>'+
+  // 주간 시작일 계산 (월요일 기준)
+  const base=new Date(planDate+'T00:00:00');
+  const jsDay=base.getDay(); // 0=일
+  const mondayDiff=jsDay===0?-6:1-jsDay;
+  const weekStart=new Date(base); weekStart.setDate(base.getDate()+mondayDiff);
+
+  // 이번주 7일 날짜 배열
+  const weekDates=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart); d.setDate(weekStart.getDate()+i);
+    const ds=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
+    weekDates.push({ds, d, day:['일','월','화','수','목','금','토'][d.getDay()]});
+  }
+
+  const isToday=planDate===today;
+
+  // 캘린더 그리드 — 헤더(요일/날짜)를 캘린더 위에 바로 배치, 위 공간 없음
+  let html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);">';
+
+  // 네비 바 (캘린더 상단)
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);">'+
+    '<div style="display:flex;align-items:center;gap:8px;">'+
+      '<button onclick="movePlanWeek(-1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;">‹ 이전주</button>'+
+      '<span style="font-size:14px;font-weight:700;color:var(--text);">'+
+        (weekDates[0].d.getMonth()+1)+'월 '+weekDates[0].d.getDate()+'일 ~ '+
+        (weekDates[6].d.getMonth()+1)+'월 '+weekDates[6].d.getDate()+'일'+
+      '</span>'+
+      '<button onclick="movePlanWeek(1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;">다음주 ›</button>'+
+    '</div>'+
+    '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">이번주</button>'+
+  '</div>';
+
+  // 요일/날짜 헤더 행
+  html+='<div style="display:grid;grid-template-columns:44px repeat(7,1fr);border-bottom:1px solid var(--border);">'+
+    '<div style="background:var(--surface2);border-right:1px solid var(--border);"></div>';
+  weekDates.forEach(({ds,d,day})=>{
+    const isT=ds===today;
+    const isPlan=ds===planDate;
+    html+='<div style="padding:8px 4px;text-align:center;background:'+(isT?'#e8f5e9':isPlan?'#f0f4ff':'var(--surface2)')+
+      ';border-left:1px solid var(--border);cursor:pointer;" onclick="planDate=\''+ds+'\';renderPlan()">'+
+      '<div style="font-size:10px;font-weight:600;color:'+(isT?'var(--accent)':'var(--text3)')+';">'+day+'</div>'+
+      '<div style="font-size:15px;font-weight:700;margin:1px auto;width:26px;height:26px;line-height:26px;border-radius:50%;text-align:center;'+
+        (isT?'background:var(--accent);color:#fff;':'color:var(--text);')+
+        '">'+d.getDate()+'</div>'+
     '</div>';
-
-  // 이 날짜에 수동으로 추가된 의사만 표시
-  const addedDids=Object.keys(S.plans||{}).filter(did=>{
-    const pd=S.plans[did][planDate];
-    return pd && pd.added;
   });
-  const addedDrs=addedDids.map(did=>{
-    const d=S.doctors.find(x=>x.id===did);
-    if(!d) return null;
-    const h=S.hospitals.find(x=>x.id===d.hospitalId);
-    return d?{...d,hospName:h?h.name:'',hospPhone:h?h.phone||'':''}:null;
-  }).filter(Boolean);
+  html+='</div>';
 
-  const doneDrs=addedDrs.filter(d=>getPlanData(d.id,planDate).checked);
-  const todoDrs=addedDrs.filter(d=>!getPlanData(d.id,planDate).checked);
+  // 오전 행 (파란 계열)
+  html+='<div style="display:grid;grid-template-columns:44px repeat(7,1fr);border-bottom:1px solid var(--border);">'+
+    '<div style="padding:8px 4px;background:#dceeff;font-size:11px;font-weight:700;color:#1565c0;text-align:center;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;">오전</div>';
+  weekDates.forEach(({ds})=>{
+    const cellPlans=getPlansForDateAndTime(ds,'오전');
+    const isT=ds===today;
+    const isPlan=ds===planDate;
+    html+='<div style="min-height:64px;padding:4px;border-left:1px solid var(--border);background:'+(isT?'#f0f7ff':isPlan?'#f5f8ff':'var(--surface)')+';">'+
+      cellPlans.map(p=>planChip(p,ds,'am')).join('')+
+    '</div>';
+  });
+  html+='</div>';
 
-  if(!addedDrs.length){
-    html+=
-      '<div class="plan-empty">'+
-        '<div class="plan-empty-icon">📅</div>'+
-        '<p style="font-size:14px;font-weight:600;color:var(--text2);">활동 계획이 없습니다</p>'+
-        '<p style="font-size:13px;color:var(--text3);text-align:center;">진료시간표 탭에서 의사 카드의<br><strong style="color:var(--accent);">📅 계획 추가</strong> 버튼을 눌러주세요</p>'+
-      '</div>';
-  } else {
+  // 오후 행 (주황 계열)
+  html+='<div style="display:grid;grid-template-columns:44px repeat(7,1fr);">'+
+    '<div style="padding:8px 4px;background:#ffe8cc;font-size:11px;font-weight:700;color:#c45000;text-align:center;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;">오후</div>';
+  weekDates.forEach(({ds})=>{
+    const cellPlans=getPlansForDateAndTime(ds,'오후');
+    const isT=ds===today;
+    const isPlan=ds===planDate;
+    html+='<div style="min-height:64px;padding:4px;border-left:1px solid var(--border);background:'+(isT?'#fff8f0':isPlan?'#fffaf5':'var(--surface)')+';">'+
+      cellPlans.map(p=>planChip(p,ds,'pm')).join('')+
+    '</div>';
+  });
+  html+='</div>';
+
+  html+='</div>'; // 캘린더 끝
+
+  // 선택한 날짜 상세 카드
+  const selDayPlans=getAllPlansForDate(planDate);
+  if(selDayPlans.length){
+    const isT=planDate===today;
+    html+='<div style="margin-top:16px;">'+
+      '<div class="plan-section-title">'+planDateLabel(planDate)+' 상세</div>';
+    if(!isT){
+      html+='<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;color:#b7770d;">'+
+        '⚠️ 활동 완료 체크와 내용 입력은 <strong>당일만</strong> 가능합니다.</div>';
+    }
+    const todoDrs=selDayPlans.filter(p=>!p.pd.checked);
+    const doneDrs=selDayPlans.filter(p=>p.pd.checked);
     if(todoDrs.length){
-      html+='<div class="plan-section-title">방문 예정 ('+todoDrs.length+')</div>';
-      html+=todoDrs.map(d=>planCard(d,planDate,false)).join('');
+      html+='<div class="plan-section-title" style="margin-top:10px;">활동계획 ('+todoDrs.length+')</div>';
+      html+=todoDrs.map(p=>planCard(p.dr,planDate,false,isT)).join('');
     }
     if(doneDrs.length){
-      html+='<div class="plan-section-title" style="margin-top:20px;">완료 ('+doneDrs.length+')</div>';
-      html+=doneDrs.map(d=>planCard(d,planDate,true)).join('');
+      html+='<div class="plan-section-title" style="margin-top:14px;">활동완료 ✅ ('+doneDrs.length+')</div>';
+      html+=doneDrs.map(p=>planCard(p.dr,planDate,true,isT)).join('');
     }
+    html+='</div>';
   }
 
   el.innerHTML=html;
 
   // textarea 복원
-  addedDrs.forEach(d=>{
-    const pd=getPlanData(d.id,planDate);
-    const ta=document.getElementById('plan-ta-'+d.id);
+  selDayPlans.forEach(({dr})=>{
+    const pd=getPlanData(dr.id,planDate);
+    const ta=document.getElementById('plan-ta-'+dr.id);
     if(ta) ta.value=pd.note||'';
     if(pd.savedAt){
-      const si=document.getElementById('plan-saved-'+d.id);
+      const si=document.getElementById('plan-saved-'+dr.id);
       if(si) si.textContent='저장됨 '+pd.savedAt;
     }
   });
 }
 
-function planCard(d, dateStr, done){
+function getPlansForDateAndTime(date, time){
+  return Object.keys(S.plans||{}).filter(did=>{
+    const pd=S.plans[did][date];
+    return pd && pd.added && (pd.time||'오전')===time;
+  }).map(did=>{
+    const d=S.doctors.find(x=>x.id===did);
+    const h=d?S.hospitals.find(x=>x.id===d.hospitalId):null;
+    const pd=S.plans[did][date];
+    return {did,dr:{...d,hospName:h?h.name:'',hospPhone:h?h.phone||'':''},pd};
+  }).filter(x=>x.dr&&x.dr.id);
+}
+
+function getAllPlansForDate(date){
+  return Object.keys(S.plans||{}).filter(did=>{
+    const pd=S.plans[did][date];
+    return pd && pd.added;
+  }).map(did=>{
+    const d=S.doctors.find(x=>x.id===did);
+    const h=d?S.hospitals.find(x=>x.id===d.hospitalId):null;
+    const pd=S.plans[did][date];
+    return {did,dr:{...d,hospName:h?h.name:'',hospPhone:h?h.phone||'':''},pd};
+  }).filter(x=>x.dr&&x.dr.id);
+}
+
+function planChip(p, date, slot){
+  const done=p.pd.checked;
+  const isFav=p.dr.fav;
+  // 오전=파랑, 오후=주황, 완료=초록
+  const bg   = done ? '#e8f5e9' : slot==='am' ? '#dceeff' : slot==='pm' ? '#ffe8cc' : '#ebf5fb';
+  const color= done ? '#1b5e20' : slot==='am' ? '#1565c0' : slot==='pm' ? '#c45000' : '#1e5fa8';
+  const border=done ? '#1b5e20' : slot==='am' ? '#1565c0' : slot==='pm' ? '#c45000' : '#1e5fa8';
+  return '<div style="margin:2px 0;padding:3px 6px;border-radius:6px;font-size:11px;font-weight:600;'+
+    'background:'+bg+';color:'+color+';border-left:3px solid '+border+';'+
+    'cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" '+
+    'onclick="planDate=\''+date+'\';renderPlan()" title="'+esc(p.dr.name)+' · '+esc(p.dr.hospName)+'">'+
+    (done?'✅ ':'📋 ')+(isFav?'⭐':'')+esc(p.dr.name)+
+  '</div>';
+}
+
+function movePlanWeek(delta){
+  const d=new Date(planDate+'T00:00:00');
+  d.setDate(d.getDate()+delta*7);
+  planDate=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
+  renderPlan();
+}
+
+function planCard(d, dateStr, done, isToday){
   const di=planDayOfWeek(dateStr);
-  const times=[];
+  const schedTimes=[];
   if(di>=0 && d.schedule && d.schedule[di]){
     const amV=d.schedule[di][0], pmV=d.schedule[di][1];
-    if(amV) times.push('오전'+(amV!==true?' ('+amV+')':''));
-    if(pmV) times.push('오후'+(pmV!==true?' ('+pmV+')':''));
+    if(amV) schedTimes.push({label:'오전'+(amV!==true?' ('+amV+')':''), slot:'am'});
+    if(pmV) schedTimes.push({label:'오후'+(pmV!==true?' ('+pmV+')':''), slot:'pm'});
   }
-  const timeBadge=times.length?times.map(t=>'<span class="plan-time-badge">'+esc(t)+'</span>').join(' '):'';
-  const phone=d.hospPhone?'<a class="phone-btn" href="tel:'+esc(d.hospPhone)+'" onclick="event.stopPropagation()">📞</a>':'';
+  const pd=getPlanData(d.id,dateStr);
+  // 등록된 시간대 배지 (오전=파랑, 오후=주황)
+  const planTimeSlot=pd.time||'오전';
+  const planTimeBg  =planTimeSlot==='오전'?'#dceeff':'#ffe8cc';
+  const planTimeColor=planTimeSlot==='오전'?'#1565c0':'#c45000';
+  const planTimeBadge='<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+planTimeBg+';color:'+planTimeColor+';">'+planTimeSlot+'</span>';
 
-  return '<div class="plan-card'+(done?' done':'')+'" id="plan-card-'+d.id+'">'+
+  // 진료시간표에서의 실제 진료 형태 배지
+  const schedBadge=schedTimes.map(({label,slot})=>{
+    const bg=slot==='am'?'#dceeff':'#ffe8cc';
+    const c =slot==='am'?'#1565c0':'#c45000';
+    return '<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:20px;background:'+bg+';color:'+c+';">'+esc(label)+'</span>';
+  }).join(' ');
+
+  const phone=d.hospPhone?'<a class="phone-btn" href="tel:'+esc(d.hospPhone)+'" onclick="event.stopPropagation()">📞</a>':'';
+  const locked=!isToday;
+
+  return '<div class="plan-card'+(done?' done':'')+'" id="plan-card-'+d.id+'" data-did="'+d.id+'" draggable="true" '+
+    'ondragstart="onPlanDragStart(event)" ondragover="onPlanDragOver(event)" ondrop="onPlanDrop(event)" ondragleave="onPlanDragLeave(event)" ondragend="onPlanDragEnd(event)">'+
     '<div class="plan-card-header">'+
-      '<div class="plan-check'+(done?' checked':'')+'" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="togglePlanCheck(this)">'+
+      '<span class="plan-drag-handle">⠿</span>'+
+      // 체크 버튼 — 당일만 클릭 가능
+      '<div class="plan-check'+(done?' checked':'')+'"'+
+        (locked?' style="opacity:.4;cursor:not-allowed;"':' data-did="'+d.id+'" data-date="'+dateStr+'" onclick="togglePlanCheck(this)"')+'>'+
         '<span class="plan-check-mark">✓</span>'+
       '</div>'+
       '<div style="flex:1;min-width:0;">'+
         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
           '<span class="plan-dr-name">'+esc(d.name)+'</span>'+
           (d.dept?'<span class="plan-dept-badge">'+esc(d.dept)+'</span>':'')+
-          timeBadge+
+          planTimeBadge+
+          (schedBadge?' '+schedBadge:'')+
+          (done?'<span style="font-size:11px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:2px 7px;border-radius:20px;">✅ 완료</span>':'')+
         '</div>'+
         '<div class="plan-hosp-name">'+esc(d.hospName)+phone+'</div>'+
       '</div>'+
       '<button style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:4px;flex-shrink:0;" title="계획에서 제거" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="removePlanEntry(this.dataset.did,this.dataset.date)">✕</button>'+
     '</div>'+
     '<div class="plan-note-area">'+
-      '<textarea id="plan-ta-'+d.id+'" placeholder="방문 내용, 미팅 결과, 전달 사항 등..."></textarea>'+
-      '<div class="plan-note-footer">'+
-        '<span class="plan-note-saved" id="plan-saved-'+d.id+'"></span>'+
-        '<button class="plan-save-btn" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="savePlanNote(this)">저장</button>'+
-      '</div>'+
+      (locked?
+        // 잠긴 상태 — 저장된 내용만 표시
+        (pd.product||pd.note?
+          '<div style="padding:10px 14px;font-size:13px;color:var(--text2);">'+
+            (pd.product?'<span style="font-weight:600;color:var(--accent2);">📦 '+esc(pd.product)+'</span> ':'')+
+            esc(pd.note||'')+
+          '</div>':
+          '<div style="padding:10px 14px;font-size:12px;color:var(--text3);">당일만 입력 가능합니다</div>'
+        ):
+        // 당일 — 입력 가능
+        '<div style="padding:10px 14px 0;display:flex;flex-direction:column;gap:8px;">'+
+          '<div>'+
+            '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;">📦 제품명</div>'+
+            '<input type="text" id="plan-prod-'+d.id+'" value="'+esc(pd.product||'')+'" placeholder="제품명 입력..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;">'+
+          '</div>'+
+          '<div>'+
+            '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;">📝 활동 내용</div>'+
+            '<textarea id="plan-ta-'+d.id+'" placeholder="미팅 내용, 반응, 전달 사항 등..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;resize:vertical;min-height:60px;display:block;">'+esc(pd.note||'')+'</textarea>'+
+          '</div>'+
+        '</div>'+
+        '<div class="plan-note-footer">'+
+          '<span class="plan-note-saved" id="plan-saved-'+d.id+'">'+(pd.savedAt?'저장됨 '+pd.savedAt:'')+'</span>'+
+          '<button class="plan-save-btn" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="savePlanNote(this)">저장</button>'+
+        '</div>'
+      )+
     '</div>'+
   '</div>';
 }
 
 function togglePlanCheck(el){
   const did=el.dataset.did, date=el.dataset.date;
+  if(date!==todayStr()){toast('⚠️ 당일만 완료 처리할 수 있습니다');return;}
   const pd=getPlanData(did,date);
   pd.checked=!pd.checked;
   savePlanData(did,date,pd);
   renderPlan();
+  renderPreview();
 }
 
 function savePlanNote(btn){
   const did=btn.dataset.did, date=btn.dataset.date;
   const ta=document.getElementById('plan-ta-'+did);
+  const prodEl=document.getElementById('plan-prod-'+did);
   const pd=getPlanData(did,date);
-  pd.note=ta?ta.value:'';
+  pd.note=ta?ta.value.trim():'';
+  pd.product=prodEl?prodEl.value.trim():'';
   const now=new Date();
   pd.savedAt=(now.getHours()).toString().padStart(2,'0')+':'+(now.getMinutes()).toString().padStart(2,'0');
   savePlanData(did,date,pd);
-  // 로그에도 자동 추가
   const d=S.doctors.find(x=>x.id===did);
-  if(d && pd.note.trim()){
+  if(d){
     if(!d.logs) d.logs=[];
-    // 오늘 날짜 기록 중복 체크 후 업데이트
-    const existing=d.logs.find(l=>l.date===date&&l.type==='방문');
-    if(existing) existing.content=pd.note.trim();
-    else d.logs.push({date,type:'방문',content:pd.note.trim()});
-    save();
+    const content=[pd.product?'['+pd.product+']':'',pd.note].filter(Boolean).join(' ');
+    if(content){
+      const existing=d.logs.find(l=>l.date===date&&l.type==='방문');
+      if(existing){existing.content=content;existing.product=pd.product||'';}
+      else d.logs.push({date,type:'방문',product:pd.product||'',content:pd.note||''});
+      save();
+    }
   }
   const si=document.getElementById('plan-saved-'+did);
   if(si) si.textContent='저장됨 '+pd.savedAt;
+  renderPreview();
   toast('✅ 저장됐습니다');
 }
 
 // 의사 카드에서 날짜 선택 후 계획 추가
-function addToPlan(did){
+// 셀 클릭으로 활동계획 추가 — 클릭한 요일(di: 0=월~5=토)의 가장 가까운 날짜를 자동 선택
+function setPlanTime(t){
+  document.getElementById('plan-pick-time').value=t;
+  const amBtn=document.getElementById('plan-time-am');
+  const pmBtn=document.getElementById('plan-time-pm');
+  if(amBtn){
+    const active=t==='오전';
+    amBtn.style.background=active?'#1565c0':'var(--surface2)';
+    amBtn.style.color=active?'#fff':'var(--text2)';
+    amBtn.style.borderColor=active?'#1565c0':'var(--border)';
+  }
+  if(pmBtn){
+    const active=t==='오후';
+    pmBtn.style.background=active?'#c45000':'var(--surface2)';
+    pmBtn.style.color=active?'#fff':'var(--text2)';
+    pmBtn.style.borderColor=active?'#c45000':'var(--border)';
+  }
+}
+
+function _openPlanPicker(did, jsTargetDay, ti){
   const d=S.doctors.find(x=>x.id===did);
-  if(!d){return;}
-  // 날짜 선택 팝업 (오늘 기준 7일)
-  const today=todayStr();
-  const opts=[];
-  for(let i=0;i<7;i++){
-    const dt=new Date(today+'T00:00:00');
-    dt.setDate(dt.getDate()+i);
-    const ds=dt.getFullYear()+'-'+(dt.getMonth()+1).toString().padStart(2,'0')+'-'+dt.getDate().toString().padStart(2,'0');
-    const days=['일','월','화','수','목','금','토'];
-    const label=(i===0?'오늘 ':'')+( dt.getMonth()+1)+'월'+dt.getDate()+'일('+days[dt.getDay()]+')';
-    opts.push({ds,label});
+  if(!d) return;
+  const todayStr2=todayStr();
+
+  // 달력 초기화 — jsTargetDay가 있으면 해당 요일의 가장 가까운 날짜로 이동
+  _initPicker();
+  let defaultDs=todayStr2;
+  if(jsTargetDay!==null){
+    const today=new Date(todayStr2+'T00:00:00');
+    let diff=jsTargetDay-today.getDay();
+    if(diff<0) diff+=7;
+    if(diff===0) diff=7; // 오늘이 같은 요일이면 다음주로
+    const target=new Date(today); target.setDate(today.getDate()+diff);
+    defaultDs=target.getFullYear()+'-'+String(target.getMonth()+1).padStart(2,'0')+'-'+String(target.getDate()).padStart(2,'0');
+    _pickerYear=target.getFullYear();
+    _pickerMonth=target.getMonth();
   }
 
-  // 날짜 선택 모달
   document.getElementById('plan-pick-did').value=did;
-  document.getElementById('plan-pick-name').textContent=esc(d.name)+(d.dept?' · '+esc(d.dept):'');
-  const sel=document.getElementById('plan-pick-date');
-  sel.innerHTML=opts.map(o=>'<option value="'+o.ds+'">'+o.label+'</option>').join('');
-  sel.value=today;
+  document.getElementById('plan-pick-name').textContent=d.name+(d.dept?' · '+d.dept:'');
+  document.getElementById('plan-pick-selected-date').value=defaultDs;
+
+  // 선택된 날짜 레이블 초기화
+  const dObj=new Date(defaultDs+'T00:00:00');
+  const days=['일','월','화','수','목','금','토'];
+  const label=(defaultDs===todayStr2?'오늘 ':'')+(dObj.getMonth()+1)+'월'+dObj.getDate()+'일('+days[dObj.getDay()]+')';
+  document.getElementById('plan-cal-selected-label').textContent=label;
+
+  const timeVal=ti===1?'오후':'오전';
+  setPlanTime(timeVal);
   document.getElementById('plan-pick-modal').classList.add('open');
+  // 달력 렌더링 (모달 열린 후)
+  setTimeout(renderPickerCal,0);
+}
+
+function addToPlanFromCell(did, di, ti){
+  _openPlanPicker(did, di+1, ti!=null?ti:0);
+}
+
+function addToPlan(did){
+  _openPlanPicker(did, null, 0);
 }
 
 function confirmAddToPlan(){
   const did=document.getElementById('plan-pick-did').value;
-  const date=document.getElementById('plan-pick-date').value;
-  if(!did||!date) return;
+  const date=document.getElementById('plan-pick-selected-date').value;
+  const time=document.getElementById('plan-pick-time').value||'오전';
+  if(!did||!date){toast('날짜를 선택해주세요');return;}
   const pd=getPlanData(did,date);
   pd.added=true;
+  pd.time=time;
   savePlanData(did,date,pd);
   closeModal('plan-pick-modal');
-  // 활동계획 탭으로 이동하고 해당 날짜로 이동
-  planDate=date;
-  switchTab('plan');
-  toast('📅 활동계획에 추가됐습니다');
+  renderPreview(); // 우측 패널 갱신
+  toast('📅 활동계획에 추가됐습니다 ('+time+')');
 }
 
 function removePlanEntry(did, date){
   if(!S.plans||!S.plans[did]||!S.plans[did][date]) return;
-  S.plans[did][date].added=false;
+  delete S.plans[did][date];
+  const d=S.doctors.find(x=>x.id===did);
+  if(d&&d.logs) d.logs=d.logs.filter(l=>l.date!==date);
   save();
   renderPlan();
-  toast('계획에서 제거됐습니다');
+  renderPreview();
+  toast('계획 및 기록이 삭제됐습니다');
 }
 
-// state에 plans 추가
-if(!S.plans) S.plans={};
+// ── Activity Report ──
+function renderReport(){
+  const el=document.getElementById('report-main');
+
+  // 기간 기본값: 이번 달 1일 ~ 오늘
+  const today=todayStr();
+  const thisMonthStart=today.slice(0,7)+'-01';
+  const fFrom=document.getElementById('rep-f-from')?document.getElementById('rep-f-from').value:thisMonthStart;
+  const fTo=document.getElementById('rep-f-to')?document.getElementById('rep-f-to').value:today;
+  const fType=document.getElementById('rep-f-type')?document.getElementById('rep-f-type').value:'all';
+  const fHosp=document.getElementById('rep-f-hosp')?document.getElementById('rep-f-hosp').value:'all';
+  const fQ=document.getElementById('rep-f-q')?document.getElementById('rep-f-q').value.trim():'';
+
+  // 데이터 수집
+  const allLogs=[];
+  Object.keys(S.plans||{}).forEach(did=>{
+    const d=S.doctors.find(x=>x.id===did);
+    if(!d) return;
+    const h=S.hospitals.find(x=>x.id===d.hospitalId);
+    Object.keys(S.plans[did]).forEach(date=>{
+      const pd=S.plans[did][date];
+      if(!pd.added) return;
+      allLogs.push({
+        date, source:'plan',
+        type: pd.checked?'활동완료':'활동계획',
+        hospName:h?h.name:'', drName:d.name, dept:d.dept||'',
+        product:pd.product||'', content:pd.note||''
+      });
+    });
+  });
+  allLogs.sort((a,b)=>b.date.localeCompare(a.date));
+
+  // 필터
+  let filtered=allLogs;
+  if(fFrom) filtered=filtered.filter(l=>l.date>=fFrom);
+  if(fTo)   filtered=filtered.filter(l=>l.date<=fTo);
+  if(fType!=='all') filtered=filtered.filter(l=>l.type===fType);
+  if(fHosp!=='all') filtered=filtered.filter(l=>l.hospName===fHosp);
+  if(fQ) filtered=filtered.filter(l=>
+    l.drName.includes(fQ)||l.hospName.includes(fQ)||l.product.includes(fQ)||l.content.includes(fQ)
+  );
+
+  // 집계
+  const prodMap={};
+  filtered.filter(l=>l.type==='활동완료').forEach(l=>{
+    if(!l.product) return;
+    if(!prodMap[l.product]) prodMap[l.product]={plan:0,done:0};
+    prodMap[l.product].done++;
+  });
+  filtered.filter(l=>l.type==='활동계획').forEach(l=>{
+    if(!l.product) return;
+    if(!prodMap[l.product]) prodMap[l.product]={plan:0,done:0};
+    prodMap[l.product].plan++;
+  });
+  const totalPlan=filtered.filter(l=>l.type==='활동계획').length;
+  const totalDone=filtered.filter(l=>l.type==='활동완료').length;
+
+  const iStyle='padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;';
+
+  let html=
+    // 필터 바
+    '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;box-shadow:var(--shadow);">'+
+      // 날짜 범위
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">'+
+        '<span style="font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap;">📅 기간</span>'+
+        '<input type="date" id="rep-f-from" value="'+(fFrom||thisMonthStart)+'" onchange="renderReport()" style="'+iStyle+'">'+
+        '<span style="font-size:13px;color:var(--text3);">~</span>'+
+        '<input type="date" id="rep-f-to" value="'+(fTo||today)+'" onchange="renderReport()" style="'+iStyle+'">'+
+        '<button onclick="setRepRange(\'week\')" style="'+iStyle+'font-size:11px;cursor:pointer;">이번주</button>'+
+        '<button onclick="setRepRange(\'month\')" style="'+iStyle+'font-size:11px;cursor:pointer;">이번달</button>'+
+        '<button onclick="setRepRange(\'all\')" style="'+iStyle+'font-size:11px;cursor:pointer;">전체</button>'+
+      '</div>'+
+      // 상세 필터
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'+
+        '<select id="rep-f-type" onchange="renderReport()" style="'+iStyle+'">'+
+          '<option value="all">전체</option><option value="활동계획">활동계획</option><option value="활동완료">활동완료</option>'+
+        '</select>'+
+        '<select id="rep-f-hosp" onchange="renderReport()" style="'+iStyle+'">'+
+          '<option value="all">전체 거래처</option>'+S.hospitals.map(h=>'<option value="'+esc(h.name)+'">'+esc(h.name)+'</option>').join('')+
+        '</select>'+
+        '<input type="text" id="rep-f-q" oninput="renderReport()" placeholder="이름·제품 검색..." value="'+esc(fQ)+'" style="'+iStyle+'flex:1;min-width:100px;">'+
+      '</div>'+
+    '</div>'+
+
+    // 요약 카드
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">'+
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow);">'+
+        '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;">📋 활동계획</div>'+
+        '<div style="font-size:28px;font-weight:800;color:#1e5fa8;">'+totalPlan+'</div>'+
+      '</div>'+
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow);">'+
+        '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;">✅ 활동완료</div>'+
+        '<div style="font-size:28px;font-weight:800;color:#1b5e20;">'+totalDone+'</div>'+
+      '</div>'+
+    '</div>';
+
+  // 제품별 집계
+  if(Object.keys(prodMap).length){
+    html+=
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;box-shadow:var(--shadow);">'+
+        '<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">📦 제품별 집계</div>'+
+        '<table style="width:100%;border-collapse:collapse;font-size:13px;">'+
+          '<thead><tr>'+
+            '<th style="text-align:left;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);font-size:11px;color:var(--text3);">제품명</th>'+
+            '<th style="text-align:center;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);font-size:11px;color:var(--text3);">활동계획</th>'+
+            '<th style="text-align:center;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);font-size:11px;color:var(--text3);">활동완료</th>'+
+          '</tr></thead><tbody>'+
+          Object.entries(prodMap).sort((a,b)=>b[1].done-a[1].done).map(([prod,cnt])=>
+            '<tr>'+
+              '<td style="padding:7px 10px;border:1px solid var(--border);font-weight:600;">'+esc(prod)+'</td>'+
+              '<td style="padding:7px 10px;border:1px solid var(--border);text-align:center;color:#1e5fa8;">'+cnt.plan+'</td>'+
+              '<td style="padding:7px 10px;border:1px solid var(--border);text-align:center;font-weight:700;color:#1b5e20;">'+cnt.done+'</td>'+
+            '</tr>'
+          ).join('')+
+        '</tbody></table>'+
+      '</div>';
+  }
+
+  // 날짜별 상세
+  if(!filtered.length){
+    html+='<div style="text-align:center;padding:48px 20px;color:var(--text3);">'+
+      '<div style="font-size:36px;opacity:.4;margin-bottom:12px;">📭</div>'+
+      '<p style="font-size:14px;">해당 기간의 활동 기록이 없습니다</p>'+
+    '</div>';
+  } else {
+    const byDate={};
+    filtered.forEach(l=>{if(!byDate[l.date])byDate[l.date]=[];byDate[l.date].push(l);});
+    html+='<div style="display:flex;flex-direction:column;gap:12px;">';
+    Object.keys(byDate).sort((a,b)=>b.localeCompare(a)).forEach(date=>{
+      const dObj=new Date(date+'T00:00:00');
+      const days=['일','월','화','수','목','금','토'];
+      const dateLabel=(dObj.getMonth()+1)+'월'+dObj.getDate()+'일('+days[dObj.getDay()]+')';
+      const planCnt=byDate[date].filter(l=>l.type==='활동계획').length;
+      const doneCnt=byDate[date].filter(l=>l.type==='활동완료').length;
+      html+=
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);">'+
+        '<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">'+
+          '<span style="font-size:13px;font-weight:700;color:var(--text2);">'+dateLabel+'</span>'+
+          '<span style="font-size:12px;color:var(--text3);">'+
+            (planCnt?'<span style="color:#1e5fa8;">계획 '+planCnt+'</span> ':'')+
+            (doneCnt?'<span style="color:#1b5e20;font-weight:700;">완료 '+doneCnt+'</span>':'')+
+          '</span>'+
+        '</div>'+
+        byDate[date].map(l=>{
+          const isDone=l.type==='활동완료';
+          return '<div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px;">'+
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+
+              '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;'+
+                (isDone?'background:#e8f5e9;color:#1b5e20;':'background:#ebf5fb;color:#1e5fa8;')+
+                '">'+esc(l.type)+'</span>'+
+              '<span style="font-size:13px;font-weight:700;color:var(--text);">'+esc(l.drName)+'</span>'+
+              (l.dept?'<span style="font-size:11px;color:var(--text3);">'+esc(l.dept)+'</span>':'')+
+              '<span style="font-size:11px;color:var(--text3);">'+esc(l.hospName)+'</span>'+
+              (l.product?'<span style="font-size:11px;font-weight:600;color:var(--accent2);background:var(--accent2-light);padding:1px 7px;border-radius:10px;border:1px solid #f0d4b0;">'+esc(l.product)+'</span>':'')+
+            '</div>'+
+            (l.content?'<div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:2px;">'+esc(l.content)+'</div>':'')+
+          '</div>';
+        }).join('')+
+        '</div>';
+    });
+    html+='</div>';
+  }
+
+  el.innerHTML=html;
+  // 필터값 복원
+  if(fFrom) document.getElementById('rep-f-from').value=fFrom;
+  if(fTo)   document.getElementById('rep-f-to').value=fTo;
+  if(fType!=='all') document.getElementById('rep-f-type').value=fType;
+  if(fHosp!=='all') document.getElementById('rep-f-hosp').value=fHosp;
+  if(fQ)    document.getElementById('rep-f-q').value=fQ;
+}
+
+function setRepRange(range){
+  const today=todayStr();
+  let from=today, to=today;
+  if(range==='week'){
+    const d=new Date(today+'T00:00:00');
+    const day=d.getDay(); // 0=일
+    const mon=new Date(d); mon.setDate(d.getDate()-(day===0?6:day-1));
+    from=mon.getFullYear()+'-'+(mon.getMonth()+1).toString().padStart(2,'0')+'-'+mon.getDate().toString().padStart(2,'0');
+    to=today;
+  } else if(range==='month'){
+    from=today.slice(0,7)+'-01';
+    to=today;
+  } else if(range==='all'){
+    from='2020-01-01'; to=today;
+  }
+  const fromEl=document.getElementById('rep-f-from');
+  const toEl=document.getElementById('rep-f-to');
+  if(fromEl) fromEl.value=from;
+  if(toEl) toEl.value=to;
+  renderReport();
+}
 // Log toggle
 function toggleLog(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
 
-// ── Visit/Call Log ──
+// state에 plans 추가
+if(!S.plans) S.plans={};
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');}
-function addLog(did, type, content){
-  if(!content.trim())return;
+function addLog(did, type, product, content){
+  if(!content.trim()&&!product.trim())return;
   const d=S.doctors.find(x=>x.id===did);
   if(!d)return;
   if(!d.logs)d.logs=[];
-  d.logs.push({date:todayStr(),type,content:content.trim()});
+  d.logs.push({date:todayStr(),type,product:product.trim(),content:content.trim()});
   save();renderMain();toast('기록 추가됨');
 }
 function addLogFromRow(input){
   const did=input.dataset.did;
-  const sel=input.closest('.log-add-row').querySelector('.log-type-sel');
-  addLog(did, sel.value, input.value);
+  const row=input.closest('.log-add-row');
+  const sel=row.querySelector('.log-type-sel');
+  const prod=row.querySelector('.log-prod-input');
+  addLog(did, sel.value, prod?prod.value:'', input.value);
+  if(prod) prod.value='';
+  input.value='';
 }
 function addLogFromBtn(btn){
   const did=btn.dataset.did;
   const row=btn.closest('.log-add-row');
   const sel=row.querySelector('.log-type-sel');
   const inp=row.querySelector('.log-input');
-  addLog(did, sel.value, inp.value);
+  const prod=row.querySelector('.log-prod-input');
+  addLog(did, sel.value, prod?prod.value:'', inp?inp.value:'');
+  if(prod) prod.value='';
+  if(inp) inp.value='';
 }
 function delLog(did, idx){
   const d=S.doctors.find(x=>x.id===did);
@@ -1119,6 +1789,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // 첫 거래처 자동 선택
   if(S.hospitals.length && !S.activeHosp) S.activeHosp = S.hospitals[0].id;
   render();
+  renderPreview(); // 이번주 활동계획 패널 초기 렌더링
   // 모바일이고 거래처가 여러 개면 드로어 자동 오픈
   if(window.innerWidth < 640 && S.hospitals.length > 0){
     setTimeout(openDrawer, 400);
