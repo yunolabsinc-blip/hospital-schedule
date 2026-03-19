@@ -596,6 +596,18 @@ header{
         <button id="plan-time-pm" onclick="setPlanTime('오후')" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">오후</button>
       </div>
     </div>
+    <!-- 제품명 -->
+    <div class="form-row">
+      <label>📦 제품명 <span style="font-weight:400;color:var(--text3);">(선택)</span></label>
+      <!-- 등록 제품 빠른 선택 -->
+      <div id="plan-quick-products" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
+      <input type="text" id="plan-pick-product" placeholder="직접 입력 또는 위에서 선택" style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;">
+    </div>
+    <!-- 계획 내용 -->
+    <div class="form-row">
+      <label>📝 계획 내용 <span style="font-weight:400;color:var(--text3);">(선택)</span></label>
+      <textarea id="plan-pick-note" placeholder="방문 목적, 전달 사항, 준비 내용 등..." style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;resize:vertical;min-height:64px;display:block;"></textarea>
+    </div>
     <div class="modal-actions" style="margin-top:16px;">
       <button class="btn btn-outline" onclick="closeModal('plan-pick-modal')">취소</button>
       <button class="btn btn-primary" onclick="confirmAddToPlan()">활동계획 추가</button>
@@ -605,23 +617,35 @@ header{
 
 <!-- Settings Modal -->
 <div class="modal-overlay" id="settings-modal" style="z-index:500;">
-  <div class="modal" style="max-width:480px;">
+  <div class="modal" style="max-width:500px;">
     <div class="modal-handle"></div>
-    <h3>⚙️ 설정</h3>
+    <h3>⚙️ 내 정보 설정</h3>
 
-    <!-- 플랜 상태 -->
-    <div id="plan-status-box" style="border-radius:10px;padding:16px;margin-bottom:18px;"></div>
+    <!-- 탭 -->
+    <div style="display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border);">
+      <button id="stab-profile" onclick="switchSettingsTab('profile')" style="flex:1;padding:9px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);cursor:pointer;font-family:inherit;">👤 내 정보</button>
+      <button id="stab-products" onclick="switchSettingsTab('products')" style="flex:1;padding:9px;font-size:13px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);cursor:pointer;font-family:inherit;">📦 내 제품</button>
+    </div>
 
-    <!-- API 키 -->
-    <div class="form-row">
-      <label>🔑 Claude API 키 <span style="font-weight:400;color:var(--text3)">(이미지 분석 기능에 필요)</span></label>
+    <!-- 내 정보 탭 -->
+    <div id="stab-profile-body">
+      <div class="form-row"><label>이름</label><input type="text" id="my-name" placeholder="예: 홍길동"></div>
+      <div class="form-row"><label>회사명</label><input type="text" id="my-company" placeholder="예: ABC 제약"></div>
+      <div class="form-row"><label>직책</label><input type="text" id="my-title" placeholder="예: 영업팀 과장"></div>
+      <div class="form-row"><label>전화번호</label><input type="tel" id="my-phone" placeholder="예: 010-1234-5678"></div>
+      <div class="form-row"><label>이메일</label><input type="email" id="my-email" placeholder="예: hong@abc.com"></div>
+      <div class="form-row"><label>메모</label><textarea id="my-memo" placeholder="담당 구역, 특이사항 등..." style="min-height:60px;resize:vertical;"></textarea></div>
+    </div>
+
+    <!-- 내 제품 탭 -->
+    <div id="stab-products-body" style="display:none;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">등록한 제품은 활동계획 추가 시 선택할 수 있어요.</div>
+      <div id="my-products-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:220px;overflow-y:auto;"></div>
       <div style="display:flex;gap:8px;">
-        <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1;">
-        <button class="btn btn-outline btn-sm" onclick="toggleApiKeyVisibility()" id="api-key-toggle" style="flex-shrink:0;">보기</button>
+        <input type="text" id="my-product-input" placeholder="제품명 입력 후 Enter" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addMyProduct();}">
+        <button class="btn btn-primary btn-sm" onclick="addMyProduct()">+ 추가</button>
       </div>
-      <p style="font-size:11px;color:var(--text3);margin-top:5px;">
-        <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a>에서 발급 · 이 기기에만 저장됩니다
-      </p>
     </div>
 
     <div class="modal-actions" style="margin-top:16px;">
@@ -928,6 +952,35 @@ function _initPicker(){
   const today=new Date();
   _pickerYear=today.getFullYear();
   _pickerMonth=today.getMonth();
+}
+
+function renderQuickProducts(){
+  const products=getMyProducts();
+  const el=document.getElementById('plan-quick-products');
+  if(!el) return;
+  if(!products.length){
+    el.innerHTML='<span style="font-size:11px;color:var(--text3);">등록된 제품 없음 — ⚙️ 설정에서 추가하세요</span>';
+    return;
+  }
+  el.innerHTML=products.map(p=>
+    '<button onclick="selectQuickProduct(\''+esc(p)+'\')" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.12s;" '+
+    'onmouseover="this.style.background=\'var(--accent-light)\';this.style.borderColor=\'var(--accent)\';this.style.color=\'var(--accent)\'" '+
+    'onmouseout="this.style.background=\'var(--surface2)\';this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text2)\'">'+
+    esc(p)+'</button>'
+  ).join('');
+}
+
+function selectQuickProduct(name){
+  document.getElementById('plan-pick-product').value=name;
+  // 선택된 칩 강조
+  const el=document.getElementById('plan-quick-products');
+  if(!el) return;
+  el.querySelectorAll('button').forEach(btn=>{
+    const active=btn.textContent===name;
+    btn.style.background=active?'var(--accent)':'var(--surface2)';
+    btn.style.borderColor=active?'var(--accent)':'var(--border)';
+    btn.style.color=active?'#fff':'var(--text2)';
+  });
 }
 
 function renderPickerCal(){
@@ -1428,7 +1481,10 @@ function _openPlanPicker(did, jsTargetDay, ti){
   setPlanTime(timeVal);
   document.getElementById('plan-pick-modal').classList.add('open');
   // 달력 렌더링 (모달 열린 후)
-  setTimeout(renderPickerCal,0);
+  // 입력 초기화
+  document.getElementById('plan-pick-product').value='';
+  document.getElementById('plan-pick-note').value='';
+  setTimeout(()=>{renderPickerCal();renderQuickProducts();},0);
 }
 
 function addToPlanFromCell(did, di, ti){
@@ -1443,14 +1499,21 @@ function confirmAddToPlan(){
   const did=document.getElementById('plan-pick-did').value;
   const date=document.getElementById('plan-pick-selected-date').value;
   const time=document.getElementById('plan-pick-time').value||'오전';
+  const product=(document.getElementById('plan-pick-product').value||'').trim();
+  const note=(document.getElementById('plan-pick-note').value||'').trim();
   if(!did||!date){toast('날짜를 선택해주세요');return;}
   const pd=getPlanData(did,date);
   pd.added=true;
   pd.time=time;
+  if(product) pd.product=product;
+  if(note) pd.note=note;
   savePlanData(did,date,pd);
+  // 입력 초기화
+  document.getElementById('plan-pick-product').value='';
+  document.getElementById('plan-pick-note').value='';
   closeModal('plan-pick-modal');
-  renderPreview(); // 우측 패널 갱신
-  toast('📅 활동계획에 추가됐습니다 ('+time+')');
+  renderPreview();
+  toast('📅 활동계획이 추가됐습니다 ('+time+')');
 }
 
 function removePlanEntry(did, date){
@@ -1994,71 +2057,85 @@ function checkMobile(){
 }
 window.addEventListener('resize',checkMobile);
 
-// ── Settings & Plan Management ──
-const PLAN_KEY='hs_plan';
-const API_KEY_KEY='hs_apikey';
-const TRIAL_KEY='hs_trial';
-const FREE_IMG_LIMIT=3; // 무료 이미지 분석 횟수
+// ── Settings & Profile & Products ──
+const MY_INFO_KEY='hs_myinfo';
+const MY_PRODUCTS_KEY='hs_myproducts';
 
-function getPlan(){return localStorage.getItem(PLAN_KEY)||'free';}
-function getApiKey(){return localStorage.getItem(API_KEY_KEY)||'';}
-function getTrialUsed(){return parseInt(localStorage.getItem(TRIAL_KEY)||'0');}
-function addTrialUsed(){localStorage.setItem(TRIAL_KEY,String(getTrialUsed()+1));}
+function getMyInfo(){try{return JSON.parse(localStorage.getItem(MY_INFO_KEY)||'{}');}catch(e){return {};}}
+function getMyProducts(){try{return JSON.parse(localStorage.getItem(MY_PRODUCTS_KEY)||'[]');}catch(e){return [];}}
+function saveMyProducts(arr){localStorage.setItem(MY_PRODUCTS_KEY,JSON.stringify(arr));}
+
+function switchSettingsTab(tab){
+  document.getElementById('stab-profile-body').style.display=tab==='profile'?'':'none';
+  document.getElementById('stab-products-body').style.display=tab==='products'?'':'none';
+  const pBtn=document.getElementById('stab-profile');
+  const rBtn=document.getElementById('stab-products');
+  pBtn.style.borderBottomColor=tab==='profile'?'var(--accent)':'transparent';
+  pBtn.style.color=tab==='profile'?'var(--accent)':'var(--text3)';
+  rBtn.style.borderBottomColor=tab==='products'?'var(--accent)':'transparent';
+  rBtn.style.color=tab==='products'?'var(--accent)':'var(--text3)';
+}
 
 function openSettings(){
-  const plan=getPlan();
-  const used=getTrialUsed();
-  const remaining=Math.max(0,FREE_IMG_LIMIT-used);
-  const key=getApiKey();
-
-  // 플랜 박스
-  const planBox=document.getElementById('plan-status-box');
-  if(plan==='pro'){
-    planBox.style.background='#e8f5e9';planBox.style.border='1px solid #a5d6a7';
-    planBox.innerHTML='<div style="font-size:14px;font-weight:700;color:#1b5e20;margin-bottom:4px;">🟢 Pro 플랜 사용 중</div>'+
-      '<div style="font-size:12px;color:#2e7d32;">이미지 분석 무제한 · 방문·콜 기록 · 모든 기능 사용 가능</div>';
-  } else if(plan==='basic'){
-    planBox.style.background='#ebf5fb';planBox.style.border='1px solid #90caf9';
-    planBox.innerHTML='<div style="font-size:14px;font-weight:700;color:#1e5fa8;margin-bottom:4px;">🔵 Basic 플랜 사용 중</div>'+
-      '<div style="font-size:12px;color:#1565c0;">진료시간표 관리 · 검색 · 엑셀 업로드 사용 가능</div>';
-  } else {
-    const barW=Math.round((remaining/FREE_IMG_LIMIT)*100);
-    planBox.style.background=remaining>0?'#fff8e1':'#fce4ec';
-    planBox.style.border=remaining>0?'1px solid #ffe082':'1px solid #f48fb1';
-    planBox.innerHTML=
-      '<div style="font-size:14px;font-weight:700;color:'+(remaining>0?'#e65100':'#c62828')+';margin-bottom:6px;">'+
-        (remaining>0?'🆓 무료 체험 중':'⛔ 무료 체험 종료')+
-      '</div>'+
-      '<div style="font-size:12px;color:#555;margin-bottom:8px;">이미지 분석 무료 체험: <strong>'+remaining+'회</strong> 남음 (총 '+FREE_IMG_LIMIT+'회)</div>'+
-      '<div style="height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden;margin-bottom:10px;">'+
-        '<div style="height:100%;width:'+barW+'%;background:'+(remaining>0?'#ff9800':'#ef5350')+';border-radius:3px;transition:width .3s;"></div>'+
-      '</div>'+
-      (remaining===0?
-        '<div style="font-size:12px;color:#c62828;margin-bottom:8px;">무료 체험이 종료됐습니다. API 키를 입력하거나 플랜을 업그레이드하세요.</div>':
-        '<div style="font-size:12px;color:#777;">API 키를 입력하면 횟수 제한 없이 사용 가능합니다.</div>'
-      )+
-      '<div style="display:flex;gap:8px;margin-top:10px;">'+
-        '<a href="mailto:?subject=진료시간표%20서비스%20Pro%20플랜%20문의" style="display:inline-block;padding:6px 14px;border-radius:8px;background:#1e5fa8;color:#fff;font-size:12px;font-weight:700;text-decoration:none;">🔵 Basic — 월 15,000원</a>'+
-        '<a href="mailto:?subject=진료시간표%20서비스%20Pro%20플랜%20문의" style="display:inline-block;padding:6px 14px;border-radius:8px;background:#1b5e20;color:#fff;font-size:12px;font-weight:700;text-decoration:none;">🟢 Pro — 월 25,000원</a>'+
-      '</div>';
-  }
-
-  document.getElementById('api-key-input').value=key;
+  const info=getMyInfo();
+  document.getElementById('my-name').value=info.name||'';
+  document.getElementById('my-company').value=info.company||'';
+  document.getElementById('my-title').value=info.title||'';
+  document.getElementById('my-phone').value=info.phone||'';
+  document.getElementById('my-email').value=info.email||'';
+  document.getElementById('my-memo').value=info.memo||'';
+  switchSettingsTab('profile');
+  renderMyProductsList();
   document.getElementById('settings-modal').classList.add('open');
 }
 
-function toggleApiKeyVisibility(){
-  const inp=document.getElementById('api-key-input');
-  const btn=document.getElementById('api-key-toggle');
-  if(inp.type==='password'){inp.type='text';btn.textContent='숨기기';}
-  else{inp.type='password';btn.textContent='보기';}
+function saveSettings(){
+  const info={
+    name:document.getElementById('my-name').value.trim(),
+    company:document.getElementById('my-company').value.trim(),
+    title:document.getElementById('my-title').value.trim(),
+    phone:document.getElementById('my-phone').value.trim(),
+    email:document.getElementById('my-email').value.trim(),
+    memo:document.getElementById('my-memo').value.trim(),
+  };
+  localStorage.setItem(MY_INFO_KEY,JSON.stringify(info));
+  closeModal('settings-modal');
+  toast('✅ 저장됐습니다');
 }
 
-function saveSettings(){
-  const key=document.getElementById('api-key-input').value.trim();
-  localStorage.setItem(API_KEY_KEY,key);
-  closeModal('settings-modal');
-  toast(key?'✅ API 키가 저장됐습니다':'API 키가 삭제됐습니다');
+function renderMyProductsList(){
+  const products=getMyProducts();
+  const el=document.getElementById('my-products-list');
+  if(!products.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px;">등록된 제품이 없습니다</div>';
+    return;
+  }
+  el.innerHTML=products.map((p,i)=>
+    '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">'+
+      '<span style="flex:1;font-size:13px;font-weight:500;color:var(--text);">'+esc(p)+'</span>'+
+      '<button onclick="delMyProduct('+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px;">✕</button>'+
+    '</div>'
+  ).join('');
+}
+
+function addMyProduct(){
+  const inp=document.getElementById('my-product-input');
+  const val=inp.value.trim();
+  if(!val) return;
+  const products=getMyProducts();
+  if(products.includes(val)){toast('이미 등록된 제품입니다');return;}
+  products.push(val);
+  saveMyProducts(products);
+  inp.value='';
+  renderMyProductsList();
+  toast('✅ 제품이 추가됐습니다');
+}
+
+function delMyProduct(idx){
+  const products=getMyProducts();
+  products.splice(idx,1);
+  saveMyProducts(products);
+  renderMyProductsList();
 }
 
 // ── AI Image Analysis ──
