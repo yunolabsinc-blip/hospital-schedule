@@ -497,6 +497,8 @@ header{
     <div class="form-row"><label>병원명 *</label><input type="text" id="h-name" placeholder="예: 서울척병원"></div>
     <div class="form-row">
       <label>거래 품목 <span style="font-weight:400;color:var(--text3)">(Enter 또는 + 추가)</span></label>
+      <!-- 등록 제품 빠른 선택 -->
+      <div id="h-quick-products" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
       <div class="tag-list" id="h-tag-list"></div>
       <div class="tag-input-row">
         <input type="text" id="h-tag-input" placeholder="품목명 입력" onkeydown="if(event.key==='Enter'){event.preventDefault();addHTag();}">
@@ -544,10 +546,22 @@ header{
     <div class="form-row"><label>비고 (휴진·대진 등)</label><input type="text" id="d-memo" placeholder="예: 토 03/14,21 / 수 대진"></div>
     <div class="form-row">
       <label>담당 품목 <span style="font-weight:400;color:var(--text3)">(Enter 또는 + 추가)</span></label>
+      <!-- 등록 제품 빠른 선택 -->
+      <div id="d-quick-products" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
       <div class="tag-list" id="d-tag-list"></div>
       <div class="tag-input-row">
         <input type="text" id="d-tag-input" placeholder="품목명 입력" onkeydown="if(event.key==='Enter'){event.preventDefault();addDTag();}">
         <button onclick="addDTag()">+ 추가</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Target 품목 <span style="font-weight:400;color:var(--text3)">(전략 목표 품목)</span></label>
+      <!-- 등록 제품 빠른 선택 -->
+      <div id="d-target-quick" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
+      <div class="tag-list" id="d-target-list"></div>
+      <div class="tag-input-row">
+        <input type="text" id="d-target-input" placeholder="Target 품목 입력" onkeydown="if(event.key==='Enter'){event.preventDefault();addDTargetTag();}">
+        <button onclick="addDTargetTag()">+ 추가</button>
       </div>
     </div>
     <div class="form-row"><label>영업 메모</label><textarea id="d-note" placeholder="관심 분야, 미팅 내용, 특이사항 등" style="min-height:70px;"></textarea></div>
@@ -801,10 +815,11 @@ function renderMain(){
     const memoRow=d.memo?'<tr class="memo-row"><td class="rl">비고</td><td class="mc" colspan="6">'+esc(d.memo)+'</td></tr>':'';
     const thRow='<tr><th class="rl"></th>'+DAYS.map(day=>'<th>'+day+'</th>').join('')+'</tr>';
 
-    const prods=d.products||[],note=d.note||'';
-    const infoSec=(prods.length||note)?
+    const prods=d.products||[], targetProds=d.targetProducts||[], note=d.note||'';
+    const infoSec=(prods.length||targetProds.length||note)?
       '<div class="card-info">'+
         (prods.length?'<div class="ci-col"><div class="ci-label">📦 담당 품목</div><div class="tag-list">'+prods.map(p=>'<span class="tag">'+esc(p)+'</span>').join('')+'</div></div>':'')+
+        (targetProds.length?'<div class="ci-col"><div class="ci-label">🎯 Target 품목</div><div class="tag-list">'+targetProds.map(p=>'<span class="tag" style="background:#fff3e0;color:#e65100;border-color:#ffcc80;">'+esc(p)+'</span>').join('')+'</div></div>':'')+
         (note?'<div class="ci-col"><div class="ci-label">📝 영업 메모</div><div class="ci-text">'+esc(note).replace(/\n/g,'<br>')+'</div></div>':'')+
       '</div>':'';
 
@@ -2075,10 +2090,57 @@ function renderHTags(){document.getElementById('h-tag-list').innerHTML=S.hTags.m
 function addHTag(){const inp=document.getElementById('h-tag-input');const v=inp.value.trim();if(v&&!S.hTags.includes(v)){S.hTags.push(v);renderHTags();}inp.value='';}
 function rmHTag(i){S.hTags.splice(i,1);renderHTags();}
 
+function renderHQuickProducts(){
+  const el=document.getElementById('h-quick-products');
+  if(!el) return;
+  const products=getMyProducts();
+  if(!products.length){el.innerHTML='';return;}
+  el.innerHTML=products.map(p=>{
+    const active=S.hTags.includes(p);
+    return '<button onclick="toggleHQuickProduct(\''+esc(p)+'\')" style="padding:3px 9px;border-radius:20px;border:1px solid '+(active?'var(--accent)':'var(--border)')+';background:'+(active?'var(--accent)':'var(--surface2)')+';color:'+(active?'#fff':'var(--text2)')+';font-size:12px;font-weight:'+(active?'700':'500')+';cursor:pointer;font-family:inherit;transition:.12s;">'+esc(p)+'</button>';
+  }).join('');
+}
+function toggleHQuickProduct(name){
+  if(S.hTags.includes(name)) S.hTags.splice(S.hTags.indexOf(name),1);
+  else S.hTags.push(name);
+  renderHTags(); renderHQuickProducts();
+}
+
 // Doctor tags
 function renderDTags(){document.getElementById('d-tag-list').innerHTML=S.dTags.map((p,i)=>'<span class="tag">'+esc(p)+'<button class="tag-rm" onclick="rmDTag('+i+')">✕</button></span>').join('');}
 function addDTag(){const inp=document.getElementById('d-tag-input');const v=inp.value.trim();if(v&&!S.dTags.includes(v)){S.dTags.push(v);renderDTags();}inp.value='';}
 function rmDTag(i){S.dTags.splice(i,1);renderDTags();}
+
+// Doctor Target tags
+function renderDTargetTags(){
+  const el=document.getElementById('d-target-list');
+  if(!el) return;
+  el.innerHTML=(S.dTargetTags||[]).map((p,i)=>'<span class="tag" style="background:#fff3e0;color:#e65100;border:1px solid #ffcc80;">'+esc(p)+'<button class="tag-rm" onclick="rmDTargetTag('+i+')">✕</button></span>').join('');
+}
+function addDTargetTag(){const inp=document.getElementById('d-target-input');const v=inp.value.trim();if(!S.dTargetTags)S.dTargetTags=[];if(v&&!S.dTargetTags.includes(v)){S.dTargetTags.push(v);renderDTargetTags();}inp.value='';}
+function rmDTargetTag(i){if(!S.dTargetTags)return;S.dTargetTags.splice(i,1);renderDTargetTags();}
+
+function renderDQuickProducts(tagArr, quickElId, toggleFn){
+  const el=document.getElementById(quickElId);
+  if(!el) return;
+  const products=getMyProducts();
+  if(!products.length){el.innerHTML='';return;}
+  el.innerHTML=products.map(p=>{
+    const active=(tagArr||[]).includes(p);
+    return '<button onclick="'+toggleFn+'(\''+esc(p)+'\')" style="padding:3px 9px;border-radius:20px;border:1px solid '+(active?'var(--accent)':'var(--border)')+';background:'+(active?'var(--accent)':'var(--surface2)')+';color:'+(active?'#fff':'var(--text2)')+';font-size:12px;font-weight:'+(active?'700':'500')+';cursor:pointer;font-family:inherit;transition:.12s;">'+esc(p)+'</button>';
+  }).join('');
+}
+function toggleDQuickProduct(name){
+  if(S.dTags.includes(name)) S.dTags.splice(S.dTags.indexOf(name),1);
+  else S.dTags.push(name);
+  renderDTags(); renderDQuickProducts(S.dTags,'d-quick-products','toggleDQuickProduct');
+}
+function toggleDTargetQuick(name){
+  if(!S.dTargetTags) S.dTargetTags=[];
+  if(S.dTargetTags.includes(name)) S.dTargetTags.splice(S.dTargetTags.indexOf(name),1);
+  else S.dTargetTags.push(name);
+  renderDTargetTags(); renderDQuickProducts(S.dTargetTags,'d-target-quick','toggleDTargetQuick');
+}
 
 // Hospital CRUD
 function openHospModal(id){
@@ -2086,10 +2148,10 @@ function openHospModal(id){
   const h=id?S.hospitals.find(x=>x.id===id):null;
   document.getElementById('hosp-modal-title').textContent=id?'거래처 메모':'거래처 추가';
   document.getElementById('h-name').value=h?h.name:'';
-  document.getElementById('h-phone').value=h?(h.phone||''):'';
   document.getElementById('h-memo').value=h?(h.memo||''):'';
   S.hTags=h?[...(h.products||[])]:[];
   renderHTags();
+  renderHQuickProducts();
   document.getElementById('hosp-modal').classList.add('open');
   setTimeout(()=>document.getElementById('h-name').focus(),50);
 }
@@ -2097,7 +2159,6 @@ function saveHosp(){
   const name=document.getElementById('h-name').value.trim();
   if(!name){toast('병원명을 입력해주세요');return;}
   const obj={
-    phone:document.getElementById('h-phone').value.trim(),
     memo:document.getElementById('h-memo').value.trim(),
     products:[...S.hTags]
   };
@@ -2131,7 +2192,11 @@ function openDrModal(id){
   document.getElementById('d-note').value=d?(d.note||''):'';
   document.getElementById('d-bio').value=d?(d.bio||''):'';
   S.dTags=d?[...(d.products||[])]:[];
+  S.dTargetTags=d?[...(d.targetProducts||[])]:[];
   renderDTags();
+  renderDTargetTags();
+  renderDQuickProducts(S.dTags,'d-quick-products','toggleDQuickProduct');
+  renderDQuickProducts(S.dTargetTags,'d-target-quick','toggleDTargetQuick');
   document.querySelectorAll('.sched-cell').forEach(cell=>{
     const [di,ti]=cell.dataset.s.split('-').map(Number);
     const on=!!(d&&d.schedule&&d.schedule[di]&&d.schedule[di][ti]);
@@ -2155,7 +2220,9 @@ function saveDr(){
     memo:document.getElementById('d-memo').value.trim(),
     note:document.getElementById('d-note').value.trim(),
     bio:document.getElementById('d-bio').value.trim(),
-    products:[...S.dTags],schedule
+    products:[...S.dTags],
+    targetProducts:[...(S.dTargetTags||[])],
+    schedule
   };
   if(S.editDrId){const d=S.doctors.find(x=>x.id===S.editDrId);if(d)Object.assign(d,obj);}
   else S.doctors.push({id:uid(),...obj});
