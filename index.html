@@ -404,8 +404,7 @@ header{
   .filter-bar{display:none;}
   /* 모바일에서 desk-tabs 숨김 */
   .desk-tabs{display:none;}
-  /* 모바일에서 schedule-wrap 항상 flex */
-  .schedule-wrap{display:flex!important;}
+  /* 모바일에서 schedule-wrap은 클래스로 제어 */
 }
 </style>
 </head>
@@ -963,7 +962,7 @@ function renderPreview(){
           '<span style="cursor:grab;color:var(--text3);font-size:13px;padding:0 3px;flex-shrink:0;">⠿</span>'+
           '<span style="font-size:12px;flex-shrink:0;">'+(done?'✅':'📋')+'</span>'+
           '<div style="flex:1;min-width:0;cursor:pointer;" onclick="planDate=\''+ds+'\';switchTab(\'plan\')">'+
-            '<div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:1px;">'+esc(p.dr.hospName)+'</div>'+
+            '<div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:1px;cursor:pointer;" onclick="event.stopPropagation();goToHospitalByName(\''+esc(p.dr.hospName)+'\')" title="진료시간표로 이동">'+esc(p.dr.hospName)+' ›</div>'+
             '<div style="font-size:12px;font-weight:600;color:'+(done?'var(--text3)':'var(--text)')+';'+(done?'text-decoration:line-through;':'')+'">'+
               (p.dr.fav?'⭐':'')+esc(p.dr.name)+
             '</div>'+
@@ -1178,7 +1177,9 @@ function renderFav(){
 
   S.hospitals.forEach(h=>{
     if(!byHosp[h.id]) return;
-    html+='<div style="margin-bottom:10px;font-size:12px;font-weight:700;color:var(--accent);padding:4px 0;border-bottom:1px solid var(--border);">'+esc(h.name)+'</div>';
+    html+='<div style="margin-bottom:10px;font-size:12px;font-weight:700;color:var(--accent);padding:4px 0;border-bottom:1px solid var(--border);">'+
+      '<span style="cursor:pointer;" onclick="goToHospital(\''+h.id+'\')" title="진료시간표로 이동">🏥 '+esc(h.name)+' ›</span>'+
+    '</div>';
     html+='<div class="doctor-grid" style="margin-bottom:18px;">';
     byHosp[h.id].forEach(d=>{
       const rows=TIMES.map((t,ti)=>{
@@ -1298,11 +1299,12 @@ function onPreviewDrop(e){
 let currentTab='schedule';
 function switchTab(tab){
   currentTab=tab;
+  // schedule-wrap 표시/숨김 (inline style로 CSS 우선순위 확보)
   const sw=document.getElementById('schedule-wrap');
-  if(sw) sw.style.display=tab==='schedule'?'flex':'none';
-  document.getElementById('fav-main').style.display=tab==='fav'?'':'none';
-  document.getElementById('plan-main').style.display=tab==='plan'?'':'none';
-  document.getElementById('report-main').style.display=tab==='report'?'':'none';
+  if(sw) sw.setAttribute('style', tab==='schedule' ? 'display:flex' : 'display:none');
+  document.getElementById('fav-main').style.display=tab==='fav'?'block':'none';
+  document.getElementById('plan-main').style.display=tab==='plan'?'block':'none';
+  document.getElementById('report-main').style.display=tab==='report'?'block':'none';
   // desktop tabs
   ['schedule','fav','plan','report'].forEach(t=>{
     const el=document.getElementById('dt-'+t);
@@ -1317,6 +1319,18 @@ function switchTab(tab){
   if(tab==='fav') renderFav();
   if(tab==='plan') renderPlan();
   if(tab==='report') renderReport();
+}
+
+// 병원명 클릭 → 진료시간표 탭으로 이동
+function goToHospital(hospId){
+  S.activeHosp=hospId;
+  switchTab('schedule');
+  renderSidebar();renderDrawer();renderMain();
+  closeDrawer();
+}
+function goToHospitalByName(name){
+  const h=S.hospitals.find(x=>x.name===name);
+  if(h) goToHospital(h.id);
 }
 function closeMobMenus(){
   closeDrawer();
@@ -1576,7 +1590,7 @@ function planCard(d, dateStr, done, isToday){
           (schedBadge?' '+schedBadge:'')+
           (done?'<span style="font-size:11px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:2px 7px;border-radius:20px;">✅ 완료</span>':'')+
         '</div>'+
-        '<div class="plan-hosp-name">'+esc(d.hospName)+phone+'</div>'+
+        '<div class="plan-hosp-name"><span style="cursor:pointer;" onclick="goToHospital(\''+d.hospitalId+'\')" title="진료시간표로 이동">'+esc(d.hospName)+' ›</span></div>'+
       '</div>'+
       '<button style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:4px;flex-shrink:0;" title="계획에서 제거" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="removePlanEntry(this.dataset.did,this.dataset.date)">✕</button>'+
     '</div>'+
@@ -1933,7 +1947,7 @@ function renderReport(){
                 '">'+esc(l.type)+'</span>'+
               '<span style="font-size:13px;font-weight:700;color:var(--text);">'+esc(l.drName)+'</span>'+
               (l.dept?'<span style="font-size:11px;color:var(--text3);">'+esc(l.dept)+'</span>':'')+
-              '<span style="font-size:11px;color:var(--text3);">'+esc(l.hospName)+'</span>'+
+              '<span style="font-size:11px;color:var(--accent);cursor:pointer;font-weight:600;" onclick="goToHospitalByName(\''+esc(l.hospName)+'\')" title="진료시간표로 이동">'+esc(l.hospName)+' ›</span>'+
               (l.product?'<span style="font-size:11px;font-weight:600;color:var(--accent2);background:var(--accent2-light);padding:1px 7px;border-radius:10px;border:1px solid #f0d4b0;">'+esc(l.product)+'</span>':'')+
             '</div>'+
             (l.content?'<div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:2px;">'+esc(l.content)+'</div>':'')+
