@@ -757,7 +757,7 @@ function renderDrawer(){
     '<div class="drawer-hosp-item'+(h.id===S.activeHosp?' active':'')+'" data-id="'+h.id+'" data-idx="'+i+'" draggable="true" '+
       'ondragstart="onHospDragStart(event)" ondragover="onHospDragOver(event)" ondrop="onHospDrop(event)" ondragleave="onHospDragLeave(event)" ondragend="onHospDragEnd(event)">'+
       '<span class="drag-handle">⠿</span>'+
-      '<span style="flex:1" onclick="selHosp(\''+h.id+'\');closeDrawer();">'+esc(h.name)+'</span>'+
+      '<span style="flex:1" onclick="selHosp(\''+h.id+'\')">'+esc(h.name)+'</span>'+
       '<button class="del" data-id="'+h.id+'" onclick="event.stopPropagation();delHosp(this.dataset.id)" title="삭제">✕</button>'+
     '</div>'
   ).join('');
@@ -2199,7 +2199,10 @@ function delHosp(id){
 function selHosp(id){
   S.activeHosp=id;
   S.drQ='';
-  renderSidebar();renderDrawer();renderMain();
+  // 진료시간표 탭으로 전환 (다른 탭에 있을 경우)
+  if(currentTab!=='schedule') switchTab('schedule');
+  else { renderSidebar();renderDrawer();renderMain(); }
+  closeDrawer();
 }
 
 // Doctor CRUD
