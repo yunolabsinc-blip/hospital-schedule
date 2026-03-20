@@ -719,6 +719,46 @@ header{
   </div>
 </div>
 
+<!-- 활동기록 직접 추가 모달 -->
+<div class="modal-overlay" id="record-modal" style="z-index:700;">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-handle"></div>
+    <h3>💼 활동기록 추가</h3>
+    <div class="form-row">
+      <label>거래처 *</label>
+      <select id="rec-hosp" onchange="renderRecDrSel()" style="font-size:13px;padding:9px 12px;width:100%;border-radius:10px;border:1px solid var(--border);font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"></select>
+    </div>
+    <div class="form-row">
+      <label>의사 *</label>
+      <select id="rec-dr" style="font-size:13px;padding:9px 12px;width:100%;border-radius:10px;border:1px solid var(--border);font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"></select>
+    </div>
+    <div class="form-row">
+      <label>활동 날짜</label>
+      <input type="date" id="rec-date" style="font-size:13px;padding:9px 12px;width:100%;border-radius:10px;border:1px solid var(--border);font-family:inherit;background:var(--surface2);color:var(--text);outline:none;">
+    </div>
+    <div class="form-row">
+      <label>시간대</label>
+      <div style="display:flex;gap:8px;">
+        <button id="rec-time-am" onclick="setRecTime('오전')" style="flex:1;padding:9px;border-radius:10px;border:2px solid #1565c0;background:#1565c0;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">오전</button>
+        <button id="rec-time-pm" onclick="setRecTime('오후')" style="flex:1;padding:9px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text2);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">오후</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>📦 제품명 <span style="font-weight:400;color:var(--text3);">(선택)</span></label>
+      <div id="rec-quick-products" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
+      <input type="text" id="rec-product" placeholder="직접 입력 또는 위에서 선택" style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;">
+    </div>
+    <div class="form-row">
+      <label>📝 활동 내용 *</label>
+      <textarea id="rec-note" placeholder="미팅 내용, 반응, 전달 사항, 다음 방문 계획 등..." style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;resize:vertical;min-height:80px;display:block;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('record-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveDirectRecord()">저장</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1596,14 +1636,14 @@ function planCard(d, dateStr, done, isToday){
     '</div>'+
     '<div class="plan-note-area">'+
       (locked?
-        // 잠긴 상태 — 저장된 내용만 표시
-        (pd.product||pd.note?
-          '<div style="padding:10px 14px;font-size:13px;color:var(--text2);">'+
-            (pd.product?'<span style="font-weight:600;color:var(--accent2);">📦 '+esc(pd.product)+'</span> ':'')+
-            esc(pd.note||'')+
-          '</div>':
-          '<div style="padding:10px 14px;font-size:12px;color:var(--text3);">당일만 입력 가능합니다</div>'
-        ):
+        // 잠긴 상태 — 저장된 내용 표시 + 수정 불가 안내
+        '<div style="padding:10px 14px;">'+
+          (pd.product?'<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;"><span style="font-size:10px;font-weight:700;color:var(--text3);">📦 제품</span><span style="font-size:12px;font-weight:600;color:var(--accent2);background:var(--accent2-light);padding:1px 7px;border-radius:8px;">'+esc(pd.product)+'</span></div>':'')+
+          (pd.note?
+            '<div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap;">'+esc(pd.note)+'</div>':
+            '<div style="font-size:11px;color:var(--text3);">📝 활동 내용 없음 — 당일에만 입력 가능합니다</div>'
+          )+
+        '</div>':
         // 당일 — 입력 가능
         '<div style="padding:10px 14px 0;display:flex;flex-direction:column;gap:8px;">'+
           '<div>'+
@@ -1611,13 +1651,13 @@ function planCard(d, dateStr, done, isToday){
             '<input type="text" id="plan-prod-'+d.id+'" value="'+esc(pd.product||'')+'" placeholder="제품명 입력..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;">'+
           '</div>'+
           '<div>'+
-            '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;">📝 활동 내용</div>'+
-            '<textarea id="plan-ta-'+d.id+'" placeholder="미팅 내용, 반응, 전달 사항 등..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;resize:vertical;min-height:60px;display:block;">'+esc(pd.note||'')+'</textarea>'+
+            '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;">📝 활동 내용 <span style="font-weight:400;color:#1b5e20;">(저장 후 활동기록에 반영)</span></div>'+
+            '<textarea id="plan-ta-'+d.id+'" placeholder="미팅 내용, 반응, 전달 사항, 다음 방문 계획 등..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;resize:vertical;min-height:72px;display:block;">'+esc(pd.note||'')+'</textarea>'+
           '</div>'+
         '</div>'+
         '<div class="plan-note-footer">'+
-          '<span class="plan-note-saved" id="plan-saved-'+d.id+'">'+(pd.savedAt?'저장됨 '+pd.savedAt:'')+'</span>'+
-          '<button class="plan-save-btn" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="savePlanNote(this)">저장</button>'+
+          '<span class="plan-note-saved" id="plan-saved-'+d.id+'">'+(pd.savedAt?'✅ 저장됨 '+pd.savedAt:'')+'</span>'+
+          '<button class="plan-save-btn" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="savePlanNote(this)">💾 저장</button>'+
         '</div>'
       )+
     '</div>'+
@@ -1768,6 +1808,83 @@ function removePlanEntry(did, date){
 // ── Report 필터 상태 전역 변수 ──
 let _repFrom='', _repTo='', _repType='all', _repHosp='all', _repQ='';
 
+// ── 활동기록 직접 추가 ──
+let _recTime='오전';
+
+function openRecordModal(){
+  document.getElementById('rec-date').value=todayStr();
+  document.getElementById('rec-product').value='';
+  document.getElementById('rec-note').value='';
+  _recTime='오전';
+  setRecTime('오전');
+  // 거래처 셀렉트 채우기
+  const hospSel=document.getElementById('rec-hosp');
+  hospSel.innerHTML=S.hospitals.map(h=>'<option value="'+h.id+'">'+esc(h.name)+'</option>').join('');
+  if(S.activeHosp) hospSel.value=S.activeHosp;
+  renderRecDrSel();
+  // 제품 빠른 선택
+  const qel=document.getElementById('rec-quick-products');
+  const products=getMyProducts();
+  qel.innerHTML=products.length?products.map(p=>
+    '<button onclick="selectRecProduct(\''+esc(p)+'\')" style="padding:3px 9px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;" id="recprod-'+btoa(encodeURIComponent(p)).replace(/[^a-zA-Z0-9]/g,'')+'">'+esc(p)+'</button>'
+  ).join(''):'<span style="font-size:11px;color:var(--text3);">⚙️ 설정에서 제품 등록 후 사용</span>';
+  document.getElementById('record-modal').classList.add('open');
+}
+
+function renderRecDrSel(){
+  const hospSel=document.getElementById('rec-hosp');
+  const drSel=document.getElementById('rec-dr');
+  if(!hospSel||!drSel) return;
+  const drs=S.doctors.filter(d=>d.hospitalId===hospSel.value);
+  drSel.innerHTML=drs.map(d=>'<option value="'+d.id+'">'+esc(d.name)+(d.dept?' ('+esc(d.dept)+')':'')+'</option>').join('');
+}
+
+function setRecTime(t){
+  _recTime=t;
+  const am=document.getElementById('rec-time-am');
+  const pm=document.getElementById('rec-time-pm');
+  if(am){am.style.background=t==='오전'?'#1565c0':'var(--surface2)';am.style.color=t==='오전'?'#fff':'var(--text2)';am.style.borderColor=t==='오전'?'#1565c0':'var(--border)';}
+  if(pm){pm.style.background=t==='오후'?'#c45000':'var(--surface2)';pm.style.color=t==='오후'?'#fff':'var(--text2)';pm.style.borderColor=t==='오후'?'#c45000':'var(--border)';}
+}
+
+function selectRecProduct(name){
+  document.getElementById('rec-product').value=name;
+  // 선택 강조
+  document.querySelectorAll('[id^="recprod-"]').forEach(btn=>{
+    const active=btn.textContent===name;
+    btn.style.background=active?'var(--accent)':'var(--surface2)';
+    btn.style.borderColor=active?'var(--accent)':'var(--border)';
+    btn.style.color=active?'#fff':'var(--text2)';
+  });
+}
+
+function saveDirectRecord(){
+  const hospId=document.getElementById('rec-hosp').value;
+  const drId=document.getElementById('rec-dr').value;
+  const date=document.getElementById('rec-date').value;
+  const product=(document.getElementById('rec-product').value||'').trim();
+  const note=(document.getElementById('rec-note').value||'').trim();
+  if(!drId){toast('의사를 선택해주세요');return;}
+  if(!date){toast('날짜를 선택해주세요');return;}
+  if(!note){toast('활동 내용을 입력해주세요');return;}
+
+  // plans에 기록 추가 (활동완료로)
+  const pd=getPlanData(drId, date);
+  pd.added=true;
+  pd.checked=true;
+  pd.time=_recTime;
+  if(product) pd.product=product;
+  // 기존 노트에 추가 (이미 있으면 줄바꿈으로 이어붙임)
+  pd.note=pd.note?pd.note+'\n'+note:note;
+  const now=new Date();
+  pd.savedAt=(now.getHours()).toString().padStart(2,'0')+':'+(now.getMinutes()).toString().padStart(2,'0');
+  savePlanData(drId, date, pd);
+
+  closeModal('record-modal');
+  renderReport();
+  toast('✅ 활동기록이 저장됐습니다');
+}
+
 function setRepRange(range){
   const today=todayStr();
   if(range==='week'){
@@ -1855,6 +1972,11 @@ function renderReport(){
   const iStyle='padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;';
 
   let html=
+    // 상단 헤더 + 기록 추가 버튼
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'+
+      '<div style="font-size:14px;font-weight:700;color:var(--text);">📊 활동기록</div>'+
+      '<button onclick="openRecordModal()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ 기록 추가</button>'+
+    '</div>'+
     // 필터 바
     '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;box-shadow:var(--shadow);">'+
       // 날짜 범위
