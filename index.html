@@ -404,6 +404,9 @@ header{
   .filter-bar{display:none;}
   /* 모바일에서 desk-tabs 숨김 */
   .desk-tabs{display:none;}
+  /* 모바일에서 드래그 핸들 숨기고 위/아래 버튼 표시 */
+  .plan-drag-handle{display:none!important;}
+  .plan-move-btns{display:flex!important;}
   /* 모바일에서 schedule-wrap은 클래스로 제어 */
 }
 </style>
@@ -1420,6 +1423,22 @@ function onPlanDrop(e){
   save();renderPlan();
 }
 
+// 모바일 위/아래 이동
+function movePlanOrder(did, dir){
+  if(!S.planOrder) S.planOrder={};
+  if(!S.planOrder[planDate]){
+    S.planOrder[planDate]=getAllPlansForDate(planDate).map(p=>p.did);
+  }
+  const order=S.planOrder[planDate];
+  const idx=order.indexOf(did);
+  if(idx===-1) return;
+  const newIdx=idx+dir;
+  if(newIdx<0||newIdx>=order.length) return;
+  const moved=order.splice(idx,1)[0];
+  order.splice(newIdx,0,moved);
+  save();renderPlan();
+}
+
 // ── Preview Panel Drag & Drop (순서 변경) ──
 let _prevDragDid=null, _prevDragDate=null;
 function onPreviewDragStart(e){
@@ -1805,6 +1824,10 @@ function planCard(d, dateStr, done, isToday){
     'ondragstart="onPlanDragStart(event)" ondragover="onPlanDragOver(event)" ondrop="onPlanDrop(event)" ondragleave="onPlanDragLeave(event)" ondragend="onPlanDragEnd(event)">'+
     '<div class="plan-card-header" style="border-left:4px solid '+getHospColor(d.hospitalId).border+';">'+
       '<span class="plan-drag-handle">⠿</span>'+
+      '<div class="plan-move-btns" style="display:none;flex-direction:column;gap:1px;flex-shrink:0;">'+
+        '<button onclick="movePlanOrder(\''+d.id+'\', -1)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;color:var(--text3);line-height:1.4;font-family:inherit;">▲</button>'+
+        '<button onclick="movePlanOrder(\''+d.id+'\', 1)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;color:var(--text3);line-height:1.4;font-family:inherit;">▼</button>'+
+      '</div>'+
       '<div class="plan-check'+(done?' checked':'')+'"'+
         (locked?' style="opacity:.4;cursor:not-allowed;"':' data-did="'+d.id+'" data-date="'+dateStr+'" onclick="togglePlanCheck(this)"')+'>'+
         '<span class="plan-check-mark">✓</span>'+
