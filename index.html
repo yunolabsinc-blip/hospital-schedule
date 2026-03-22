@@ -1545,9 +1545,18 @@ function renderPlan(){
   const el=document.getElementById('plan-main');
   const today=todayStr();
 
+  // 토/일이면 자동으로 다음주 월요일로 이동
+  const todayBase=new Date(today+'T00:00:00');
+  const todayJsDay=todayBase.getDay();
+  if(planDate===today && (todayJsDay===6||todayJsDay===0)){
+    const nextMon=new Date(todayBase);
+    nextMon.setDate(todayBase.getDate()+(todayJsDay===6?2:1));
+    planDate=nextMon.getFullYear()+'-'+String(nextMon.getMonth()+1).padStart(2,'0')+'-'+String(nextMon.getDate()).padStart(2,'0');
+  }
+
   // 주간 시작일 계산 (월요일 기준)
   const base=new Date(planDate+'T00:00:00');
-  const jsDay=base.getDay(); // 0=일
+  const jsDay=base.getDay();
   const mondayDiff=jsDay===0?-6:1-jsDay;
   const weekStart=new Date(base); weekStart.setDate(base.getDate()+mondayDiff);
 
@@ -1593,27 +1602,27 @@ function renderPlan(){
   });
   html+='</div>';
 
-  // 오전 행 (파란 계열)
-  html+='<div style="display:grid;grid-template-columns:44px repeat(7,1fr);border-bottom:1px solid var(--border);">'+
+  // 오전 행 (파란 계열) - align-items:stretch로 높이 통일
+  html+='<div style="display:grid;grid-template-columns:44px repeat(7,1fr);border-bottom:1px solid var(--border);align-items:stretch;">'+
     '<div style="padding:8px 4px;background:#dceeff;font-size:11px;font-weight:700;color:#1565c0;text-align:center;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;">오전</div>';
   weekDates.forEach(({ds})=>{
     const cellPlans=getPlansForDateAndTime(ds,'오전');
     const isT=ds===today;
     const isPlan=ds===planDate;
-    html+='<div style="min-height:64px;padding:4px;border-left:1px solid var(--border);background:'+(isT?'#f0f7ff':isPlan?'#f5f8ff':'var(--surface)')+';">'+
+    html+='<div style="min-height:72px;padding:4px;border-left:1px solid var(--border);background:'+(isT?'#f0f7ff':isPlan?'#f5f8ff':'var(--surface)')+';">'+
       cellPlans.map(p=>planChip(p,ds,'am')).join('')+
     '</div>';
   });
   html+='</div>';
 
   // 오후 행 (주황 계열)
-  html+='<div style="display:grid;grid-template-columns:44px repeat(7,1fr);">'+
+  html+='<div style="display:grid;grid-template-columns:44px repeat(7,1fr);align-items:stretch;">'+
     '<div style="padding:8px 4px;background:#ffe8cc;font-size:11px;font-weight:700;color:#c45000;text-align:center;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;">오후</div>';
   weekDates.forEach(({ds})=>{
     const cellPlans=getPlansForDateAndTime(ds,'오후');
     const isT=ds===today;
     const isPlan=ds===planDate;
-    html+='<div style="min-height:64px;padding:4px;border-left:1px solid var(--border);background:'+(isT?'#fff8f0':isPlan?'#fffaf5':'var(--surface)')+';">'+
+    html+='<div style="min-height:72px;padding:4px;border-left:1px solid var(--border);background:'+(isT?'#fff8f0':isPlan?'#fffaf5':'var(--surface)')+';">'+
       cellPlans.map(p=>planChip(p,ds,'pm')).join('')+
     '</div>';
   });
@@ -2104,6 +2113,8 @@ function saveDirectRecord(){
   toast('✅ 활동기록이 저장됐습니다');
 }
 
+let _repFromBtn=false; // 버튼으로 호출됐는지 여부
+
 function setRepRange(range){
   const today=todayStr();
   if(range==='week'){
@@ -2119,6 +2130,7 @@ function setRepRange(range){
     _repFrom='2020-01-01';
     _repTo=today;
   }
+  _repFromBtn=true;
   renderReport();
 }
 
@@ -2131,17 +2143,20 @@ function renderReport(){
   // 전역 상태 초기화 (첫 진입 시)
   if(!_repFrom) _repFrom=thisMonthStart;
   if(!_repTo)   _repTo=today;
-  // DOM에서 변경된 값 반영
-  const fromEl=document.getElementById('rep-f-from');
-  const toEl=document.getElementById('rep-f-to');
-  const typeEl=document.getElementById('rep-f-type');
-  const hospEl=document.getElementById('rep-f-hosp');
-  const qEl=document.getElementById('rep-f-q');
-  if(fromEl) _repFrom=fromEl.value||_repFrom;
-  if(toEl)   _repTo=toEl.value||_repTo;
-  if(typeEl) _repType=typeEl.value;
-  if(hospEl) _repHosp=hospEl.value;
-  if(qEl)    _repQ=qEl.value.trim();
+  // 버튼으로 호출된 경우 DOM 값 무시 (이미 전역변수에 설정됨)
+  if(!_repFromBtn){
+    const fromEl=document.getElementById('rep-f-from');
+    const toEl=document.getElementById('rep-f-to');
+    const typeEl=document.getElementById('rep-f-type');
+    const hospEl=document.getElementById('rep-f-hosp');
+    const qEl=document.getElementById('rep-f-q');
+    if(fromEl) _repFrom=fromEl.value||_repFrom;
+    if(toEl)   _repTo=toEl.value||_repTo;
+    if(typeEl) _repType=typeEl.value;
+    if(hospEl) _repHosp=hospEl.value;
+    if(qEl)    _repQ=qEl.value.trim();
+  }
+  _repFromBtn=false;
   const fFrom=_repFrom, fTo=_repTo, fType=_repType, fHosp=_repHosp, fQ=_repQ;
 
   // 데이터 수집
