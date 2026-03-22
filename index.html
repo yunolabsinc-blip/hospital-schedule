@@ -1589,12 +1589,10 @@ function renderPlan(){
     '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">이번주</button>'+
   '</div>';
 
-  // 요일헤더 + 오전 + 오후 — 하나의 스크롤 컨테이너로 묶기
-  html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
-  html+='<div style="min-width:max-content;">';
-
-  // 요일/날짜 헤더 행
-  html+='<div style="display:flex;border-bottom:1px solid var(--border);">'+
+  // 가로 스크롤 컨테이너 제거 — 날짜별 세로 카드 방식으로 변경
+  // 요일/날짜 헤더 행 (클릭으로 날짜 선택)
+  html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid var(--border);">'+
+    '<div style="display:flex;min-width:max-content;">'+
     '<div style="width:44px;flex-shrink:0;background:var(--surface2);border-right:1px solid var(--border);"></div>';
   weekDates.forEach(({ds,d,day})=>{
     const isT=ds===today;
@@ -1608,16 +1606,16 @@ function renderPlan(){
         '">'+d.getDate()+'</div>'+
     '</div>';
   });
-  html+='</div>';
+  html+='</div></div>';
 
-  // 오전/오후 행
+  // 오전/오후 행 — 날짜별로 병원명+의사명 세로 표시
   ['오전','오후'].forEach((timeLabel,ti)=>{
     const rowBg=ti===0?'#dceeff':'#ffe8cc';
     const rowColor=ti===0?'#1565c0':'#c45000';
-    const isLast=ti===1;
-    html+='<div style="display:flex;'+(isLast?'':'border-bottom:1px solid var(--border);')+' align-items:stretch;">'+
+    html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid var(--border);">'+
+      '<div style="display:flex;min-width:max-content;align-items:stretch;">'+
       '<div style="width:44px;flex-shrink:0;padding:8px 4px;background:'+rowBg+';font-size:11px;font-weight:700;color:'+rowColor+
-        ';border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;">'+timeLabel+'</div>';
+        ';border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;writing-mode:horizontal-tb;">'+timeLabel+'</div>';
     weekDates.forEach(({ds})=>{
       const cellPlans=getPlansForDateAndTime(ds, timeLabel);
       const isT=ds===today;
@@ -1641,11 +1639,9 @@ function renderPlan(){
         }).join('')+
       '</div>';
     });
-    html+='</div>';
+    html+='</div></div>';
   });
 
-  html+='</div>'; // min-width div 끝
-  html+='</div>'; // 스크롤 컨테이너 끝
   html+='</div>'; // 캘린더 끝
 
   // 선택한 날짜 상세 카드
