@@ -811,7 +811,14 @@ async function sbLoad(){
 }
 
 function save(){
-  const data={hospitals:S.hospitals,doctors:S.doctors,plans:S.plans||{},planOrder:S.planOrder||{}};
+  const data={
+    hospitals:S.hospitals,
+    doctors:S.doctors,
+    plans:S.plans||{},
+    planOrder:S.planOrder||{},
+    myProducts:getMyProducts(),
+    myInfo:getMyInfo()
+  };
   localStorage.setItem(KEY,JSON.stringify(data));
   sbSave(data);
 }
@@ -840,6 +847,13 @@ async function loadFromCloud(){
     S.plans=cloudData.plans||{};
     S.planOrder=cloudData.planOrder||{};
     if(S.hospitals.length) S.activeHosp=S.hospitals[0].id;
+    // 제품 목록 및 내 정보도 복원
+    if(cloudData.myProducts&&cloudData.myProducts.length){
+      localStorage.setItem('hs_myproducts',JSON.stringify(cloudData.myProducts));
+    }
+    if(cloudData.myInfo&&Object.keys(cloudData.myInfo).length){
+      localStorage.setItem('hs_myinfo',JSON.stringify(cloudData.myInfo));
+    }
     localStorage.setItem(KEY,JSON.stringify(cloudData));
     return true;
   }
@@ -2927,6 +2941,8 @@ function saveSettings(){
     memo:document.getElementById('my-memo').value.trim(),
   };
   localStorage.setItem(MY_INFO_KEY,JSON.stringify(info));
+  // 클라우드에도 동기화
+  save();
   closeModal('settings-modal');
   toast('✅ 저장됐습니다');
 }
@@ -2956,6 +2972,8 @@ function addMyProduct(){
   saveMyProducts(products);
   inp.value='';
   renderMyProductsList();
+  // 클라우드에도 동기화
+  save();
   toast('✅ 제품이 추가됐습니다');
 }
 
@@ -2964,6 +2982,8 @@ function delMyProduct(idx){
   products.splice(idx,1);
   saveMyProducts(products);
   renderMyProductsList();
+  // 클라우드에도 동기화
+  save();
 }
 
 // ── AI Image Analysis ──
