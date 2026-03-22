@@ -414,7 +414,7 @@ header{
 <body>
 
 <header>
-  <div class="logo">📋 진료시간표 <span>거래처 관리</span></div>
+  <div class="logo" onclick="goToFirstHosp()" style="cursor:pointer;" title="첫 페이지로">📋 진료시간표 <span>거래처 관리</span></div>
   <div id="sync-status" style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;"></div>
   <div class="global-search" id="gs-wrap">
     <span class="si">🔍</span>
@@ -1175,9 +1175,16 @@ function _initPicker(){
 
 let _selectedProducts=[]; // 팝업에서 선택된 제품 목록
 
+function goToFirstHosp(){
+  if(S.hospitals.length){
+    S.activeHosp=S.hospitals[0].id;
+    S.drQ='';
+  }
+  switchTab('schedule');
+}
+
 function renderQuickProducts(){
-  _selectedProducts=[];
-  renderSelectedProductTags();
+  // 제품 칩만 렌더링 (선택 상태는 건드리지 않음)
   const products=getMyProducts();
   const el=document.getElementById('plan-quick-products');
   if(!el) return;
@@ -1185,12 +1192,17 @@ function renderQuickProducts(){
     el.innerHTML='<span style="font-size:11px;color:var(--text3);">등록된 제품 없음 — ⚙️ 설정에서 추가하세요</span>';
     return;
   }
-  el.innerHTML=products.map(p=>
-    '<button id="qprod-'+btoa(encodeURIComponent(p)).replace(/[^a-zA-Z0-9]/g,'')+'" '+
-    'onclick="toggleQuickProduct(\''+esc(p)+'\')" '+
-    'style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.12s;">'+
-    esc(p)+'</button>'
-  ).join('');
+  el.innerHTML=products.map(p=>{
+    const active=_selectedProducts.includes(p);
+    const id='qprod-'+btoa(encodeURIComponent(p)).replace(/[^a-zA-Z0-9]/g,'');
+    return '<button id="'+id+'" '+
+      'onclick="toggleQuickProduct(\''+esc(p)+'\')" '+
+      'style="padding:4px 10px;border-radius:20px;border:1px solid '+(active?'var(--accent)':'var(--border)')+
+      ';background:'+(active?'var(--accent)':'var(--surface2)')+
+      ';color:'+(active?'#fff':'var(--text2)')+
+      ';font-size:12px;font-weight:'+(active?'700':'500')+';cursor:pointer;font-family:inherit;transition:.12s;">'+
+      esc(p)+'</button>';
+  }).join('');
 }
 
 function toggleQuickProduct(name){
@@ -1517,7 +1529,10 @@ function switchTab(tab){
   const ft=document.getElementById('tab-fav-mob'); if(ft) ft.classList.toggle('active',tab==='fav');
   document.getElementById('tab-plan-mob').classList.toggle('active',tab==='plan');
   document.getElementById('tab-report-mob').classList.toggle('active',tab==='report');
-  if(tab==='schedule') openPreview();
+  if(tab==='schedule'){
+    renderSidebar();renderDrawer();renderMain();
+    openPreview();
+  }
   if(tab==='fav') renderFav();
   if(tab==='plan') renderPlan();
   if(tab==='report') renderReport();
@@ -1995,6 +2010,7 @@ function _openPlanPicker(did, jsTargetDay, ti){
 
   setTimeout(()=>{
     renderPickerCal();
+    renderSelectedProductTags();
     renderQuickProducts();
     renderPickerDrList(did);
   },0);
@@ -2705,10 +2721,12 @@ function delHosp(id){
 function selHosp(id){
   S.activeHosp=id;
   S.drQ='';
-  // 진료시간표 탭으로 전환 (다른 탭에 있을 경우)
-  if(currentTab!=='schedule') switchTab('schedule');
-  else { renderSidebar();renderDrawer();renderMain(); }
   closeDrawer();
+  if(currentTab!=='schedule'){
+    switchTab('schedule');
+  } else {
+    renderSidebar();renderDrawer();renderMain();
+  }
 }
 
 // Doctor CRUD
