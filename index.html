@@ -1573,7 +1573,7 @@ function renderPlan(){
 
   const isToday=planDate===today;
 
-  // 캘린더 그리드 — 헤더(요일/날짜)를 캘린더 위에 바로 배치, 위 공간 없음
+  // 캘린더 — 네비는 고정, 그리드는 가로 스크롤
   let html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);">';
 
   // 네비 바 (캘린더 상단)
@@ -1588,6 +1588,10 @@ function renderPlan(){
     '</div>'+
     '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">이번주</button>'+
   '</div>';
+
+  // 가로 스크롤 컨테이너 시작 (헤더+오전+오후 함께)
+  html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+  html+='<div style="min-width:500px;">';
 
   // 요일/날짜 헤더 행
   html+='<div style="display:grid;grid-template-columns:44px repeat(7,1fr);border-bottom:1px solid var(--border);">'+
@@ -1631,6 +1635,8 @@ function renderPlan(){
   });
   html+='</div>';
 
+  html+='</div>'; // min-width div 끝
+  html+='</div>'; // overflow-x 스크롤 컨테이너 끝
   html+='</div>'; // 캘린더 끝
 
   // 선택한 날짜 상세 카드
@@ -1734,15 +1740,16 @@ function planChip(p, date, slot){
   const bg   = done ? '#e8f5e9' : hc.bg;
   const color= done ? '#1b5e20' : hc.color;
   const border=done ? '#1b5e20' : hc.border;
+  // 즐겨찾기는 왼쪽 보더를 굵게 표시
+  const borderLeft=isFav ? '4px solid '+border : '3px solid '+border;
   return '<div style="margin:2px 0;padding:3px 6px;border-radius:6px;font-size:11px;font-weight:600;'+
-    'background:'+bg+';color:'+color+';border-left:3px solid '+border+';'+
-    'cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'+
-    'display:flex;align-items:center;" '+
-    'onclick="planDate=\''+date+'\';renderPlan()" title="'+esc(p.dr.name)+' · '+esc(p.dr.hospName)+'">'+
-    (done?'<span style="margin-right:2px;">✅</span>':'')+
-    '<span style="display:inline-block;width:14px;flex-shrink:0;text-align:center;">'+(isFav?'⭐':'')+'</span>'+
-    '<span style="font-size:10px;font-weight:700;opacity:.8;flex-shrink:0;">'+esc(p.dr.hospName)+'</span>'+
-    '<span style="margin-left:3px;">'+esc(p.dr.name)+'</span>'+
+    'background:'+bg+';color:'+color+';border-left:'+borderLeft+';'+
+    'cursor:pointer;overflow:hidden;text-overflow:ellipsis;'+
+    'display:flex;align-items:center;gap:3px;white-space:nowrap;" '+
+    'onclick="planDate=\''+date+'\';renderPlan()" title="'+esc(p.dr.name)+' · '+esc(p.dr.hospName)+(isFav?' ⭐':'')+'">'+
+    (done?'<span style="flex-shrink:0;">✅</span>':'')+
+    '<span style="font-size:10px;font-weight:700;opacity:.85;flex-shrink:0;">'+esc(p.dr.hospName)+'</span>'+
+    '<span>'+esc(p.dr.name)+'</span>'+
   '</div>';
 }
 
