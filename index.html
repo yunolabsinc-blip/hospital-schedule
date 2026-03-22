@@ -136,15 +136,15 @@ header{
 .plan-section-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;padding:8px 0 6px;border-bottom:1px solid var(--border);margin-bottom:10px;}
 .plan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:8px;transition:opacity .2s;}
 .plan-card.done{opacity:.55;}
-.plan-card-header{display:flex;align-items:center;gap:10px;padding:12px 14px;}
+.plan-card-header{display:flex;align-items:center;gap:8px;padding:10px 12px;}
 .plan-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;background:var(--surface);}
 .plan-check:hover{border-color:var(--accent);}
 .plan-check.checked{background:var(--accent);border-color:var(--accent);}
 .plan-check-mark{display:none;color:#fff;font-size:12px;font-weight:700;}
 .plan-check.checked .plan-check-mark{display:block;}
-.plan-dr-name{font-size:14px;font-weight:700;color:var(--text);flex:1;}
+.plan-dr-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .plan-hosp-name{font-size:11px;color:var(--text3);margin-top:2px;}
-.plan-dept-badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--accent-light);color:var(--accent);white-space:nowrap;}
+.plan-dept-badge{font-size:11px;font-weight:600;padding:0 7px;border-radius:20px;background:var(--accent-light);color:var(--accent);white-space:nowrap;height:20px;line-height:20px;display:inline-flex;align-items:center;}
 .plan-time-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#fef9e7;color:#b7770d;border:1px solid #f9e79f;white-space:nowrap;}
 .plan-note-area{border-top:1px solid var(--border);background:var(--surface2);padding:0;}
 .plan-note-area textarea{width:100%;padding:10px 14px;font-size:13px;font-family:inherit;border:none;background:transparent;resize:vertical;min-height:64px;color:var(--text);outline:none;display:block;}
@@ -265,7 +265,7 @@ header{
 .schedule-table th{padding:7px 4px;font-size:11px;font-weight:600;color:var(--text3);text-align:center;background:var(--surface2);white-space:nowrap;width:calc((100% - 58px)/6);}
 .schedule-table th.rl{text-align:left;width:58px;}
 .schedule-table td{padding:9px 4px;text-align:center;font-size:15px;border-top:1px solid var(--border);width:calc((100% - 58px)/6);}
-.schedule-table td.rl{text-align:left;font-size:12px;font-weight:500;color:var(--text2);width:58px;}
+.schedule-table td.rl{text-align:center;font-size:12px;font-weight:500;color:var(--text2);width:58px;vertical-align:middle;}
 .schedule-table td[onclick]:hover{background:var(--accent-light);}
 .dot-on{color:var(--dot);} .dot-off{color:transparent;}
 .cell-surg{display:inline-block;font-size:10px;font-weight:600;color:#aaa;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:4px;padding:2px 5px;line-height:1.4;}
@@ -1826,7 +1826,7 @@ function planCard(d, dateStr, done, isToday){
   const planTimeSlot=pd.time||'오전';
   const planTimeBg  =planTimeSlot==='오전'?'#dceeff':'#ffe8cc';
   const planTimeColor=planTimeSlot==='오전'?'#1565c0':'#c45000';
-  const planTimeBadge='<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+planTimeBg+';color:'+planTimeColor+';">'+planTimeSlot+'</span>';
+  const planTimeBadge='<span style="font-size:10px;font-weight:700;padding:0 7px;border-radius:20px;background:'+planTimeBg+';color:'+planTimeColor+';height:20px;line-height:20px;display:inline-flex;align-items:center;">'+planTimeSlot+'</span>';
 
   // 진료시간표에서의 실제 진료 형태 배지
   const schedBadge=schedTimes.map(({label,slot})=>{
@@ -1854,11 +1854,11 @@ function planCard(d, dateStr, done, isToday){
         '<div style="font-size:12px;font-weight:800;color:'+getHospColor(d.hospitalId).color+';cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onclick="goToHospital(\''+d.hospitalId+'\')" title="진료시간표로 이동">'+
           esc(d.hospName)+' ›'+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:nowrap;overflow:hidden;">'+
-          '<span class="plan-dr-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;">'+esc(d.name)+'</span>'+
-          (d.dept?'<span class="plan-dept-badge" style="flex-shrink:0;white-space:nowrap;">'+esc(d.dept)+'</span>':'')+
-          '<span style="flex-shrink:0;">'+planTimeBadge+'</span>'+
-          (done?'<span style="font-size:10px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:1px 5px;border-radius:20px;flex-shrink:0;">✅</span>':'')+
+        '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:nowrap;overflow:hidden;">'+
+          '<span class="plan-dr-name">'+esc(d.name)+'</span>'+
+          (d.dept?'<span class="plan-dept-badge" style="flex-shrink:0;vertical-align:middle;">'+esc(d.dept)+'</span>':'')+
+          '<span style="flex-shrink:0;vertical-align:middle;">'+planTimeBadge+'</span>'+
+          (done?'<span style="font-size:10px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:1px 5px;border-radius:20px;flex-shrink:0;vertical-align:middle;">✅</span>':'')+
         '</div>'+
       '</div>'+
       '<button style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:3px;flex-shrink:0;" title="계획 수정" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="editPlanEntry(this.dataset.did,this.dataset.date)">✏️</button>'+
