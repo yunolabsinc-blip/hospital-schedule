@@ -600,7 +600,7 @@ header{
 <div class="modal-overlay" id="plan-pick-modal" style="z-index:700;">
   <div class="modal" style="max-width:360px;">
     <div class="modal-handle"></div>
-    <h3>📅 활동계획 추가</h3>
+    <h3 id="plan-pick-title">📅 활동계획 추가</h3>
     <input type="hidden" id="plan-pick-did">
     <input type="hidden" id="plan-pick-time">
     <input type="hidden" id="plan-pick-selected-date">
@@ -1541,6 +1541,7 @@ function savePlanData(did, dateStr, data){
 }
 
 function renderPlan(){
+  initHospColors();
   const el=document.getElementById('plan-main');
   const today=todayStr();
 
@@ -1688,18 +1689,46 @@ function getAllPlansForDate(date){
   }).filter(x=>x.dr&&x.dr.id);
 }
 
+// ── 병원별 색상 팔레트 ──
+const HOSP_COLORS=[
+  {bg:'#e3f2fd',color:'#0d47a1',border:'#1565c0'},
+  {bg:'#fce4ec',color:'#880e4f',border:'#c2185b'},
+  {bg:'#e8f5e9',color:'#1b5e20',border:'#2e7d32'},
+  {bg:'#fff3e0',color:'#e65100',border:'#f57c00'},
+  {bg:'#f3e5f5',color:'#4a148c',border:'#7b1fa2'},
+  {bg:'#e0f7fa',color:'#006064',border:'#00838f'},
+  {bg:'#fff9c4',color:'#f57f17',border:'#f9a825'},
+  {bg:'#ede7f6',color:'#311b92',border:'#512da8'},
+  {bg:'#e8eaf6',color:'#1a237e',border:'#303f9f'},
+  {bg:'#fbe9e7',color:'#bf360c',border:'#d84315'},
+];
+let _hospColorMap={};
+function getHospColor(hospId){
+  if(!_hospColorMap[hospId]){
+    const idx=Object.keys(_hospColorMap).length % HOSP_COLORS.length;
+    _hospColorMap[hospId]=HOSP_COLORS[idx];
+  }
+  return _hospColorMap[hospId];
+}
+function initHospColors(){
+  _hospColorMap={};
+  S.hospitals.forEach((h,i)=>{_hospColorMap[h.id]=HOSP_COLORS[i%HOSP_COLORS.length];});
+}
+
 function planChip(p, date, slot){
   const done=p.pd.checked;
   const isFav=p.dr.fav;
-  // 오전=파랑, 오후=주황, 완료=초록
-  const bg   = done ? '#e8f5e9' : slot==='am' ? '#dceeff' : slot==='pm' ? '#ffe8cc' : '#ebf5fb';
-  const color= done ? '#1b5e20' : slot==='am' ? '#1565c0' : slot==='pm' ? '#c45000' : '#1e5fa8';
-  const border=done ? '#1b5e20' : slot==='am' ? '#1565c0' : slot==='pm' ? '#c45000' : '#1e5fa8';
+  const hc=getHospColor(p.dr.hospitalId);
+  const bg   = done ? '#e8f5e9' : hc.bg;
+  const color= done ? '#1b5e20' : hc.color;
+  const border=done ? '#1b5e20' : hc.border;
   return '<div style="margin:2px 0;padding:3px 6px;border-radius:6px;font-size:11px;font-weight:600;'+
     'background:'+bg+';color:'+color+';border-left:3px solid '+border+';'+
     'cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" '+
     'onclick="planDate=\''+date+'\';renderPlan()" title="'+esc(p.dr.name)+' · '+esc(p.dr.hospName)+'">'+
-    (done?'✅ ':'📋 ')+(isFav?'⭐':'')+esc(p.dr.name)+
+    (done?'✅ ':'')+(isFav?'⭐':'')+
+    '<span style="font-size:10px;font-weight:700;opacity:.75;">'+esc(p.dr.hospName)+'</span> '+
+    esc(p.dr.name)+
   '</div>';
 }
 
@@ -1737,14 +1766,16 @@ function planCard(d, dateStr, done, isToday){
 
   return '<div class="plan-card'+(done?' done':'')+'" id="plan-card-'+d.id+'" data-did="'+d.id+'" draggable="true" '+
     'ondragstart="onPlanDragStart(event)" ondragover="onPlanDragOver(event)" ondrop="onPlanDrop(event)" ondragleave="onPlanDragLeave(event)" ondragend="onPlanDragEnd(event)">'+
-    '<div class="plan-card-header">'+
+    '<div class="plan-card-header" style="border-left:4px solid '+getHospColor(d.hospitalId).border+';">'+
       '<span class="plan-drag-handle">⠿</span>'+
-      // 체크 버튼 — 당일만 클릭 가능
       '<div class="plan-check'+(done?' checked':'')+'"'+
         (locked?' style="opacity:.4;cursor:not-allowed;"':' data-did="'+d.id+'" data-date="'+dateStr+'" onclick="togglePlanCheck(this)"')+'>'+
         '<span class="plan-check-mark">✓</span>'+
       '</div>'+
       '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:13px;font-weight:800;color:'+getHospColor(d.hospitalId).color+';cursor:pointer;margin-bottom:2px;" onclick="goToHospital(\''+d.hospitalId+'\')" title="진료시간표로 이동">'+
+          esc(d.hospName)+' ›'+
+        '</div>'+
         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
           '<span class="plan-dr-name">'+esc(d.name)+'</span>'+
           (d.dept?'<span class="plan-dept-badge">'+esc(d.dept)+'</span>':'')+
@@ -1752,8 +1783,8 @@ function planCard(d, dateStr, done, isToday){
           (schedBadge?' '+schedBadge:'')+
           (done?'<span style="font-size:11px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:2px 7px;border-radius:20px;">✅ 완료</span>':'')+
         '</div>'+
-        '<div class="plan-hosp-name"><span style="cursor:pointer;" onclick="goToHospital(\''+d.hospitalId+'\')" title="진료시간표로 이동">'+esc(d.hospName)+' ›</span></div>'+
       '</div>'+
+      '<button style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);padding:4px;flex-shrink:0;" title="계획 수정" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="editPlanEntry(this.dataset.did,this.dataset.date)">✏️</button>'+
       '<button style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:4px;flex-shrink:0;" title="계획에서 제거" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="removePlanEntry(this.dataset.did,this.dataset.date)">✕</button>'+
     '</div>'+
     '<div class="plan-note-area">'+
@@ -1874,8 +1905,11 @@ function _openPlanPicker(did, jsTargetDay, ti){
 
   const timeVal=ti===1?'오후':'오전';
   setPlanTime(timeVal);
-  document.getElementById('plan-pick-modal').classList.add('open');
-  // 달력 렌더링 (모달 열린 후)
+  const modal=document.getElementById('plan-pick-modal');
+  delete modal.dataset.editDate;
+  const titleEl=document.getElementById('plan-pick-title');
+  if(titleEl) titleEl.textContent='📅 활동계획 추가';
+  modal.classList.add('open');
   // 입력 초기화
   document.getElementById('plan-pick-product').value='';
   document.getElementById('plan-pick-note').value='';
@@ -1894,25 +1928,88 @@ function confirmAddToPlan(){
   const did=document.getElementById('plan-pick-did').value;
   const date=document.getElementById('plan-pick-selected-date').value;
   const time=document.getElementById('plan-pick-time').value||'오전';
-  // 직접 입력된 제품도 추가
   const manualInput=(document.getElementById('plan-pick-product').value||'').trim();
   if(manualInput && !_selectedProducts.includes(manualInput)) _selectedProducts.push(manualInput);
   const note=(document.getElementById('plan-pick-note').value||'').trim();
   if(!did||!date){toast('날짜를 선택해주세요');return;}
-  const pd=getPlanData(did,date);
-  pd.added=true;
-  pd.time=time;
-  pd.products=_selectedProducts.length?[..._selectedProducts]:[];
-  pd.product=_selectedProducts.join(', '); // 기존 호환용
-  if(note) pd.note=note;
-  savePlanData(did,date,pd);
-  // 입력 초기화
+
+  // 수정 모드: 기존 날짜가 다르면 기존 데이터 삭제 후 새 날짜로 이동
+  const modal=document.getElementById('plan-pick-modal');
+  const editDate=modal.dataset.editDate;
+  if(editDate && editDate!==date){
+    // 기존 날짜 데이터 보존 (note, checked 등)
+    const oldPd=getPlanData(did,editDate);
+    // 기존 삭제
+    if(S.plans[did]) delete S.plans[did][editDate];
+    // planOrder에서도 제거
+    if(S.planOrder&&S.planOrder[editDate]){
+      S.planOrder[editDate]=S.planOrder[editDate].filter(id=>id!==did);
+    }
+    // 새 날짜에 저장 (기존 내용 유지 + 수정된 내용 반영)
+    const newPd=getPlanData(did,date);
+    newPd.added=true;
+    newPd.time=time;
+    newPd.products=_selectedProducts.length?[..._selectedProducts]:[];
+    newPd.product=_selectedProducts.join(', ');
+    newPd.note=note||oldPd.note||'';
+    newPd.checked=oldPd.checked||false;
+    savePlanData(did,date,newPd);
+    toast('📅 활동계획이 수정됐습니다');
+  } else {
+    const pd=getPlanData(did,date);
+    pd.added=true;
+    pd.time=time;
+    pd.products=_selectedProducts.length?[..._selectedProducts]:[];
+    pd.product=_selectedProducts.join(', ');
+    if(note) pd.note=note;
+    savePlanData(did,date,pd);
+    toast(editDate?'📅 활동계획이 수정됐습니다':'📅 활동계획이 추가됐습니다 ('+time+')');
+  }
+
+  // 초기화
   document.getElementById('plan-pick-product').value='';
   document.getElementById('plan-pick-note').value='';
   _selectedProducts=[];
+  delete modal.dataset.editDate;
   closeModal('plan-pick-modal');
+  renderPlan();
   renderPreview();
-  toast('📅 활동계획이 추가됐습니다 ('+time+')');
+}
+
+function editPlanEntry(did, date){
+  const d=S.doctors.find(x=>x.id===did);
+  if(!d) return;
+  const pd=getPlanData(did,date);
+
+  // 기존 데이터로 팝업 초기화
+  _initPicker();
+  const dObj=new Date(date+'T00:00:00');
+  _pickerYear=dObj.getFullYear();
+  _pickerMonth=dObj.getMonth();
+
+  document.getElementById('plan-pick-did').value=did;
+  document.getElementById('plan-pick-name').textContent=d.name+(d.dept?' · '+d.dept:'')+(d.hospName?' / '+d.hospName:'');
+  document.getElementById('plan-pick-selected-date').value=date;
+
+  // 날짜 레이블
+  const days=['일','월','화','수','목','금','토'];
+  const label=(dObj.getMonth()+1)+'월'+dObj.getDate()+'일('+days[dObj.getDay()]+')';
+  document.getElementById('plan-cal-selected-label').textContent=label;
+
+  // 시간대
+  setPlanTime(pd.time||'오전');
+
+  // 기존 제품/내용 복원
+  document.getElementById('plan-pick-product').value=pd.product||'';
+  document.getElementById('plan-pick-note').value=pd.note||'';
+  _selectedProducts=pd.products?[...pd.products]:(pd.product?[pd.product]:[]);
+
+  // 수정 모드 표시
+  document.getElementById('plan-pick-modal').dataset.editDate=date;
+  const titleEl=document.getElementById('plan-pick-title');
+  if(titleEl) titleEl.textContent='✏️ 활동계획 수정';
+  document.getElementById('plan-pick-modal').classList.add('open');
+  setTimeout(()=>{renderPickerCal();renderQuickProducts();renderSelectedProductTags();},0);
 }
 
 function removePlanEntry(did, date){
