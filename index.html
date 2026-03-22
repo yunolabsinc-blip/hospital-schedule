@@ -404,9 +404,9 @@ header{
   .filter-bar{display:none;}
   /* 모바일에서 desk-tabs 숨김 */
   .desk-tabs{display:none;}
-  /* 모바일에서 드래그 핸들 숨기고 위/아래 버튼 표시 */
-  .plan-drag-handle{display:none!important;}
-  .plan-move-btns{display:flex!important;}
+  /* 모바일/터치: JS로 .is-touch 클래스 추가 시 적용 */
+  .is-touch .plan-drag-handle{display:none!important;}
+  .is-touch .plan-move-btns{display:flex!important;}
   /* 모바일에서 schedule-wrap은 클래스로 제어 */
 }
 </style>
@@ -1426,17 +1426,35 @@ function onPlanDrop(e){
 // 모바일 위/아래 이동
 function movePlanOrder(did, dir){
   if(!S.planOrder) S.planOrder={};
-  if(!S.planOrder[planDate]){
-    S.planOrder[planDate]=getAllPlansForDate(planDate).map(p=>p.did);
+
+  // 현재 날짜의 모든 plan did를 raw 순서로 수집
+  const allDids=Object.keys(S.plans||{}).filter(id=>{
+    const pd=S.plans[id][planDate];
+    return pd&&pd.added;
+  });
+
+  // planOrder가 없거나 누락된 did가 있으면 재구성
+  if(!S.planOrder[planDate]||!allDids.every(id=>S.planOrder[planDate].includes(id))){
+    // 기존 순서 유지하면서 누락된 것 뒤에 추가
+    const existing=S.planOrder[planDate]||[];
+    const merged=[...existing.filter(id=>allDids.includes(id)),
+                  ...allDids.filter(id=>!existing.includes(id))];
+    S.planOrder[planDate]=merged;
   }
+
   const order=S.planOrder[planDate];
   const idx=order.indexOf(did);
-  if(idx===-1) return;
+  if(idx===-1){
+    // 없으면 끝에 추가 후 재시도
+    order.push(did);
+    return;
+  }
   const newIdx=idx+dir;
   if(newIdx<0||newIdx>=order.length) return;
   const moved=order.splice(idx,1)[0];
   order.splice(newIdx,0,moved);
-  save();renderPlan();
+  save();
+  renderPlan();
 }
 
 // ── Preview Panel Drag & Drop (순서 변경) ──
@@ -1825,27 +1843,26 @@ function planCard(d, dateStr, done, isToday){
     '<div class="plan-card-header" style="border-left:4px solid '+getHospColor(d.hospitalId).border+';">'+
       '<span class="plan-drag-handle">⠿</span>'+
       '<div class="plan-move-btns" style="display:none;flex-direction:column;gap:1px;flex-shrink:0;">'+
-        '<button onclick="movePlanOrder(\''+d.id+'\', -1)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;color:var(--text3);line-height:1.4;font-family:inherit;">▲</button>'+
-        '<button onclick="movePlanOrder(\''+d.id+'\', 1)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;color:var(--text3);line-height:1.4;font-family:inherit;">▼</button>'+
+        '<button onclick="movePlanOrder(\''+d.id+'\', -1)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;color:var(--text3);line-height:1;font-family:inherit;">▲</button>'+
+        '<button onclick="movePlanOrder(\''+d.id+'\', 1)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;color:var(--text3);line-height:1;font-family:inherit;">▼</button>'+
       '</div>'+
       '<div class="plan-check'+(done?' checked':'')+'"'+
         (locked?' style="opacity:.4;cursor:not-allowed;"':' data-did="'+d.id+'" data-date="'+dateStr+'" onclick="togglePlanCheck(this)"')+'>'+
         '<span class="plan-check-mark">✓</span>'+
       '</div>'+
-      '<div style="flex:1;min-width:0;">'+
-        '<div style="font-size:13px;font-weight:800;color:'+getHospColor(d.hospitalId).color+';cursor:pointer;margin-bottom:2px;" onclick="goToHospital(\''+d.hospitalId+'\')" title="진료시간표로 이동">'+
+      '<div style="flex:1;min-width:0;overflow:hidden;">'+
+        '<div style="font-size:12px;font-weight:800;color:'+getHospColor(d.hospitalId).color+';cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onclick="goToHospital(\''+d.hospitalId+'\')" title="진료시간표로 이동">'+
           esc(d.hospName)+' ›'+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'+
-          '<span class="plan-dr-name">'+esc(d.name)+'</span>'+
-          (d.dept?'<span class="plan-dept-badge">'+esc(d.dept)+'</span>':'')+
-          planTimeBadge+
-          (schedBadge?' '+schedBadge:'')+
-          (done?'<span style="font-size:11px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:2px 7px;border-radius:20px;">✅ 완료</span>':'')+
+        '<div style="display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:nowrap;overflow:hidden;">'+
+          '<span class="plan-dr-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;">'+esc(d.name)+'</span>'+
+          (d.dept?'<span class="plan-dept-badge" style="flex-shrink:0;white-space:nowrap;">'+esc(d.dept)+'</span>':'')+
+          '<span style="flex-shrink:0;">'+planTimeBadge+'</span>'+
+          (done?'<span style="font-size:10px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:1px 5px;border-radius:20px;flex-shrink:0;">✅</span>':'')+
         '</div>'+
       '</div>'+
-      '<button style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);padding:4px;flex-shrink:0;" title="계획 수정" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="editPlanEntry(this.dataset.did,this.dataset.date)">✏️</button>'+
-      '<button style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:4px;flex-shrink:0;" title="계획에서 제거" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="removePlanEntry(this.dataset.did,this.dataset.date)">✕</button>'+
+      '<button style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:3px;flex-shrink:0;" title="계획 수정" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="editPlanEntry(this.dataset.did,this.dataset.date)">✏️</button>'+
+      '<button style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);padding:3px;flex-shrink:0;" title="계획에서 제거" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="removePlanEntry(this.dataset.did,this.dataset.date)">✕</button>'+
     '</div>'+
     '<div class="plan-note-area">'+
       (locked?
@@ -2832,6 +2849,9 @@ function clearGlobalSearch(){
 function checkMobile(){
   const mob=window.innerWidth<640;
   document.getElementById('mob-add-btn').style.display=mob?'':'none';
+  // 터치 기기 감지 — 폴드 펼쳤을 때도 터치면 ▲▼ 버튼 표시
+  const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  document.body.classList.toggle('is-touch', isTouch);
 }
 window.addEventListener('resize',checkMobile);
 
