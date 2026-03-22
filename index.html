@@ -2109,14 +2109,16 @@ function editPlanEntry(did, date){
   if(!d) return;
   const pd=getPlanData(did,date);
 
-  // 기존 데이터로 팝업 초기화
+  // 달력 초기화
   _initPicker();
   const dObj=new Date(date+'T00:00:00');
   _pickerYear=dObj.getFullYear();
   _pickerMonth=dObj.getMonth();
 
+  // 수정 모드 — 해당 의사만 선택된 상태로
+  _selectedDids=[did];
+
   document.getElementById('plan-pick-did').value=did;
-  document.getElementById('plan-pick-name').textContent=d.name+(d.dept?' · '+d.dept:'')+(d.hospName?' / '+d.hospName:'');
   document.getElementById('plan-pick-selected-date').value=date;
 
   // 날짜 레이블
@@ -2128,27 +2130,38 @@ function editPlanEntry(did, date){
   setPlanTime(pd.time||'오전');
 
   // 기존 제품/내용 복원
-  document.getElementById('plan-pick-product').value=pd.product||'';
+  document.getElementById('plan-pick-product').value='';
   document.getElementById('plan-pick-note').value=pd.note||'';
   _selectedProducts=pd.products?[...pd.products]:(pd.product?[pd.product]:[]);
 
   // 수정 모드 표시
-  document.getElementById('plan-pick-modal').dataset.editDate=date;
-  const titleEl=document.getElementById('plan-pick-title');
-  if(titleEl) titleEl.textContent='✏️ 활동계획 수정';
-  document.getElementById('plan-pick-modal').classList.add('open');
-  setTimeout(()=>{renderPickerCal();renderQuickProducts();renderSelectedProductTags();},0);
+  const modal=document.getElementById('plan-pick-modal');
+  modal.dataset.editDate=date;
+  modal.classList.add('open');
+
+  setTimeout(()=>{
+    renderPickerCal();
+    renderQuickProducts();
+    renderSelectedProductTags();
+    renderPickerDrList(did);
+  },0);
 }
 
 function removePlanEntry(did, date){
   if(!S.plans||!S.plans[did]||!S.plans[did][date]) return;
-  delete S.plans[did][date];
   const d=S.doctors.find(x=>x.id===did);
-  if(d&&d.logs) d.logs=d.logs.filter(l=>l.date!==date);
-  save();
-  renderPlan();
-  renderPreview();
-  toast('계획 및 기록이 삭제됐습니다');
+  const name=d?d.name:'';
+  const dObj=new Date(date+'T00:00:00');
+  const days=['일','월','화','수','목','금','토'];
+  const dateLabel=(dObj.getMonth()+1)+'월'+dObj.getDate()+'일('+days[dObj.getDay()]+')';
+  showConfirm(dateLabel+' '+name+' 활동계획을 삭제할까요?', ()=>{
+    delete S.plans[did][date];
+    if(d&&d.logs) d.logs=d.logs.filter(l=>l.date!==date);
+    save();
+    renderPlan();
+    renderPreview();
+    toast('계획이 삭제됐습니다');
+  });
 }
 
 // ── Activity Report ──
