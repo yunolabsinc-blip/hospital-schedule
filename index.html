@@ -1652,19 +1652,21 @@ function renderPlan(){
   let html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);">';
 
   // 네비 바 (캘린더 상단)
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);">'+
-    '<div style="display:flex;align-items:center;gap:8px;">'+
-      '<button onclick="movePlanWeek(-1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;">‹ 이전주</button>'+
-      '<span style="font-size:14px;font-weight:700;color:var(--text);">'+
+  html+='<div style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);">'+
+    // 첫 줄: 이전주/날짜/다음주
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'+
+      '<button onclick="movePlanWeek(-1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text2);font-family:inherit;white-space:nowrap;">‹ 이전주</button>'+
+      '<span style="font-size:13px;font-weight:700;color:var(--text);text-align:center;">'+
         (weekDates[0].d.getMonth()+1)+'월 '+weekDates[0].d.getDate()+'일 ~ '+
         (weekDates[6].d.getMonth()+1)+'월 '+weekDates[6].d.getDate()+'일'+
       '</span>'+
-      '<button onclick="movePlanWeek(1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;">다음주 ›</button>'+
+      '<button onclick="movePlanWeek(1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text2);font-family:inherit;white-space:nowrap;">다음주 ›</button>'+
     '</div>'+
-    '<div style="display:flex;gap:6px;align-items:center;">'+
-      '<button onclick="copyPrevWeek()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text2);font-family:inherit;" title="전주 계획을 이번주로 복사">📋 전주 복사</button>'+
-      '<button onclick="deleteWeekPlans()" style="background:none;border:1px solid #e8c4c0;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--danger);font-family:inherit;" title="이번주 계획 전체 삭제">🗑 전체 삭제</button>'+
-      '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">이번주</button>'+
+    // 둘째 줄: 전주복사/전체삭제/이번주
+    '<div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;">'+
+      '<button onclick="copyPrevWeek()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text2);font-family:inherit;white-space:nowrap;">📋 전주 복사</button>'+
+      '<button onclick="deleteWeekPlans()" style="background:none;border:1px solid #e8c4c0;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--danger);font-family:inherit;white-space:nowrap;">🗑 전체 삭제</button>'+
+      '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()" style="white-space:nowrap;">이번주</button>'+
     '</div>'+
   '</div>';
 
