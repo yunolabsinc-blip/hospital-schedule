@@ -428,8 +428,8 @@ header{
     <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()">📂 엑셀 업로드</button>
     <button class="btn btn-outline" onclick="openHospModal()">+ 거래처</button>
     <button class="btn btn-outline btn-icon" onclick="openSettings()" title="설정">⚙️</button>
-    <!-- mobile FAB -->
-    <button class="btn btn-primary btn-icon" id="mob-add-btn" style="display:none" onclick="openDrModal()">＋</button>
+    <!-- mobile FAB - 거래처 추가 -->
+    <button class="btn btn-primary btn-icon" id="mob-add-btn" style="display:none" onclick="openHospModal()" title="거래처 추가">＋</button>
   </div>
 </header>
 
@@ -508,12 +508,20 @@ header{
     <div class="form-row"><label>병원명 *</label><input type="text" id="h-name" placeholder="예: 서울척병원"></div>
     <div class="form-row">
       <label>거래 품목 <span style="font-weight:400;color:var(--text3)">(Enter 또는 + 추가)</span></label>
-      <!-- 등록 제품 빠른 선택 -->
       <div id="h-quick-products" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
       <div class="tag-list" id="h-tag-list"></div>
       <div class="tag-input-row">
         <input type="text" id="h-tag-input" placeholder="품목명 입력" onkeydown="if(event.key==='Enter'){event.preventDefault();addHTag();}">
         <button onclick="addHTag()">+ 추가</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>🎯 Target 품목 <span style="font-weight:400;color:var(--text3)">(전략 목표 품목)</span></label>
+      <div id="h-target-quick" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;"></div>
+      <div class="tag-list" id="h-target-list"></div>
+      <div class="tag-input-row">
+        <input type="text" id="h-target-input" placeholder="Target 품목 입력" onkeydown="if(event.key==='Enter'){event.preventDefault();addHTargetTag();}">
+        <button onclick="addHTargetTag()">+ 추가</button>
       </div>
     </div>
     <div class="form-row"><label>메모</label><textarea id="h-memo" placeholder="연락처, 계약조건, 특이사항 등"></textarea></div>
@@ -907,11 +915,12 @@ function renderMain(){
   const q=S.drQ||'';
   if(q)docs=docs.filter(d=>d.name.includes(q)||(d.dept||'').includes(q));
 
-  const hProds=h.products||[],hMemo=h.memo||'';
-  const infoHtml=(hProds.length||hMemo)?
+  const hProds=h.products||[], hTargetProds=h.targetProducts||[], hMemo=h.memo||'';
+  const infoHtml=(hProds.length||hTargetProds.length||hMemo)?
     '<div class="info-panel">'+
       '<div class="info-panel-title">거래처 정보</div>'+
       (hProds.length?'<div class="info-row"><span class="info-label">📦 품목</span><div class="tag-list">'+hProds.map(p=>'<span class="tag tag-blue">'+esc(p)+'</span>').join('')+'</div></div>':'')+
+      (hTargetProds.length?'<div class="info-row"><span class="info-label">🎯 Target</span><div class="tag-list">'+hTargetProds.map(p=>'<span class="tag" style="background:#fff3e0;color:#e65100;border-color:#ffcc80;">'+esc(p)+'</span>').join('')+'</div></div>':'')+
       (hMemo?'<div class="info-row"><span class="info-label">📝 메모</span><span style="font-size:12px;color:var(--text2);line-height:1.6;">'+esc(hMemo).replace(/\n/g,'<br>')+'</span></div>':'')+
     '</div>':'';
 
@@ -1652,7 +1661,10 @@ function renderPlan(){
       '</span>'+
       '<button onclick="movePlanWeek(1)" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;">다음주 ›</button>'+
     '</div>'+
-    '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">이번주</button>'+
+    '<div style="display:flex;gap:6px;align-items:center;">'+
+      '<button onclick="copyPrevWeek()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text2);font-family:inherit;" title="전주 계획을 이번주로 복사">📋 전주 복사</button>'+
+      '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">이번주</button>'+
+    '</div>'+
   '</div>';
 
   // 요일헤더 + 오전 + 오후 — 하나의 스크롤 컨테이너로 묶기
@@ -1840,6 +1852,84 @@ function movePlanWeek(delta){
   d.setDate(d.getDate()+delta*7);
   planDate=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
   renderPlan();
+}
+
+// 전주 계획 → 현재 주로 복사
+function copyPrevWeek(){
+  // 현재 표시 주의 월요일 계산
+  const base=new Date(planDate+'T00:00:00');
+  const jsDay=base.getDay();
+  const mondayDiff=jsDay===0?-6:1-jsDay;
+  const curMon=new Date(base); curMon.setDate(base.getDate()+mondayDiff);
+
+  // 전주 월요일
+  const prevMon=new Date(curMon); prevMon.setDate(curMon.getDate()-7);
+
+  // 이번주 7일 날짜 배열
+  const curDates=[], prevDates=[];
+  for(let i=0;i<7;i++){
+    const cd=new Date(curMon); cd.setDate(curMon.getDate()+i);
+    const pd=new Date(prevMon); pd.setDate(prevMon.getDate()+i);
+    curDates.push(cd.getFullYear()+'-'+String(cd.getMonth()+1).padStart(2,'0')+'-'+String(cd.getDate()).padStart(2,'0'));
+    prevDates.push(pd.getFullYear()+'-'+String(pd.getMonth()+1).padStart(2,'0')+'-'+String(pd.getDate()).padStart(2,'0'));
+  }
+
+  // 전주에 계획이 있는지 확인
+  let hasPrev=false;
+  prevDates.forEach(pd=>{
+    Object.keys(S.plans||{}).forEach(did=>{
+      if(S.plans[did][pd]&&S.plans[did][pd].added) hasPrev=true;
+    });
+  });
+
+  if(!hasPrev){toast('전주에 등록된 계획이 없습니다');return;}
+
+  // 이번주에 이미 계획이 있으면 확인
+  let hasCur=false;
+  curDates.forEach(cd=>{
+    Object.keys(S.plans||{}).forEach(did=>{
+      if(S.plans[did][cd]&&S.plans[did][cd].added) hasCur=true;
+    });
+  });
+
+  const doCopy=()=>{
+    let copied=0;
+    prevDates.forEach((prevDs, i)=>{
+      const curDs=curDates[i];
+      Object.keys(S.plans||{}).forEach(did=>{
+        const pd=S.plans[did][prevDs];
+        if(!pd||!pd.added) return;
+        // 이미 있으면 덮어쓰지 않음
+        const existing=S.plans[did][curDs];
+        if(existing&&existing.added) return;
+        const newPd=getPlanData(did,curDs);
+        newPd.added=true;
+        newPd.time=pd.time||'오전';
+        newPd.product=pd.product||'';
+        newPd.products=pd.products?[...pd.products]:[];
+        newPd.note=pd.note||'';
+        savePlanData(did,curDs,newPd);
+        copied++;
+      });
+    });
+    // planOrder도 복사
+    prevDates.forEach((prevDs, i)=>{
+      const curDs=curDates[i];
+      if(S.planOrder&&S.planOrder[prevDs]){
+        if(!S.planOrder[curDs]){
+          S.planOrder[curDs]=[...S.planOrder[prevDs]];
+        }
+      }
+    });
+    save();renderPlan();renderPreview();
+    toast('📋 전주 계획 '+copied+'건을 복사했습니다');
+  };
+
+  if(hasCur){
+    showConfirm('이번주에 이미 계획이 있습니다. 없는 날짜만 추가할까요?', doCopy);
+  } else {
+    doCopy();
+  }
 }
 
 function planCard(d, dateStr, done, isToday){
@@ -2648,6 +2738,63 @@ function renderHTags(){document.getElementById('h-tag-list').innerHTML=S.hTags.m
 function addHTag(){const inp=document.getElementById('h-tag-input');const v=inp.value.trim();if(v&&!S.hTags.includes(v)){S.hTags.push(v);renderHTags();}inp.value='';}
 function rmHTag(i){S.hTags.splice(i,1);renderHTags();}
 
+// 거래처 Target 태그
+function renderHTargetTags(){
+  const el=document.getElementById('h-target-list');
+  if(!el) return;
+  el.innerHTML=(S.hTargetTags||[]).map((p,i)=>'<span class="tag" style="background:#fff3e0;color:#e65100;border:1px solid #ffcc80;">'+esc(p)+'<button class="tag-rm" onclick="rmHTargetTag('+i+')">✕</button></span>').join('');
+}
+function addHTargetTag(){const inp=document.getElementById('h-target-input');const v=inp.value.trim();if(!S.hTargetTags)S.hTargetTags=[];if(v&&!S.hTargetTags.includes(v)){S.hTargetTags.push(v);renderHTargetTags();}inp.value='';}
+function rmHTargetTag(i){if(!S.hTargetTags)return;S.hTargetTags.splice(i,1);renderHTargetTags();}
+function renderHTargetQuick(){
+  const el=document.getElementById('h-target-quick');
+  if(!el) return;
+  const products=getMyProducts();
+  if(!products.length){el.innerHTML='';return;}
+  el.innerHTML=products.map(p=>{
+    const active=(S.hTargetTags||[]).includes(p);
+    return '<button onclick="toggleHTargetQuick(\''+esc(p)+'\')" style="padding:3px 9px;border-radius:20px;border:1px solid '+(active?'#e65100':'var(--border)')+';background:'+(active?'#fff3e0':'var(--surface2)')+';color:'+(active?'#e65100':'var(--text2)')+';font-size:12px;cursor:pointer;font-family:inherit;transition:.12s;">'+esc(p)+'</button>';
+  }).join('');
+}
+function toggleHTargetQuick(name){
+  if(!S.hTargetTags)S.hTargetTags=[];
+  if(S.hTargetTags.includes(name))S.hTargetTags.splice(S.hTargetTags.indexOf(name),1);
+  else S.hTargetTags.push(name);
+  renderHTargetTags();renderHTargetQuick();
+}
+
+function openHospModal(id){
+  S.editHospId=id||null;
+  const h=id?S.hospitals.find(x=>x.id===id):null;
+  document.getElementById('hosp-modal-title').textContent=id?'거래처 메모':'거래처 추가';
+  document.getElementById('h-name').value=h?h.name:'';
+  document.getElementById('h-memo').value=h?(h.memo||''):'';
+  S.hTags=h?[...(h.products||[])]:[];
+  S.hTargetTags=h?[...(h.targetProducts||[])]:[];
+  renderHTags();
+  renderHTargetTags();
+  renderHQuickProducts();
+  renderHTargetQuick();
+  document.getElementById('hosp-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('h-name').focus(),50);
+}
+function saveHosp(){
+  const name=document.getElementById('h-name').value.trim();
+  if(!name){toast('병원명을 입력해주세요');return;}
+  const obj={
+    memo:document.getElementById('h-memo').value.trim(),
+    products:[...S.hTags],
+    targetProducts:[...(S.hTargetTags||[])]
+  };
+  if(S.editHospId){const h=S.hospitals.find(x=>x.id===S.editHospId);if(h)Object.assign(h,{name,...obj});}
+  else{const h={id:uid(),name,...obj};S.hospitals.push(h);S.activeHosp=h.id;}
+  save();closeModal('hosp-modal');render();toast('저장되었습니다');
+}
+function toggleHQuickProduct(name){
+  if(S.hTags.includes(name)) S.hTags.splice(S.hTags.indexOf(name),1);
+  else S.hTags.push(name);
+  renderHTags(); renderHQuickProducts();
+}
 function renderHQuickProducts(){
   const el=document.getElementById('h-quick-products');
   if(!el) return;
@@ -2657,11 +2804,6 @@ function renderHQuickProducts(){
     const active=S.hTags.includes(p);
     return '<button onclick="toggleHQuickProduct(\''+esc(p)+'\')" style="padding:3px 9px;border-radius:20px;border:1px solid '+(active?'var(--accent)':'var(--border)')+';background:'+(active?'var(--accent)':'var(--surface2)')+';color:'+(active?'#fff':'var(--text2)')+';font-size:12px;font-weight:'+(active?'700':'500')+';cursor:pointer;font-family:inherit;transition:.12s;">'+esc(p)+'</button>';
   }).join('');
-}
-function toggleHQuickProduct(name){
-  if(S.hTags.includes(name)) S.hTags.splice(S.hTags.indexOf(name),1);
-  else S.hTags.push(name);
-  renderHTags(); renderHQuickProducts();
 }
 
 // Doctor tags
@@ -2701,29 +2843,6 @@ function toggleDTargetQuick(name){
 }
 
 // Hospital CRUD
-function openHospModal(id){
-  S.editHospId=id||null;
-  const h=id?S.hospitals.find(x=>x.id===id):null;
-  document.getElementById('hosp-modal-title').textContent=id?'거래처 메모':'거래처 추가';
-  document.getElementById('h-name').value=h?h.name:'';
-  document.getElementById('h-memo').value=h?(h.memo||''):'';
-  S.hTags=h?[...(h.products||[])]:[];
-  renderHTags();
-  renderHQuickProducts();
-  document.getElementById('hosp-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('h-name').focus(),50);
-}
-function saveHosp(){
-  const name=document.getElementById('h-name').value.trim();
-  if(!name){toast('병원명을 입력해주세요');return;}
-  const obj={
-    memo:document.getElementById('h-memo').value.trim(),
-    products:[...S.hTags]
-  };
-  if(S.editHospId){const h=S.hospitals.find(x=>x.id===S.editHospId);if(h)Object.assign(h,{name,...obj});}
-  else{const h={id:uid(),name,...obj};S.hospitals.push(h);S.activeHosp=h.id;}
-  save();closeModal('hosp-modal');render();toast('저장되었습니다');
-}
 function delHosp(id){
   showConfirm('이 거래처와 모든 의사 정보를 삭제할까요?', ()=>{
     S.hospitals=S.hospitals.filter(h=>h.id!==id);
