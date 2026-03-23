@@ -1663,6 +1663,7 @@ function renderPlan(){
     '</div>'+
     '<div style="display:flex;gap:6px;align-items:center;">'+
       '<button onclick="copyPrevWeek()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text2);font-family:inherit;" title="전주 계획을 이번주로 복사">📋 전주 복사</button>'+
+      '<button onclick="deleteWeekPlans()" style="background:none;border:1px solid #e8c4c0;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--danger);font-family:inherit;" title="이번주 계획 전체 삭제">🗑 전체 삭제</button>'+
       '<button class="plan-today-btn" onclick="planDate=todayStr();renderPlan()">이번주</button>'+
     '</div>'+
   '</div>';
@@ -1905,9 +1906,10 @@ function copyPrevWeek(){
         const newPd=getPlanData(did,curDs);
         newPd.added=true;
         newPd.time=pd.time||'오전';
+        // 제품은 복사, 내용만 비움
         newPd.product=pd.product||'';
         newPd.products=pd.products?[...pd.products]:[];
-        newPd.note=pd.note||'';
+        newPd.note='';
         savePlanData(did,curDs,newPd);
         copied++;
       });
@@ -2173,39 +2175,44 @@ function confirmAddToPlan(){
   if(!_selectedDids.length){toast('의료진을 선택해주세요');return;}
 
   const modal=document.getElementById('plan-pick-modal');
-  const editDate=modal.dataset.editDate;
-  const editDid=document.getElementById('plan-pick-did').value;
+  const editDate=modal.dataset.editDate||'';
+  const editDid=document.getElementById('plan-pick-did').value||'';
 
-  // 수정 모드 (단일)
   if(editDate && editDid){
+    // ── 수정 모드 ──
     if(editDate!==date){
+      // 날짜 변경 — 기존 삭제 후 새 날짜에 저장
       const oldPd=getPlanData(editDid,editDate);
       if(S.plans[editDid]) delete S.plans[editDid][editDate];
       if(S.planOrder&&S.planOrder[editDate]){
         S.planOrder[editDate]=S.planOrder[editDate].filter(id=>id!==editDid);
       }
       const newPd=getPlanData(editDid,date);
-      newPd.added=true; newPd.time=time;
-      newPd.products=_selectedProducts.length?[..._selectedProducts]:[];
+      newPd.added=true;
+      newPd.time=time;
+      newPd.products=[..._selectedProducts];
       newPd.product=_selectedProducts.join(', ');
-      newPd.note=note||oldPd.note||'';
+      newPd.note=note;
       newPd.checked=oldPd.checked||false;
       savePlanData(editDid,date,newPd);
     } else {
+      // 날짜 동일 — 내용만 업데이트
       const pd=getPlanData(editDid,date);
-      pd.added=true; pd.time=time;
-      pd.products=_selectedProducts.length?[..._selectedProducts]:[];
+      pd.added=true;
+      pd.time=time;
+      pd.products=[..._selectedProducts];
       pd.product=_selectedProducts.join(', ');
-      if(note) pd.note=note;
+      pd.note=note;
       savePlanData(editDid,date,pd);
     }
-    toast('📅 활동계획이 수정됐습니다');
+    toast('✅ 활동계획이 수정됐습니다');
   } else {
-    // 복수 추가
+    // ── 신규 추가 (복수 선택) ──
     _selectedDids.forEach(did=>{
       const pd=getPlanData(did,date);
-      pd.added=true; pd.time=time;
-      pd.products=_selectedProducts.length?[..._selectedProducts]:[];
+      pd.added=true;
+      pd.time=time;
+      pd.products=[..._selectedProducts];
       pd.product=_selectedProducts.join(', ');
       if(note) pd.note=note;
       savePlanData(did,date,pd);
@@ -2284,7 +2291,46 @@ function removePlanEntry(did, date){
   });
 }
 
-// ── Activity Report ──
+// 이번주 계획 전체 삭제
+function deleteWeekPlans(){
+  const base=new Date(planDate+'T00:00:00');
+  const jsDay=base.getDay();
+  const mondayDiff=jsDay===0?-6:1-jsDay;
+  const curMon=new Date(base); curMon.setDate(base.getDate()+mondayDiff);
+
+  const weekDates=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(curMon); d.setDate(curMon.getDate()+i);
+    weekDates.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+  }
+
+  // 계획 있는지 확인
+  let count=0;
+  weekDates.forEach(ds=>{
+    Object.keys(S.plans||{}).forEach(did=>{
+      if(S.plans[did][ds]&&S.plans[did][ds].added) count++;
+    });
+  });
+
+  if(!count){toast('이번주에 등록된 계획이 없습니다');return;}
+
+  const w0=new Date(curMon);
+  const w6=new Date(curMon); w6.setDate(curMon.getDate()+6);
+  const label=(w0.getMonth()+1)+'월'+w0.getDate()+'일 ~ '+(w6.getMonth()+1)+'월'+w6.getDate()+'일';
+
+  showConfirm(label+' 계획 '+count+'건을 모두 삭제할까요?', ()=>{
+    weekDates.forEach(ds=>{
+      Object.keys(S.plans||{}).forEach(did=>{
+        if(S.plans[did][ds]&&S.plans[did][ds].added){
+          delete S.plans[did][ds];
+        }
+      });
+      if(S.planOrder&&S.planOrder[ds]) delete S.planOrder[ds];
+    });
+    save();renderPlan();renderPreview();
+    toast('🗑 이번주 계획 '+count+'건이 삭제됐습니다');
+  });
+}
 // ── Report 필터 상태 전역 변수 ──
 let _repFrom='', _repTo='', _repType='all', _repHosp='all', _repQ='';
 
