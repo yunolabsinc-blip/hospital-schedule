@@ -414,7 +414,10 @@ header{
 <body>
 
 <header>
-  <div class="logo" onclick="goToFirstHosp()" style="cursor:pointer;" title="첫 페이지로">📋 진료시간표 <span>거래처 관리</span></div>
+  <div style="display:flex;flex-direction:column;flex-shrink:0;">
+    <div class="logo" onclick="goToFirstHosp()" style="cursor:pointer;" title="첫 페이지로">📋 진료시간표 <span>거래처 관리</span></div>
+    <div id="today-label" style="font-size:11px;color:var(--text3);padding-left:2px;margin-top:1px;"></div>
+  </div>
   <div id="sync-status" style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;"></div>
   <div class="global-search" id="gs-wrap">
     <span class="si">🔍</span>
@@ -1108,6 +1111,13 @@ function editDrDept(did, el){
   inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){e.preventDefault();inp.blur();} if(e.key==='Escape'){inp.value=orig;inp.blur();} });
 }
 
+function updateTodayLabel(){
+  const el=document.getElementById('today-label');
+  if(!el) return;
+  const now=new Date();
+  const days=['일','월','화','수','목','금','토'];
+  el.textContent=(now.getMonth()+1)+'월 '+now.getDate()+'일 ('+days[now.getDay()]+')';
+}
 function save_data(){ save(); } // alias
 function showSyncStatus(msg){
   const el=document.getElementById('sync-status');
@@ -2264,6 +2274,9 @@ function confirmAddToPlan(){
   closeModal('plan-pick-modal');
   renderPlan();
   renderPreview();
+  // 진료시간표에 즉시 반영
+  if(currentTab==='schedule') renderMain();
+  else renderMain(); // 백그라운드 갱신
 }
 
 function editPlanEntry(did, date){
@@ -2322,6 +2335,7 @@ function removePlanEntry(did, date){
     save();
     renderPlan();
     renderPreview();
+    renderMain();
     toast('계획이 삭제됐습니다');
   });
 }
@@ -2362,7 +2376,7 @@ function deleteWeekPlans(){
       });
       if(S.planOrder&&S.planOrder[ds]) delete S.planOrder[ds];
     });
-    save();renderPlan();renderPreview();
+    save();renderPlan();renderPreview();renderMain();
     toast('🗑 이번주 계획 '+count+'건이 삭제됐습니다');
   });
 }
@@ -2781,6 +2795,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   });
   // Mobile
   checkMobile();
+  updateTodayLabel();
+  setInterval(updateTodayLabel, 60000); // 1분마다 갱신
   // 로컬 먼저 로드
   load();
 
