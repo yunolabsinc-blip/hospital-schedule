@@ -1010,6 +1010,38 @@ function renderMain(){
       '</div>';
 
     const isFav=!!(d.fav);
+    // ── 활동계획 배지 (이번주 + 다음주) ──
+    const today2=todayStr();
+    const base2=new Date(today2+'T00:00:00');
+    const jsDay2=base2.getDay();
+    const mondayDiff2=jsDay2===0?-6:1-jsDay2;
+    const planBadges=[];
+    for(let i=0;i<14;i++){
+      const dd=new Date(base2); dd.setDate(base2.getDate()-mondayDiff2+i);
+      const ds=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0');
+      const pd=S.plans[d.id]&&S.plans[d.id][ds];
+      if(!pd||!pd.added) continue;
+      const dayLabels=['일','월','화','수','목','금','토'];
+      const dayLabel=(dd.getMonth()+1)+'/'+dd.getDate()+'('+dayLabels[dd.getDay()]+')';
+      const isToday2=ds===today2;
+      const done=pd.checked;
+      const timeBg=pd.time==='오후'?'#ffe8cc':'#dceeff';
+      const timeColor=pd.time==='오후'?'#c45000':'#1565c0';
+      planBadges.push(
+        '<span onclick="planDate=\''+ds+'\';switchTab(\'plan\')" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;'+
+        'background:'+(done?'#e8f5e9':timeBg)+';color:'+(done?'#1b5e20':timeColor)+';border:1px solid '+(done?'#a5d6a7':timeColor)+';'+
+        (isToday2?'outline:2px solid '+timeColor+';':'')+
+        'white-space:nowrap;">'+
+          (done?'✅ ':'📋 ')+dayLabel+(pd.time?' '+pd.time:'')+
+        '</span>'
+      );
+    }
+    const planBadgeSec=planBadges.length?
+      '<div style="padding:8px 14px;display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid var(--border);background:var(--surface2);">'+
+        '<span style="font-size:10px;font-weight:700;color:var(--text3);margin-right:2px;align-self:center;">📅 계획</span>'+
+        planBadges.join('')+
+      '</div>':'';
+
     return '<div class="doctor-card'+(isFav?' is-fav':'')+'" data-did="'+d.id+'" data-idx="'+docs.indexOf(d)+'" draggable="true" '+
       'ondragstart="onDrDragStart(event)" ondragover="onDrDragOver(event)" ondrop="onDrDrop(event)" ondragleave="onDrDragLeave(event)" ondragend="onDrDragEnd(event)">'+
       '<div class="card-header">'+
@@ -1027,6 +1059,7 @@ function renderMain(){
         '</div>'+
       '</div>'+
       '<div class="table-wrap"><table class="schedule-table"><thead>'+thRow+'</thead><tbody>'+rows+memoRow+'</tbody></table></div>'+
+      planBadgeSec+
       infoSec+bioSec+logSec+
     '</div>';
   }).join('');
