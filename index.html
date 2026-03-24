@@ -2514,7 +2514,10 @@ function applyRepFilter(){
 
 function setRepRange(range){
   const today=todayStr();
-  if(range==='week'){
+  if(range==='today'){
+    _repFrom=today;
+    _repTo=today;
+  } else if(range==='week'){
     const d=new Date(today+'T00:00:00');
     const day=d.getDay();
     const mon=new Date(d); mon.setDate(d.getDate()-(day===0?6:day-1));
@@ -2617,8 +2620,10 @@ function renderReport(){
     });
   };
   filtered.filter(l=>l.type==='활동완료').forEach(l=>addToProdMap(l.product,'done'));
-  filtered.filter(l=>l.type==='활동계획').forEach(l=>addToProdMap(l.product,'plan'));
-  const totalPlan=filtered.filter(l=>l.type==='활동계획').length;
+  filtered.filter(l=>l.source==='plan').forEach(l=>addToProdMap(l.product,'plan'));
+  // 활동계획 = 완료 포함 전체 계획 수
+  const totalPlan=filtered.filter(l=>l.source==='plan').length;
+  // 활동완료 = 완료 체크된 수 + 직접 추가 기록
   const totalDone=filtered.filter(l=>l.type==='활동완료').length;
 
   const iStyle='padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;';
@@ -2635,6 +2640,7 @@ function renderReport(){
         '<span style="font-size:13px;color:var(--text3);">~</span>'+
         '<input type="date" id="rep-f-to" value="'+(fTo||today)+'" style="'+iStyle+'">'+
         '<button onclick="applyRepFilter()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">검색</button>'+
+        '<button onclick="setRepRange(\'today\')" style="'+iStyle+'font-size:11px;cursor:pointer;">당일</button>'+
         '<button onclick="setRepRange(\'week\')" style="'+iStyle+'font-size:11px;cursor:pointer;">이번주</button>'+
         '<button onclick="setRepRange(\'month\')" style="'+iStyle+'font-size:11px;cursor:pointer;">이번달</button>'+
         '<button onclick="setRepRange(\'all\')" style="'+iStyle+'font-size:11px;cursor:pointer;">전체</button>'+
