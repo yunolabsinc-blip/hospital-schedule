@@ -1118,6 +1118,34 @@ function updateTodayLabel(){
   const days=['일','월','화','수','목','금','토'];
   el.textContent=(now.getMonth()+1)+'월 '+now.getDate()+'일 ('+days[now.getDay()]+')';
 }
+// 지난 주 계획 자동 삭제 (지난 주 월요일 이전 데이터)
+function cleanOldPlans(){
+  const today=new Date(todayStr()+'T00:00:00');
+  const jsDay=today.getDay();
+  const mondayDiff=jsDay===0?-6:1-jsDay;
+  // 이번주 월요일
+  const thisMon=new Date(today); thisMon.setDate(today.getDate()+mondayDiff);
+  // 지난주 월요일 = 이번주 월요일 - 7일
+  const lastMon=new Date(thisMon); lastMon.setDate(thisMon.getDate()-7);
+  const cutoff=lastMon.getFullYear()+'-'+String(lastMon.getMonth()+1).padStart(2,'0')+'-'+String(lastMon.getDate()).padStart(2,'0');
+
+  let deleted=0;
+  Object.keys(S.plans||{}).forEach(did=>{
+    Object.keys(S.plans[did]||{}).forEach(ds=>{
+      // 지난주 월요일보다 이전 날짜 삭제
+      if(ds<cutoff){
+        delete S.plans[did][ds];
+        deleted++;
+      }
+    });
+  });
+  // planOrder도 정리
+  Object.keys(S.planOrder||{}).forEach(ds=>{
+    if(ds<cutoff) delete S.planOrder[ds];
+  });
+  if(deleted>0){ save(); }
+}
+
 function save_data(){ save(); } // alias
 function showSyncStatus(msg){
   const el=document.getElementById('sync-status');
@@ -2841,7 +2869,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // Mobile
   checkMobile();
   updateTodayLabel();
-  setInterval(updateTodayLabel, 60000); // 1분마다 갱신
+  setInterval(updateTodayLabel, 60000);
+  cleanOldPlans(); // 지난 주 계획 자동 삭제
   // 로컬 먼저 로드
   load();
 
