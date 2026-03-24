@@ -2066,8 +2066,31 @@ function togglePlanCheck(el){
   const pd=getPlanData(did,date);
   pd.checked=!pd.checked;
   savePlanData(did,date,pd);
+
+  // 완료 체크 시 활동기록에 자동 등록
+  const d=S.doctors.find(x=>x.id===did);
+  if(d){
+    if(!d.logs) d.logs=[];
+    if(pd.checked){
+      // 체크 → 기록 추가/갱신
+      const content=[pd.product?'['+pd.product+']':'', pd.note].filter(Boolean).join(' ');
+      const existing=d.logs.find(l=>l.date===date&&l.type==='방문');
+      if(existing){
+        existing.product=pd.product||'';
+        existing.content=content||'방문 완료';
+      } else {
+        d.logs.push({date, type:'방문', product:pd.product||'', content:content||'방문 완료'});
+      }
+    } else {
+      // 체크 해제 → 기록 제거
+      d.logs=d.logs.filter(l=>!(l.date===date&&l.type==='방문'));
+    }
+  }
+
+  save();
   renderPlan();
   renderPreview();
+  renderMain(); // 진료시간표 배지 즉시 갱신
 }
 
 function savePlanNote(btn){
@@ -2094,6 +2117,7 @@ function savePlanNote(btn){
   const si=document.getElementById('plan-saved-'+did);
   if(si) si.textContent='저장됨 '+pd.savedAt;
   renderPreview();
+  renderMain(); // 진료시간표 배지 즉시 갱신
   toast('✅ 저장됐습니다');
 }
 
@@ -2460,7 +2484,23 @@ function saveDirectRecord(){
   toast('✅ 활동기록이 저장됐습니다');
 }
 
-let _repFromBtn=false; // 버튼으로 호출됐는지 여부
+let _repFromBtn=false;
+
+// 검색 버튼 클릭 or Enter 시 DOM 값 읽어서 필터 적용
+function applyRepFilter(){
+  const fromEl=document.getElementById('rep-f-from');
+  const toEl=document.getElementById('rep-f-to');
+  const typeEl=document.getElementById('rep-f-type');
+  const hospEl=document.getElementById('rep-f-hosp');
+  const qEl=document.getElementById('rep-f-q');
+  if(fromEl) _repFrom=fromEl.value||_repFrom;
+  if(toEl)   _repTo=toEl.value||_repTo;
+  if(typeEl) _repType=typeEl.value;
+  if(hospEl) _repHosp=hospEl.value;
+  if(qEl)    _repQ=qEl.value.trim();
+  _repFromBtn=true;
+  renderReport();
+}
 
 function setRepRange(range){
   const today=todayStr();
@@ -2535,50 +2575,55 @@ function renderReport(){
     l.drName.includes(fQ)||l.hospName.includes(fQ)||l.product.includes(fQ)||l.content.includes(fQ)
   );
 
-  // 집계
+  // 집계 — 개별 제품으로 분리
   const prodMap={};
-  filtered.filter(l=>l.type==='활동완료').forEach(l=>{
-    if(!l.product) return;
-    if(!prodMap[l.product]) prodMap[l.product]={plan:0,done:0};
-    prodMap[l.product].done++;
-  });
-  filtered.filter(l=>l.type==='활동계획').forEach(l=>{
-    if(!l.product) return;
-    if(!prodMap[l.product]) prodMap[l.product]={plan:0,done:0};
-    prodMap[l.product].plan++;
-  });
+  const addToProdMap=(product, type)=>{
+    if(!product) return;
+    // 콤마로 분리된 복수 제품 처리
+    const prods=product.split(/[,，]/).map(p=>p.trim()).filter(Boolean);
+    prods.forEach(p=>{
+      if(!prodMap[p]) prodMap[p]={plan:0,done:0};
+      if(type==='done') prodMap[p].done++;
+      else prodMap[p].plan++;
+    });
+  };
+  filtered.filter(l=>l.type==='활동완료').forEach(l=>addToProdMap(l.product,'done'));
+  filtered.filter(l=>l.type==='활동계획').forEach(l=>addToProdMap(l.product,'plan'));
   const totalPlan=filtered.filter(l=>l.type==='활동계획').length;
   const totalDone=filtered.filter(l=>l.type==='활동완료').length;
 
   const iStyle='padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;';
 
   let html=
-    // 상단 헤더 + 기록 추가 버튼
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'+
       '<div style="font-size:14px;font-weight:700;color:var(--text);">📊 활동기록</div>'+
       '<button onclick="openRecordModal()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ 기록 추가</button>'+
     '</div>'+
-    // 필터 바
     '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;box-shadow:var(--shadow);">'+
-      // 날짜 범위
       '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">'+
         '<span style="font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap;">📅 기간</span>'+
-        '<input type="date" id="rep-f-from" value="'+(fFrom||thisMonthStart)+'" onchange="renderReport()" style="'+iStyle+'">'+
+        '<input type="date" id="rep-f-from" value="'+(fFrom||thisMonthStart)+'" style="'+iStyle+'">'+
         '<span style="font-size:13px;color:var(--text3);">~</span>'+
-        '<input type="date" id="rep-f-to" value="'+(fTo||today)+'" onchange="renderReport()" style="'+iStyle+'">'+
+        '<input type="date" id="rep-f-to" value="'+(fTo||today)+'" style="'+iStyle+'">'+
+        '<button onclick="applyRepFilter()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">검색</button>'+
         '<button onclick="setRepRange(\'week\')" style="'+iStyle+'font-size:11px;cursor:pointer;">이번주</button>'+
         '<button onclick="setRepRange(\'month\')" style="'+iStyle+'font-size:11px;cursor:pointer;">이번달</button>'+
         '<button onclick="setRepRange(\'all\')" style="'+iStyle+'font-size:11px;cursor:pointer;">전체</button>'+
       '</div>'+
-      // 상세 필터
       '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'+
-        '<select id="rep-f-type" onchange="renderReport()" style="'+iStyle+'">'+
-          '<option value="all">전체</option><option value="활동계획">활동계획</option><option value="활동완료">활동완료</option>'+
+        '<select id="rep-f-type" onchange="applyRepFilter()" style="'+iStyle+'">'+
+          '<option value="all"'+(fType==='all'?' selected':'')+'>전체</option>'+
+          '<option value="활동계획"'+(fType==='활동계획'?' selected':'')+'>활동계획</option>'+
+          '<option value="활동완료"'+(fType==='활동완료'?' selected':'')+'>활동완료</option>'+
         '</select>'+
-        '<select id="rep-f-hosp" onchange="renderReport()" style="'+iStyle+'">'+
-          '<option value="all">전체 거래처</option>'+S.hospitals.map(h=>'<option value="'+esc(h.name)+'">'+esc(h.name)+'</option>').join('')+
+        '<select id="rep-f-hosp" onchange="applyRepFilter()" style="'+iStyle+'">'+
+          '<option value="all"'+(fHosp==='all'?' selected':'')+'>전체 거래처</option>'+
+          S.hospitals.map(h=>'<option value="'+esc(h.name)+'"'+(fHosp===h.name?' selected':'')+'>'+esc(h.name)+'</option>').join('')+
         '</select>'+
-        '<input type="text" id="rep-f-q" oninput="renderReport()" placeholder="이름·제품 검색..." value="'+esc(fQ)+'" style="'+iStyle+'flex:1;min-width:100px;">'+
+        '<input type="text" id="rep-f-q" placeholder="이름·제품 검색..." value="'+esc(fQ)+'" '+
+          'onkeydown="if(event.key===\'Enter\')applyRepFilter()" '+
+          'style="'+iStyle+'flex:1;min-width:100px;">'+
+        '<button onclick="applyRepFilter()" style="padding:7px 12px;border-radius:8px;border:none;background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;border:1px solid var(--border);">검색</button>'+
       '</div>'+
     '</div>'+
 
