@@ -416,7 +416,7 @@ header{
 <header>
   <div style="display:flex;flex-direction:column;flex-shrink:0;">
     <div class="logo" onclick="goToFirstHosp()" style="cursor:pointer;" title="첫 페이지로">📋 진료시간표 <span>거래처 관리</span></div>
-    <div id="today-label" style="font-size:11px;color:var(--text3);padding-left:2px;margin-top:1px;"></div>
+    <div id="today-label" style="font-size:12px;font-weight:700;color:var(--text2);padding-left:22px;margin-top:2px;"></div>
   </div>
   <div id="sync-status" style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;"></div>
   <div class="global-search" id="gs-wrap">
@@ -2556,8 +2556,10 @@ function renderReport(){
   _repFromBtn=false;
   const fFrom=_repFrom, fTo=_repTo, fType=_repType, fHosp=_repHosp, fQ=_repQ;
 
-  // 데이터 수집
+  // 데이터 수집 — 계획 + 직접 추가 기록 모두 포함
   const allLogs=[];
+
+  // 1. 활동계획 기반 (plan)
   Object.keys(S.plans||{}).forEach(did=>{
     const d=S.doctors.find(x=>x.id===did);
     if(!d) return;
@@ -2573,6 +2575,23 @@ function renderReport(){
       });
     });
   });
+
+  // 2. 직접 추가 기록 (doctor.logs) — plan과 중복 제거
+  S.doctors.forEach(d=>{
+    const h=S.hospitals.find(x=>x.id===d.hospitalId);
+    (d.logs||[]).forEach(l=>{
+      // plan에 이미 같은 날짜/의사 기록이 있으면 스킵 (중복 방지)
+      const dupPlan=allLogs.find(al=>al.source==='plan'&&al.date===l.date&&al.drName===d.name);
+      if(dupPlan) return;
+      allLogs.push({
+        date:l.date, source:'manual',
+        type:'활동완료',
+        hospName:h?h.name:'', drName:d.name, dept:d.dept||'',
+        product:l.product||'', content:l.content||''
+      });
+    });
+  });
+
   allLogs.sort((a,b)=>b.date.localeCompare(a.date));
 
   // 필터
