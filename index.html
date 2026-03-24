@@ -1013,13 +1013,15 @@ function renderMain(){
       '</div>';
 
     const isFav=!!(d.fav);
-    // ── 활동계획 배지 (이번주 + 다음주) ──
+    // ── 활동계획 배지 (지난주 월요일 ~ 다음주 일요일, 3주치) ──
     const today2=todayStr();
     const base2=new Date(today2+'T00:00:00');
     const jsDay2=base2.getDay();
     const mondayDiff2=jsDay2===0?-6:1-jsDay2;
+    // 지난주 월요일부터 시작 (이번주+지난주+다음주)
+    const startOffset=-7;
     const planBadges=[];
-    for(let i=0;i<14;i++){
+    for(let i=startOffset;i<14;i++){
       const dd=new Date(base2); dd.setDate(base2.getDate()-mondayDiff2+i);
       const ds=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0');
       const pd=S.plans[d.id]&&S.plans[d.id][ds];
@@ -1027,15 +1029,18 @@ function renderMain(){
       const dayLabels=['일','월','화','수','목','금','토'];
       const dayLabel=(dd.getMonth()+1)+'/'+dd.getDate()+'('+dayLabels[dd.getDay()]+')';
       const isToday2=ds===today2;
+      const isPast=ds<today2;
       const done=pd.checked;
       const timeBg=pd.time==='오후'?'#ffe8cc':'#dceeff';
       const timeColor=pd.time==='오후'?'#c45000':'#1565c0';
       planBadges.push(
         '<span onclick="planDate=\''+ds+'\';switchTab(\'plan\')" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;'+
-        'background:'+(done?'#e8f5e9':timeBg)+';color:'+(done?'#1b5e20':timeColor)+';border:1px solid '+(done?'#a5d6a7':timeColor)+';'+
-        (isToday2?'outline:2px solid '+timeColor+';':'')+
-        'white-space:nowrap;">'+
-          (done?'✅ ':'📋 ')+dayLabel+(pd.time?' '+pd.time:'')+
+        'background:'+(done?'#e8f5e9':isPast?'#f0f0f0':timeBg)+
+        ';color:'+(done?'#1b5e20':isPast?'#999':timeColor)+
+        ';border:1px solid '+(done?'#a5d6a7':isPast?'#ccc':timeColor)+';'+
+        (isToday2?'box-shadow:0 0 0 2px '+timeColor+';':'')+
+        'white-space:nowrap;opacity:'+(isPast&&!done?'0.6':'1')+';">'+
+          (done?'✅ ':isPast?'⏰ ':'📋 ')+dayLabel+(pd.time?' '+pd.time:'')+
         '</span>'
       );
     }
@@ -1118,32 +1123,9 @@ function updateTodayLabel(){
   const days=['일','월','화','수','목','금','토'];
   el.textContent=(now.getMonth()+1)+'월 '+now.getDate()+'일 ('+days[now.getDay()]+')';
 }
-// 지난 주 계획 자동 삭제 (지난 주 월요일 이전 데이터)
+// 지난 주 계획 자동 삭제는 하지 않음 — 진료시간표 배지에서만 범위 제한
 function cleanOldPlans(){
-  const today=new Date(todayStr()+'T00:00:00');
-  const jsDay=today.getDay();
-  const mondayDiff=jsDay===0?-6:1-jsDay;
-  // 이번주 월요일
-  const thisMon=new Date(today); thisMon.setDate(today.getDate()+mondayDiff);
-  // 지난주 월요일 = 이번주 월요일 - 7일
-  const lastMon=new Date(thisMon); lastMon.setDate(thisMon.getDate()-7);
-  const cutoff=lastMon.getFullYear()+'-'+String(lastMon.getMonth()+1).padStart(2,'0')+'-'+String(lastMon.getDate()).padStart(2,'0');
-
-  let deleted=0;
-  Object.keys(S.plans||{}).forEach(did=>{
-    Object.keys(S.plans[did]||{}).forEach(ds=>{
-      // 지난주 월요일보다 이전 날짜 삭제
-      if(ds<cutoff){
-        delete S.plans[did][ds];
-        deleted++;
-      }
-    });
-  });
-  // planOrder도 정리
-  Object.keys(S.planOrder||{}).forEach(ds=>{
-    if(ds<cutoff) delete S.planOrder[ds];
-  });
-  if(deleted>0){ save(); }
+  // 데이터 삭제 없이 배지 표시 범위만 조절 (renderMain에서 처리)
 }
 
 function save_data(){ save(); } // alias
