@@ -2545,7 +2545,7 @@ function exportReportExcel(){
   const fFrom=_repFrom||'2020-01-01';
   const fTo=_repTo||todayStr();
 
-  const rows=[['일자','거래처','이름','제품명','활동 계획 내용','활동 결과 내용','상태']];
+  const rows=[['날짜','병원','의료진','제품','활동 내용','완료']];
 
   // 계획 기반
   Object.keys(S.plans||{}).forEach(did=>{
@@ -2561,9 +2561,8 @@ function exportReportExcel(){
         h?h.name:'',
         d.name+(d.dept?' ('+d.dept+')':''),
         pd.product||'',
-        pd.planNote||'',
-        pd.note||'',
-        pd.checked?'완료':'계획'
+        [pd.planNote, pd.note].filter(Boolean).join(' / '),
+        pd.checked?'O':''
       ]);
     });
   });
