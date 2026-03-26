@@ -2590,13 +2590,14 @@ function exportReportExcel(){
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
       a.href=url;
-      a.download=filename;
+      a.setAttribute('download', filename);
+      a.style.display='none';
       document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},200);
+      a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+      setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},300);
       toast('📥 다운로드됐습니다');
       return;
-    } catch(e){}
+    } catch(e){ console.warn('방법2 실패:',e); }
 
     // 방법3: data URI (iOS Safari 폴백)
     const uri='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
