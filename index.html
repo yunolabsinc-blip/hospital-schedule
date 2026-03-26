@@ -659,8 +659,8 @@ header{
     </div>
     <!-- 계획 내용 -->
     <div class="form-row">
-      <label>📝 계획 내용 <span style="font-weight:400;color:var(--text3);">(선택)</span></label>
-      <textarea id="plan-pick-note" placeholder="방문 목적, 전달 사항, 준비 내용 등..." style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;resize:vertical;min-height:64px;display:block;"></textarea>
+      <label>📋 활동 계획 내용 <span style="font-weight:400;color:var(--text3);">(방문 목적, 준비 사항)</span></label>
+      <textarea id="plan-pick-note" placeholder="방문 목적, 전달 사항, 준비 내용 등..." style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid #c5d8f0;font-size:13px;font-family:inherit;background:#f5f9ff;color:var(--text);outline:none;resize:vertical;min-height:64px;display:block;"></textarea>
     </div>
     <div class="modal-actions" style="margin-top:16px;">
       <button class="btn btn-outline" onclick="closeModal('plan-pick-modal')">취소</button>
@@ -2254,7 +2254,7 @@ function confirmAddToPlan(){
   const time=document.getElementById('plan-pick-time').value||'오전';
   const manualInput=(document.getElementById('plan-pick-product').value||'').trim();
   if(manualInput && !_selectedProducts.includes(manualInput)) _selectedProducts.push(manualInput);
-  const note=(document.getElementById('plan-pick-note').value||'').trim();
+  const planNote=(document.getElementById('plan-pick-note').value||'').trim();
 
   if(!date){toast('날짜를 선택해주세요');return;}
   if(!_selectedDids.length){toast('의료진을 선택해주세요');return;}
@@ -2266,7 +2266,6 @@ function confirmAddToPlan(){
   if(editDate && editDid){
     // ── 수정 모드 ──
     if(editDate!==date){
-      // 날짜 변경 — 기존 삭제 후 새 날짜에 저장
       const oldPd=getPlanData(editDid,editDate);
       if(S.plans[editDid]) delete S.plans[editDid][editDate];
       if(S.planOrder&&S.planOrder[editDate]){
@@ -2277,17 +2276,19 @@ function confirmAddToPlan(){
       newPd.time=time;
       newPd.products=[..._selectedProducts];
       newPd.product=_selectedProducts.join(', ');
-      newPd.note=note;
+      newPd.planNote=planNote;
+      // 결과(note)는 기존 것 유지
+      newPd.note=oldPd.note||'';
       newPd.checked=oldPd.checked||false;
       savePlanData(editDid,date,newPd);
     } else {
-      // 날짜 동일 — 내용만 업데이트
       const pd=getPlanData(editDid,date);
       pd.added=true;
       pd.time=time;
       pd.products=[..._selectedProducts];
       pd.product=_selectedProducts.join(', ');
-      pd.note=note;
+      pd.planNote=planNote;
+      // 결과(note)는 건드리지 않음
       savePlanData(editDid,date,pd);
     }
     toast('✅ 활동계획이 수정됐습니다');
@@ -2299,7 +2300,9 @@ function confirmAddToPlan(){
       pd.time=time;
       pd.products=[..._selectedProducts];
       pd.product=_selectedProducts.join(', ');
-      if(note) pd.note=note;
+      pd.planNote=planNote;
+      // 신규 추가 시 결과는 항상 빈칸
+      pd.note='';
       savePlanData(did,date,pd);
     });
     toast('📅 '+_selectedDids.length+'명의 활동계획이 추가됐습니다 ('+time+')');
@@ -2344,9 +2347,9 @@ function editPlanEntry(did, date){
   // 시간대
   setPlanTime(pd.time||'오전');
 
-  // 기존 제품/내용 복원
+  // 기존 제품/계획내용 복원 (결과 내용은 수정 팝업에서 건드리지 않음)
   document.getElementById('plan-pick-product').value='';
-  document.getElementById('plan-pick-note').value=pd.note||'';
+  document.getElementById('plan-pick-note').value=pd.planNote||'';
   _selectedProducts=pd.products?[...pd.products]:(pd.product?[pd.product]:[]);
 
   // 수정 모드 표시
