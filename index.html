@@ -2030,11 +2030,11 @@ function planCard(d, dateStr, done, isToday){
         '<div style="font-size:12px;font-weight:800;color:'+getHospColor(d.hospitalId).color+';cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onclick="goToHospital(\''+d.hospitalId+'\')" title="진료시간표로 이동">'+
           esc(d.hospName)+' ›'+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:nowrap;overflow:hidden;">'+
-          '<span class="plan-dr-name">'+esc(d.name)+'</span>'+
-          (d.dept?'<span class="plan-dept-badge" style="flex-shrink:0;vertical-align:middle;">'+esc(d.dept)+'</span>':'')+
-          '<span style="flex-shrink:0;vertical-align:middle;">'+planTimeBadge+'</span>'+
-          (done?'<span style="font-size:10px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:1px 5px;border-radius:20px;flex-shrink:0;vertical-align:middle;">✅</span>':'')+
+        '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:nowrap;">'+
+          '<span class="plan-dr-name" style="flex-shrink:0;">'+esc(d.name)+'</span>'+
+          (d.dept?'<span class="plan-dept-badge" style="flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:110px;">'+esc(d.dept)+'</span>':'')+
+          '<span style="flex-shrink:0;">'+planTimeBadge+'</span>'+
+          (done?'<span style="font-size:10px;font-weight:700;color:#1b5e20;background:#e8f5e9;padding:1px 5px;border-radius:20px;flex-shrink:0;height:20px;line-height:20px;display:inline-flex;align-items:center;">✅</span>':'')+
         '</div>'+
       '</div>'+
       '<button style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:3px;flex-shrink:0;" title="계획 수정" data-did="'+d.id+'" data-date="'+dateStr+'" onclick="editPlanEntry(this.dataset.did,this.dataset.date)">✏️</button>'+
@@ -2042,12 +2042,12 @@ function planCard(d, dateStr, done, isToday){
     '</div>'+
     '<div class="plan-note-area">'+
       (locked?
-        // 잠긴 상태 — 저장된 내용 표시 + 수정 불가 안내
+        // 잠긴 상태 — 저장된 내용 표시
         '<div style="padding:10px 14px;">'+
-          (pd.product?'<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;"><span style="font-size:10px;font-weight:700;color:var(--text3);">📦 제품</span><span style="font-size:12px;font-weight:600;color:var(--accent2);background:var(--accent2-light);padding:1px 7px;border-radius:8px;">'+esc(pd.product)+'</span></div>':'')+
-          (pd.note?
-            '<div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap;">'+esc(pd.note)+'</div>':
-            '<div style="font-size:11px;color:var(--text3);">📝 활동 내용 없음 — 당일에만 입력 가능합니다</div>'
+          (pd.product?'<div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;"><span style="font-size:10px;font-weight:700;color:var(--text3);">📦 제품</span><span style="font-size:12px;font-weight:600;color:var(--accent2);background:var(--accent2-light);padding:1px 7px;border-radius:8px;">'+esc(pd.product)+'</span></div>':'')+
+          (pd.planNote?'<div style="margin-bottom:6px;"><span style="font-size:10px;font-weight:700;color:#1565c0;">📋 활동 계획</span><div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap;margin-top:3px;">'+esc(pd.planNote)+'</div></div>':'')+
+          (pd.note?'<div><span style="font-size:10px;font-weight:700;color:#1b5e20;">✅ 활동 결과</span><div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap;margin-top:3px;">'+esc(pd.note)+'</div></div>':
+            (!pd.planNote?'<div style="font-size:11px;color:var(--text3);">📝 활동 내용 없음 — 당일에만 입력 가능합니다</div>':'')
           )+
         '</div>':
         // 당일 — 입력 가능
@@ -2057,8 +2057,12 @@ function planCard(d, dateStr, done, isToday){
             '<input type="text" id="plan-prod-'+d.id+'" value="'+esc(pd.product||'')+'" placeholder="제품명 입력..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;">'+
           '</div>'+
           '<div>'+
-            '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;">📝 활동 내용 <span style="font-weight:400;color:#1b5e20;">(저장 후 활동기록에 반영)</span></div>'+
-            '<textarea id="plan-ta-'+d.id+'" placeholder="미팅 내용, 반응, 전달 사항, 다음 방문 계획 등..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;resize:vertical;min-height:72px;display:block;">'+esc(pd.note||'')+'</textarea>'+
+            '<div style="font-size:11px;font-weight:700;color:#1565c0;margin-bottom:4px;">📋 활동 계획 내용 <span style="font-weight:400;color:var(--text3);">(방문 목적, 준비 사항)</span></div>'+
+            '<textarea id="plan-plannote-'+d.id+'" placeholder="방문 목적, 준비 사항, 전달 내용 등..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid #c5d8f0;font-size:13px;font-family:inherit;background:#f5f9ff;color:var(--text);outline:none;resize:vertical;min-height:56px;display:block;">'+esc(pd.planNote||'')+'</textarea>'+
+          '</div>'+
+          '<div>'+
+            '<div style="font-size:11px;font-weight:700;color:#1b5e20;margin-bottom:4px;">✅ 활동 결과 내용 <span style="font-weight:400;color:var(--text3);">(미팅 결과, 반응, 다음 계획)</span></div>'+
+            '<textarea id="plan-ta-'+d.id+'" placeholder="미팅 내용, 반응, 전달 사항, 다음 방문 계획 등..." style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid #a5d6a7;font-size:13px;font-family:inherit;background:#f1f8f1;color:var(--text);outline:none;resize:vertical;min-height:56px;display:block;">'+esc(pd.note||'')+'</textarea>'+
           '</div>'+
         '</div>'+
         '<div class="plan-note-footer">'+
@@ -2106,9 +2110,11 @@ function togglePlanCheck(el){
 function savePlanNote(btn){
   const did=btn.dataset.did, date=btn.dataset.date;
   const ta=document.getElementById('plan-ta-'+did);
+  const planNoteEl=document.getElementById('plan-plannote-'+did);
   const prodEl=document.getElementById('plan-prod-'+did);
   const pd=getPlanData(did,date);
   pd.note=ta?ta.value.trim():'';
+  pd.planNote=planNoteEl?planNoteEl.value.trim():'';
   pd.product=prodEl?prodEl.value.trim():'';
   const now=new Date();
   pd.savedAt=(now.getHours()).toString().padStart(2,'0')+':'+(now.getMinutes()).toString().padStart(2,'0');
@@ -2116,7 +2122,7 @@ function savePlanNote(btn){
   const d=S.doctors.find(x=>x.id===did);
   if(d){
     if(!d.logs) d.logs=[];
-    const content=[pd.product?'['+pd.product+']':'',pd.note].filter(Boolean).join(' ');
+    const content=[pd.product?'['+pd.product+']':'', pd.note].filter(Boolean).join(' ');
     if(content){
       const existing=d.logs.find(l=>l.date===date&&l.type==='방문');
       if(existing){existing.content=content;existing.product=pd.product||'';}
@@ -2127,7 +2133,7 @@ function savePlanNote(btn){
   const si=document.getElementById('plan-saved-'+did);
   if(si) si.textContent='저장됨 '+pd.savedAt;
   renderPreview();
-  renderMain(); // 진료시간표 배지 즉시 갱신
+  renderMain();
   toast('✅ 저장됐습니다');
 }
 
@@ -2534,6 +2540,49 @@ function setRepRange(range){
   renderReport();
 }
 
+function exportReportExcel(){
+  // 현재 필터 기준으로 데이터 수집
+  const fFrom=_repFrom||'2020-01-01';
+  const fTo=_repTo||todayStr();
+
+  const rows=[['일자','거래처','이름','제품명','활동 계획 내용','활동 결과 내용','상태']];
+
+  // 계획 기반
+  Object.keys(S.plans||{}).forEach(did=>{
+    const d=S.doctors.find(x=>x.id===did);
+    if(!d) return;
+    const h=S.hospitals.find(x=>x.id===d.hospitalId);
+    Object.keys(S.plans[did]).forEach(date=>{
+      if(date<fFrom||date>fTo) return;
+      const pd=S.plans[did][date];
+      if(!pd.added) return;
+      rows.push([
+        date,
+        h?h.name:'',
+        d.name+(d.dept?' ('+d.dept+')':''),
+        pd.product||'',
+        pd.planNote||'',
+        pd.note||'',
+        pd.checked?'완료':'계획'
+      ]);
+    });
+  });
+
+  rows.sort((a,b)=>a[0]>b[0]?1:-1);
+
+  // CSV 생성 후 다운로드
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const bom='\uFEFF';
+  const blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='활동기록_'+fFrom+'_'+fTo+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('📥 엑셀(CSV) 파일이 다운로드됐습니다');
+}
+
 function renderReport(){
   const el=document.getElementById('report-main');
 
@@ -2631,7 +2680,10 @@ function renderReport(){
   let html=
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'+
       '<div style="font-size:14px;font-weight:700;color:var(--text);">📊 활동기록</div>'+
-      '<button onclick="openRecordModal()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ 기록 추가</button>'+
+      '<div style="display:flex;gap:6px;">'+
+        '<button onclick="exportReportExcel()" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📥 엑셀 추출</button>'+
+        '<button onclick="openRecordModal()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ 기록 추가</button>'+
+      '</div>'+
     '</div>'+
     '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;box-shadow:var(--shadow);">'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">'+
