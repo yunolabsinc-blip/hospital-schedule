@@ -845,6 +845,24 @@ function load(){
   }catch(e){}
 }
 
+// 기존 note → planNote 마이그레이션 (한번만 실행)
+function migratePlanNotes(){
+  let changed=false;
+  Object.keys(S.plans||{}).forEach(did=>{
+    Object.keys(S.plans[did]||{}).forEach(date=>{
+      const pd=S.plans[did][date];
+      if(!pd||!pd.added) return;
+      // planNote가 없고 note가 있으면 → planNote로 이동, note는 비움
+      if(!pd.planNote && pd.note){
+        pd.planNote=pd.note;
+        pd.note='';
+        changed=true;
+      }
+    });
+  });
+  if(changed) save();
+}
+
 async function loadFromCloud(){
   const cloudData=await sbLoad();
   if(!cloudData) return false;
@@ -2964,16 +2982,17 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   checkMobile();
   updateTodayLabel();
   setInterval(updateTodayLabel, 60000);
-  cleanOldPlans(); // 지난 주 계획 자동 삭제
+  cleanOldPlans();
   // 로컬 먼저 로드
   load();
+  migratePlanNotes(); // 기존 note → planNote 마이그레이션
 
   // 클라우드에서 최신 데이터 불러오기
   showSyncStatus('☁️ 동기화 중...');
   const synced=await loadFromCloud();
 
   if(synced){
-    // 클라우드 데이터 있음 → inject 불필요
+    migratePlanNotes(); // 클라우드 데이터도 마이그레이션
     showSyncStatus('✅ 동기화 완료');
   } else {
     // 클라우드 데이터 없음 → 기본 데이터 inject 후 클라우드 업로드
