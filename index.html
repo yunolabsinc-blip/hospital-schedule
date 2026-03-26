@@ -968,8 +968,8 @@ function renderMain(){
         let cell;
         const vs=String(v);
         const boxStyle='display:inline-block;font-size:10px;font-weight:600;border-radius:4px;padding:2px 5px;line-height:1.4;';
-        if(vs==='수술') cell='<span style="'+boxStyle+'color:#999;background:#f0f0f0;border:1px solid #ddd;">수술</span>';
-        else if(vs==='내시경') cell='<span style="'+boxStyle+'color:#88a;background:#f0f0f8;border:1px solid #d0d0e8;">내시경</span>';
+        if(vs==='수술') cell='';
+        else if(vs==='내시경') cell='';
         else if(v&&vs!=='false') cell='<span class="dot-on">●</span>';
         else cell='<span class="dot-off">·</span>';
         // 셀 클릭 → 바로 활동계획 추가 팝업
@@ -1461,8 +1461,8 @@ function renderFav(){
           const v=day[ti]; const vs=String(v);
           const boxStyle='display:inline-block;font-size:10px;font-weight:600;border-radius:4px;padding:2px 5px;line-height:1.4;';
           let cell;
-          if(vs==='수술') cell='<span style="'+boxStyle+'color:#999;background:#f0f0f0;border:1px solid #ddd;">수술</span>';
-          else if(vs==='내시경') cell='<span style="'+boxStyle+'color:#88a;background:#f0f0f8;border:1px solid #d0d0e8;">내시경</span>';
+          if(vs==='수술') cell='';
+          else if(vs==='내시경') cell='';
           else if(v&&vs!=='false') cell='<span class="dot-on">●</span>';
           else cell='<span class="dot-off">·</span>';
           return '<td style="cursor:pointer;border-radius:6px;transition:background .12s;" onclick="addToPlanFromCell(\''+d.id+'\','+di+','+ti+')" title="활동계획 추가">'+cell+'</td>';
@@ -2134,6 +2134,12 @@ function savePlanNote(btn){
   pd.note=ta?ta.value.trim():'';
   pd.planNote=planNoteEl?planNoteEl.value.trim():'';
   pd.product=prodEl?prodEl.value.trim():'';
+
+  // 누적 저장 — 배열로 관리 (중복 제외)
+  if(!pd.planNotes) pd.planNotes=[];
+  if(!pd.notes) pd.notes=[];
+  if(pd.planNote && !pd.planNotes.includes(pd.planNote)) pd.planNotes.push(pd.planNote);
+  if(pd.note && !pd.notes.includes(pd.note)) pd.notes.push(pd.note);
   const now=new Date();
   pd.savedAt=(now.getHours()).toString().padStart(2,'0')+':'+(now.getMinutes()).toString().padStart(2,'0');
   savePlanData(did,date,pd);
@@ -2442,7 +2448,7 @@ function deleteWeekPlans(){
   });
 }
 // ── Report 필터 상태 전역 변수 ──
-let _repFrom='', _repTo='', _repType='all', _repHosp='all', _repQ='';
+let _repFrom='', _repTo='', _repType='all', _repHosp='all', _repQ='', _repRange='';
 
 // ── 활동기록 직접 추가 ──
 let _recTime='오전';
@@ -2541,6 +2547,7 @@ function applyRepFilter(){
 
 function setRepRange(range){
   const today=todayStr();
+  _repRange=range;
   if(range==='today'){
     _repFrom=today;
     _repTo=today;
@@ -2566,8 +2573,11 @@ function exportReportExcel(){
     const fFrom=_repFrom||'2020-01-01';
     const fTo=_repTo||todayStr();
 
-    const rows=[['날짜','병원','의료진','제품','활동 내용','완료']];
+    // 헤더
+    const rows=[['날짜','병원명','이름','제품','활동계획','활동결과']];
 
+    // 날짜 오름차순 정렬을 위해 수집 후 정렬
+    const items=[];
     Object.keys(S.plans||{}).forEach(did=>{
       const d=S.doctors.find(x=>x.id===did);
       if(!d) return;
@@ -2576,59 +2586,89 @@ function exportReportExcel(){
         if(date<fFrom||date>fTo) return;
         const pd=S.plans[did][date];
         if(!pd||!pd.added) return;
-        const content=[pd.planNote||'', pd.note||''].filter(Boolean).join(' / ');
-        rows.push([
+
+        // 누적 계획 내용 — planNotes 배열 있으면 모두, 없으면 planNote 단일
+        const planNotes=(pd.planNotes&&pd.planNotes.length)
+          ? pd.planNotes.join('\n---\n')
+          : (pd.planNote||'');
+
+        // 누적 결과 내용 — notes 배열 있으면 모두, 없으면 note 단일
+        const resultNotes=(pd.notes&&pd.notes.length)
+          ? pd.notes.join('\n---\n')
+          : (pd.note||'');
+
+        items.push([
           date,
           h?h.name:'',
           d.name+(d.dept?' ('+d.dept+')':''),
           pd.product||'',
-          content,
-          pd.checked?'O':''
+          planNotes,
+          resultNotes
         ]);
       });
     });
 
-    rows.sort((a,b)=>String(a[0])>String(b[0])?1:-1);
+    // 의료진 → 날짜 순 정렬
+    items.sort((a,b)=>
+      a[1]!==b[1]?a[1].localeCompare(b[1]):   // 병원명
+      a[2]!==b[2]?a[2].localeCompare(b[2]):   // 이름
+      a[0].localeCompare(b[0])                  // 날짜
+    );
+    items.forEach(r=>rows.push(r));
 
-    // BOM + CSV
-    const bom='\uFEFF';
-    const csv=bom+rows.map(r=>
-      r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')
-    ).join('\r\n');
+    const filename='활동기록_'+fFrom+'~'+fTo;
 
-    const filename='활동기록_'+fFrom+'~'+fTo+'.csv';
+    // SheetJS로 xlsx 생성 (필터 포함)
+    const makeXlsx=()=>{
+      try {
+        const wb=XLSX.utils.book_new();
+        const ws=XLSX.utils.aoa_to_sheet(rows);
+        // 첫 행 필터 적용
+        ws['!autofilter']={ref:'A1:F'+rows.length};
+        // 열 너비
+        ws['!cols']=[{wch:12},{wch:18},{wch:16},{wch:16},{wch:40},{wch:40}];
+        XLSX.utils.book_append_sheet(wb,ws,'활동기록');
+        XLSX.writeFile(wb,filename+'.xlsx');
+        toast('📥 엑셀 파일이 다운로드됐습니다');
+      } catch(e){
+        console.warn('xlsx 생성 실패, CSV로 대체:',e);
+        makeCSV();
+      }
+    };
 
-    // 방법1: msSaveBlob (IE/Edge 구형)
-    if(window.navigator&&window.navigator.msSaveBlob){
-      window.navigator.msSaveBlob(new Blob([csv],{type:'text/csv'}), filename);
-      toast('📥 다운로드됐습니다');
-      return;
+    const makeCSV=()=>{
+      const bom='\uFEFF';
+      const csv=bom+rows.map(r=>
+        r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')
+      ).join('\r\n');
+      try {
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url; a.setAttribute('download',filename+'.csv'); a.style.display='none';
+        document.body.appendChild(a);
+        a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+        setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},300);
+        toast('📥 CSV 파일이 다운로드됐습니다');
+      } catch(e){
+        const uri='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+        const a2=document.createElement('a');
+        a2.href=uri; a2.download=filename+'.csv';
+        document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
+        toast('📥 다운로드됐습니다');
+      }
+    };
+
+    // SheetJS 로드 후 xlsx 생성
+    if(typeof XLSX!=='undefined'){
+      makeXlsx();
+    } else {
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=makeXlsx;
+      s.onerror=makeCSV;
+      document.head.appendChild(s);
     }
-
-    // 방법2: a태그 + href (Chrome/Firefox/Android)
-    try {
-      const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;
-      a.setAttribute('download', filename);
-      a.style.display='none';
-      document.body.appendChild(a);
-      a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
-      setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},300);
-      toast('📥 다운로드됐습니다');
-      return;
-    } catch(e){ console.warn('방법2 실패:',e); }
-
-    // 방법3: data URI (iOS Safari 폴백)
-    const uri='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-    const a2=document.createElement('a');
-    a2.href=uri;
-    a2.download=filename;
-    document.body.appendChild(a2);
-    a2.click();
-    document.body.removeChild(a2);
-    toast('📥 다운로드됐습니다');
 
   } catch(err) {
     console.error('엑셀 추출 오류:', err);
@@ -2659,7 +2699,7 @@ function renderReport(){
     if(qEl)    _repQ=qEl.value.trim();
   }
   _repFromBtn=false;
-  const fFrom=_repFrom, fTo=_repTo, fType=_repType, fHosp=_repHosp, fQ=_repQ;
+  const fFrom=_repFrom, fTo=_repTo, fType=_repType, fHosp=_repHosp, fQ=_repQ, fRange=_repRange;
 
   // 데이터 수집 — 계획 + 직접 추가 기록 모두 포함
   const allLogs=[];
@@ -2676,7 +2716,9 @@ function renderReport(){
         date, source:'plan',
         type: pd.checked?'활동완료':'활동계획',
         hospName:h?h.name:'', drName:d.name, dept:d.dept||'',
-        product:pd.product||'', content:pd.note||''
+        product:pd.product||'',
+        planNote:pd.planNote||'',
+        content:pd.note||''
       });
     });
   });
@@ -2745,10 +2787,10 @@ function renderReport(){
         '<span style="font-size:13px;color:var(--text3);">~</span>'+
         '<input type="date" id="rep-f-to" value="'+(fTo||today)+'" style="'+iStyle+'">'+
         '<button onclick="applyRepFilter()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">검색</button>'+
-        '<button onclick="setRepRange(\'today\')" style="'+iStyle+'font-size:11px;cursor:pointer;">당일</button>'+
-        '<button onclick="setRepRange(\'week\')" style="'+iStyle+'font-size:11px;cursor:pointer;">이번주</button>'+
-        '<button onclick="setRepRange(\'month\')" style="'+iStyle+'font-size:11px;cursor:pointer;">이번달</button>'+
-        '<button onclick="setRepRange(\'all\')" style="'+iStyle+'font-size:11px;cursor:pointer;">전체</button>'+
+        '<button onclick="setRepRange(\'today\')" style="'+iStyle+'font-size:11px;cursor:pointer;'+(fRange==='today'?'background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;':'')+'">'+(fRange==='today'?'✓ ':'')+'당일</button>'+
+        '<button onclick="setRepRange(\'week\')" style="'+iStyle+'font-size:11px;cursor:pointer;'+(fRange==='week'?'background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;':'')+'">'+(fRange==='week'?'✓ ':'')+'이번주</button>'+
+        '<button onclick="setRepRange(\'month\')" style="'+iStyle+'font-size:11px;cursor:pointer;'+(fRange==='month'?'background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;':'')+'">'+(fRange==='month'?'✓ ':'')+'이번달</button>'+
+        '<button onclick="setRepRange(\'all\')" style="'+iStyle+'font-size:11px;cursor:pointer;'+(fRange==='all'?'background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;':'')+'">'+(fRange==='all'?'✓ ':'')+'전체</button>'+
       '</div>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'+
         '<select id="rep-f-type" onchange="applyRepFilter()" style="'+iStyle+'">'+
@@ -2838,7 +2880,8 @@ function renderReport(){
               '<span style="font-size:11px;color:var(--accent);cursor:pointer;font-weight:600;" onclick="goToHospitalByName(\''+esc(l.hospName)+'\')" title="진료시간표로 이동">'+esc(l.hospName)+' ›</span>'+
               (l.product?'<span style="font-size:11px;font-weight:600;color:var(--accent2);background:var(--accent2-light);padding:1px 7px;border-radius:10px;border:1px solid #f0d4b0;">'+esc(l.product)+'</span>':'')+
             '</div>'+
-            (l.content?'<div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:2px;">'+esc(l.content)+'</div>':'')+
+            (l.planNote?'<div style="font-size:12px;color:#1565c0;line-height:1.5;padding-left:2px;"><span style="font-size:10px;font-weight:700;">📋 계획</span> '+esc(l.planNote)+'</div>':'')+
+            (l.content?'<div style="font-size:12px;color:#1b5e20;line-height:1.5;padding-left:2px;"><span style="font-size:10px;font-weight:700;">✅ 결과</span> '+esc(l.content)+'</div>':'')+
           '</div>';
         }).join('')+
         '</div>';
