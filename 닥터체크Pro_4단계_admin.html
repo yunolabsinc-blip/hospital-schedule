@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>닥터체크Pro — 관리자</title>
+
+<!--
+  ============================================================
+  이 파일이 하는 일:
+  - 유노랩스(superadmin)만 볼 수 있는 관리 화면이에요.
+  - 가입 신청 목록을 보고 승인/거절할 수 있어요.
+  - 전체 사용자 목록을 보고 상태를 바꿀 수 있어요.
+
+  superadmin이 아닌 사람이 이 주소로 들어오면
+  자동으로 로그인 화면으로 되돌려 보내요.
+  ============================================================
+-->
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, sans-serif;
+    background: #f8fafc; color: #1a1a1a;
+    min-height: 100vh;
+  }
+
+  /* ---- 상단 헤더 ---- */
+  .header {
+    background: white; padding: 16px 24px;
+    border-bottom: 1px solid #e8e8e8;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-title { font-size: 16px; font-weight: 600; }
+  .header-sub   { font-size: 12px; color: #888; margin-top: 2px; }
+
+  .logout-btn {
+    padding: 7px 16px; border: 1.5px solid #e8e8e8;
+    border-radius: 8px; background: white; color: #555;
+    font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+
+  /* ---- 탭 ---- */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid #e8e8e8;
+    background: white; padding: 0 24px;
+  }
+  .tab {
+    padding: 12px 16px; font-size: 13px; color: #888;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.15s; font-family: inherit;
+    background: none; border-top: none; border-left: none; border-right: none;
+  }
+  .tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 500; }
+  .tab-badge {
+    display: inline-block; background: #ef4444; color: white;
+    border-radius: 10px; font-size: 10px; padding: 1px 6px;
+    margin-left: 6px; font-weight: 600;
+  }
+
+  /* ---- 컨텐츠 영역 ---- */
+  .content { padding: 24px; max-width: 900px; margin: 0 auto; }
+
+  /* ---- 통계 카드 ---- */
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card {
+    background: white; border-radius: 12px;
+    padding: 16px; border: 1px solid #e8e8e8;
+  }
+  .stat-label { font-size: 11px; color: #888; margin-bottom: 6px; }
+  .stat-value { font-size: 24px; font-weight: 600; }
+  .stat-pending  { color: #f59e0b; }
+  .stat-approved { color: #22c55e; }
+  .stat-rejected { color: #ef4444; }
+  .stat-inactive { color: #94a3b8; }
+
+  /* ---- 사용자 카드 ---- */
+  .user-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .user-card {
+    background: white; border-radius: 12px;
+    padding: 16px 18px; border: 1px solid #e8e8e8;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .user-card.pending-card { border-left: 4px solid #f59e0b; }
+
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; flex-shrink: 0;
+  }
+  .av-pending  { background: #fef3c7; color: #92400e; }
+  .av-approved { background: #dcfce7; color: #166534; }
+  .av-rejected { background: #fee2e2; color: #991b1b; }
+  .av-inactive { background: #f1f5f9; color: #64748b; }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 14px; font-weight: 500; }
+  .user-detail { font-size: 12px; color: #888; margin-top: 2px; }
+  .user-meta   { font-size: 11px; color: #aaa; margin-top: 3px; }
+
+  .status-badge {
+    font-size: 11px; padding: 3px 10px;
+    border-radius: 20px; font-weight: 500; white-space: nowrap;
+  }
+  .status-badge.pending  { background: #fef3c7; color: #92400e; }
+  .status-badge.approved { background: #dcfce7; color: #166534; }
+  .status-badge.rejected { background: #fee2e2; color: #991b1b; }
+  .status-badge.inactive { background: #f1f5f9; color: #64748b; }
+
+  /* ---- 액션 버튼들 ---- */
+  .action-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .btn-approve {
+    padding: 7px 14px; background: #22c55e; color: white;
+    border: none; border-radius: 8px; font-size: 12px;
+    cursor: pointer; font-family: inherit; font-weight: 500;
+    transition: background 0.15s;
+  }
+  .btn-approve:hover { background: #16a34a; }
+
+  .btn-reject {
+    padding: 7px 14px; background: white; color: #ef4444;
+    border: 1.5px solid #ef4444; border-radius: 8px; font-size: 12px;
+    cursor: pointer; font-family: inherit; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn-reject:hover { background: #fef2f2; }
+
+  .btn-activate {
+    padding: 7px 14px; background: #3b82f6; color: white;
+    border: none; border-radius: 8px; font-size: 12px;
+    cursor: pointer; font-family: inherit; font-weight: 500;
+  }
+
+  .btn-deactivate {
+    padding: 7px 14px; background: white; color: #64748b;
+    border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 12px;
+    cursor: pointer; font-family: inherit;
+  }
+
+  /* ---- 빈 상태 ---- */
+  .empty-state {
+    text-align: center; padding: 48px; color: #aaa;
+    font-size: 14px;
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* ---- 로딩 ---- */
+  .loading { text-align: center; padding: 48px; color: #aaa; font-size: 14px; }
+
+  /* ---- 거절 사유 입력 모달 ---- */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: white; border-radius: 16px;
+    padding: 24px; width: 90%; max-width: 360px;
+  }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+  .modal-input {
+    width: 100%; border: 1.5px solid #e8e8e8; border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; font-family: inherit;
+    resize: vertical; min-height: 80px; outline: none;
+  }
+  .modal-input:focus { border-color: #3b82f6; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+  .modal-cancel {
+    padding: 8px 16px; border: 1.5px solid #e8e8e8;
+    border-radius: 8px; background: white; color: #555;
+    font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .modal-confirm {
+    padding: 8px 16px; background: #ef4444; color: white;
+    border: none; border-radius: 8px; font-size: 13px;
+    cursor: pointer; font-family: inherit; font-weight: 500;
+  }
+
+  .section-label {
+    font-size: 11px; font-weight: 600; color: #aaa;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- 상단 헤더 -->
+<div class="header">
+  <div>
+    <div class="header-title">닥터체크<span style="color:#2563eb;font-size:0.75em;font-weight:700;letter-spacing:-0.02em">Pro</span> 관리자</div>
+    <div class="header-sub" id="adminEmail">로딩 중...</div>
+  </div>
+  <button class="logout-btn" onclick="logout()">로그아웃</button>
+</div>
+
+<!-- 탭 메뉴 -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('pending')">
+    가입 신청 <span class="tab-badge" id="pendingBadge">0</span>
+  </button>
+  <button class="tab" onclick="switchTab('all')">전체 사용자</button>
+</div>
+
+<!-- 컨텐츠 -->
+<div class="content">
+
+  <!-- 통계 카드 -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">대기 중</div>
+      <div class="stat-value stat-pending" id="statPending">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">승인됨</div>
+      <div class="stat-value stat-approved" id="statApproved">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">거절됨</div>
+      <div class="stat-value stat-rejected" id="statRejected">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">비활성화</div>
+      <div class="stat-value stat-inactive" id="statInactive">-</div>
+    </div>
+  </div>
+
+  <!-- 가입 신청 목록 -->
+  <div id="pendingTab">
+    <p class="section-label">승인 대기 중인 신청</p>
+    <div class="user-list" id="pendingList">
+      <div class="loading">불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 전체 사용자 목록 -->
+  <div id="allTab" style="display:none">
+    <p class="section-label">전체 사용자</p>
+    <div class="user-list" id="allList">
+      <div class="loading">불러오는 중...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 거절 사유 입력 모달 -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal-box">
+    <div class="modal-title">거절 사유 입력</div>
+    <textarea class="modal-input" id="rejectReason" placeholder="거절 사유를 입력하세요 (선택)&#13;&#10;예: 의료 영업 종사자가 아닌 것으로 확인됨"></textarea>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeRejectModal()">취소</button>
+      <button class="modal-confirm" onclick="confirmReject()">거절 처리</button>
+    </div>
+  </div>
+</div>
+
+<!--
+  Supabase 연결 — signup.html과 동일하게 수정해주세요
+-->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+// ★ 여기를 수정하세요! ★
+const SUPABASE_URL  = 'https://hslxclmezfudjgmehriy.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentRejectUserId = null; // 거절 모달에서 사용
+
+
+// ============================================================
+// 페이지 로드 — superadmin인지 확인
+// ============================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  // 1. 로그인 여부 확인
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html'; // 로그인 안 됐으면 로그인 페이지로
+    return;
+  }
+
+  // 2. superadmin인지 확인
+  const { data: profile } = await sb
+    .from('user_profiles')
+    .select('role, email, name')
+    .eq('id', session.user.id)
+    .single();
+
+  if (!profile || profile.role !== 'superadmin') {
+    // superadmin이 아니면 앱으로 보냄
+    window.location.href = 'index.html';
+    return;
+  }
+
+  // 3. 관리자 이메일 표시
+  document.getElementById('adminEmail').textContent = profile.email + ' (superadmin)';
+
+  // 4. 데이터 불러오기
+  await loadAll();
+});
+
+
+// ============================================================
+// 전체 데이터 로드
+// ============================================================
+async function loadAll() {
+  await Promise.all([
+    loadStats(),
+    loadPendingList(),
+    loadAllList(),
+  ]);
+}
+
+
+// ============================================================
+// 통계 로드
+// ============================================================
+async function loadStats() {
+  const { data } = await sb
+    .from('user_profiles')
+    .select('status');
+
+  if (!data) return;
+
+  const counts = { pending:0, approved:0, rejected:0, inactive:0 };
+  data.forEach(u => {
+    if (u.status in counts) counts[u.status]++;
+    if (u.status === 'withdrawal_requested') counts.inactive++;
+  });
+
+  document.getElementById('statPending').textContent  = counts.pending;
+  document.getElementById('statApproved').textContent = counts.approved;
+  document.getElementById('statRejected').textContent = counts.rejected;
+  document.getElementById('statInactive').textContent = counts.inactive;
+  document.getElementById('pendingBadge').textContent = counts.pending;
+}
+
+
+// ============================================================
+// 가입 신청 목록 로드 (pending 상태만)
+// ============================================================
+async function loadPendingList() {
+  const { data, error } = await sb
+    .from('user_profiles')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  const container = document.getElementById('pendingList');
+
+  if (error || !data || data.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        대기 중인 가입 신청이 없습니다
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = data.map(user => `
+    <div class="user-card pending-card" id="card-${user.id}">
+      <div class="avatar av-pending">${getInitials(user.name)}</div>
+      <div class="user-info">
+        <div class="user-name">${esc(user.name)}</div>
+        <div class="user-detail">${esc(user.email)} · ${esc(user.company)}</div>
+        <div class="user-meta">
+          직책: ${esc(user.job_title || '미입력')}
+          ${user.region ? ' · 지역: ' + esc(user.region) : ''}
+          · 신청일: ${formatDate(user.created_at)}
+        </div>
+      </div>
+      <span class="status-badge pending">대기 중</span>
+      <div class="action-btns">
+        <button class="btn-approve" onclick="approve('${user.id}')">승인</button>
+        <button class="btn-reject"  onclick="openRejectModal('${user.id}')">거절</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+
+// ============================================================
+// 전체 사용자 목록 로드
+// ============================================================
+async function loadAllList() {
+  const { data, error } = await sb
+    .from('user_profiles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const container = document.getElementById('allList');
+
+  if (error || !data) {
+    container.innerHTML = '<div class="empty-state">데이터를 불러올 수 없습니다</div>';
+    return;
+  }
+
+  const statusLabel = {
+    pending:              '대기 중',
+    approved:             '승인됨',
+    rejected:             '거절됨',
+    inactive:             '비활성화',
+    withdrawal_requested: '탈퇴 신청',
+  };
+
+  container.innerHTML = data.map(user => {
+    const st    = user.status;
+    const stLbl = statusLabel[st] || st;
+    const avCls = st === 'approved' ? 'av-approved'
+                : st === 'pending'  ? 'av-pending'
+                : st === 'rejected' ? 'av-rejected'
+                : 'av-inactive';
+
+    // 액션 버튼 결정
+    let actions = '';
+    if (st === 'pending') {
+      actions = `
+        <button class="btn-approve" onclick="approve('${user.id}')">승인</button>
+        <button class="btn-reject"  onclick="openRejectModal('${user.id}')">거절</button>`;
+    } else if (st === 'approved') {
+      actions = `<button class="btn-deactivate" onclick="setInactive('${user.id}')">비활성화</button>`;
+    } else if (st === 'inactive') {
+      actions = `<button class="btn-activate" onclick="approve('${user.id}')">재활성화</button>`;
+    }
+
+    return `
+      <div class="user-card" id="card-all-${user.id}">
+        <div class="avatar ${avCls}">${getInitials(user.name)}</div>
+        <div class="user-info">
+          <div class="user-name">${esc(user.name)}
+            ${user.role === 'superadmin' ? ' 👑' : user.role === 'manager' ? ' 🎖️' : ''}
+          </div>
+          <div class="user-detail">${esc(user.email)} · ${esc(user.company)}</div>
+          <div class="user-meta">
+            역할: ${user.role} · 직책: ${esc(user.job_title || '미입력')}
+            · 가입: ${formatDate(user.created_at)}
+          </div>
+        </div>
+        <span class="status-badge ${st}">${stLbl}</span>
+        <div class="action-btns">${actions}</div>
+      </div>`;
+  }).join('');
+}
+
+
+// ============================================================
+// 승인 처리
+// ============================================================
+async function approve(userId) {
+  if (!confirm('이 사용자를 승인하시겠습니까?')) return;
+
+  const { error } = await sb
+    .from('user_profiles')
+    .update({
+      status:      'approved',
+      approved_at: new Date().toISOString(),
+    })
+    .eq('id', userId);
+
+  if (error) { alert('오류: ' + error.message); return; }
+
+  alert('✅ 승인되었습니다!');
+  await loadAll();
+}
+
+
+// ============================================================
+// 거절 모달
+// ============================================================
+function openRejectModal(userId) {
+  currentRejectUserId = userId;
+  document.getElementById('rejectReason').value = '';
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+function closeRejectModal() {
+  currentRejectUserId = null;
+  document.getElementById('rejectModal').classList.remove('open');
+}
+
+async function confirmReject() {
+  const reason = document.getElementById('rejectReason').value.trim();
+
+  const { error } = await sb
+    .from('user_profiles')
+    .update({
+      status:           'rejected',
+      rejection_reason: reason || null,
+    })
+    .eq('id', currentRejectUserId);
+
+  closeRejectModal();
+
+  if (error) { alert('오류: ' + error.message); return; }
+
+  alert('거절 처리되었습니다.');
+  await loadAll();
+}
+
+
+// ============================================================
+// 비활성화 (퇴사 등)
+// ============================================================
+async function setInactive(userId) {
+  const reason = prompt('비활성화 사유를 입력하세요:\n(퇴사 / 휴직 / 장기미사용)');
+  if (reason === null) return; // 취소
+
+  const { error } = await sb
+    .from('user_profiles')
+    .update({
+      status:          'inactive',
+      inactive_at:     new Date().toISOString(),
+      inactive_reason: reason || '퇴사',
+    })
+    .eq('id', userId);
+
+  if (error) { alert('오류: ' + error.message); return; }
+
+  alert('비활성화되었습니다.');
+  await loadAll();
+}
+
+
+// ============================================================
+// 탭 전환
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+
+  document.getElementById('pendingTab').style.display = tab === 'pending' ? 'block' : 'none';
+  document.getElementById('allTab').style.display     = tab === 'all'     ? 'block' : 'none';
+}
+
+
+// ============================================================
+// 로그아웃
+// ============================================================
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+
+// ============================================================
+// 유틸 함수들
+// ============================================================
+
+// 이름 → 이니셜 (홍길동 → 홍)
+function getInitials(name) {
+  return name ? name.charAt(0) : '?';
+}
+
+// HTML 특수문자 이스케이프 (XSS 방지)
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// 날짜 포맷
+function formatDate(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+
+</script>
+</body>
+</html>
