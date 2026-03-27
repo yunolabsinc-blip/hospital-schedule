@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>닥터체크Pro — 로그인</title>
+
+<!--
+  ============================================================
+  이 파일이 하는 일:
+  - 이메일 + 비밀번호로 로그인합니다.
+  - 로그인 후 계정 상태에 따라 다른 화면을 보여줍니다:
+    - pending  → "승인 대기 중" 화면
+    - approved → 앱 본화면(index.html)으로 이동
+    - rejected → "가입 거절됨" 화면
+    - inactive → "계정 비활성화" 화면
+  ============================================================
+-->
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .box {
+    background: white;
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .logo-area {
+    text-align: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 24px;
+  }
+  .logo-name { font-size: 22px; font-weight: 600; color: #1a1a1a; }
+  .logo-sub  { font-size: 13px; color: #888; margin-top: 4px; }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 12px; color: #555;
+    margin-bottom: 5px; font-weight: 500;
+  }
+  .field input {
+    width: 100%; border: 1.5px solid #e8e8e8;
+    border-radius: 8px; padding: 11px 12px;
+    font-size: 14px; color: #1a1a1a; outline: none;
+    transition: border-color 0.15s; font-family: inherit;
+  }
+  .field input:focus { border-color: #3b82f6; }
+
+  .pw-wrap { position: relative; }
+  .pw-wrap input { padding-right: 44px; }
+  .pw-eye {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    cursor: pointer; font-size: 18px; color: #aaa; user-select: none;
+  }
+
+  .submit-btn {
+    width: 100%; padding: 13px;
+    background: #2563eb; color: white;
+    border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 8px;
+    transition: background 0.15s; font-family: inherit;
+  }
+  .submit-btn:hover   { background: #1d4ed8; }
+  .submit-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+  .footer-note {
+    font-size: 12px; color: #aaa;
+    text-align: center; margin-top: 16px; line-height: 1.6;
+  }
+  .footer-note a { color: #3b82f6; text-decoration: none; }
+
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white; border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .msg-box {
+    border-radius: 10px; padding: 14px 16px;
+    font-size: 13px; line-height: 1.6; margin-top: 14px; display: none;
+  }
+  .msg-box.error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+
+  /* ---- 상태 화면들 (처음엔 숨겨져 있음) ---- */
+  #loginForm   { }
+  #pendingView  { display: none; text-align: center; }
+  #rejectedView { display: none; text-align: center; }
+  #inactiveView { display: none; text-align: center; }
+
+  .status-icon { font-size: 48px; margin-bottom: 16px; }
+  .status-title { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
+  .status-body  { font-size: 13px; color: #666; line-height: 1.7; }
+  .status-email { font-weight: 600; color: #3b82f6; }
+
+  .logout-btn {
+    margin-top: 20px; padding: 10px 24px;
+    border: 1.5px solid #e8e8e8; border-radius: 8px;
+    background: white; color: #555; font-size: 13px;
+    cursor: pointer; font-family: inherit;
+  }
+  .logout-btn:hover { background: #f5f5f5; }
+</style>
+</head>
+
+<body>
+<div class="box">
+
+  <!-- 로고 -->
+  <div class="logo-area">
+    <div class="logo-name">닥터체크<span style="color:#2563eb;font-size:0.75em;font-weight:700;letter-spacing:-0.02em">Pro</span></div>
+    <div class="logo-sub">의료 영업 전용 거래처 관리</div>
+  </div>
+
+  <!-- ① 로그인 폼 (기본 상태) -->
+  <div id="loginForm">
+    <form id="loginFormEl" novalidate>
+      <div class="field">
+        <label>이메일</label>
+        <input type="email" id="email" placeholder="gildong@hanmi.co.kr" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>비밀번호</label>
+        <div class="pw-wrap">
+          <input type="password" id="password" placeholder="비밀번호" autocomplete="current-password">
+          <span class="pw-eye" onclick="togglePw()">👁</span>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">로그인</button>
+
+      <div class="msg-box error" id="errorMsg"></div>
+    </form>
+
+    <div class="footer-note">
+      아직 계정이 없으신가요? <a href="signup.html">가입 신청</a>
+    </div>
+  </div>
+
+  <!-- ② 승인 대기 중 화면 -->
+  <div id="pendingView">
+    <div class="status-icon">⏳</div>
+    <div class="status-title">승인 대기 중입니다</div>
+    <div class="status-body">
+      가입 신청을 받았습니다.<br>
+      담당자가 검토 후 <span class="status-email" id="pendingEmail"></span>으로<br>
+      승인 결과를 알려드릴게요.<br><br>
+      보통 <strong>1 영업일 이내</strong> 처리됩니다.<br>
+      문의: <a href="/cdn-cgi/l/email-protection#760f0318191a171405581f181536111b171f1a5815191b" style="color:#3b82f6"><span class="__cf_email__" data-cfemail="bac3cfd4d5d6dbd8c994d3d4d9faddd7dbd3d694d9d5d7">[email&#160;protected]</span></a>
+    </div>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
+
+  <!-- ③ 거절됨 화면 -->
+  <div id="rejectedView">
+    <div class="status-icon">❌</div>
+    <div class="status-title">가입이 거절되었습니다</div>
+    <div class="status-body">
+      <span id="rejectionReason"></span><br><br>
+      문의 사항이 있으시면 연락주세요.<br>
+      <a href="/cdn-cgi/l/email-protection#bec7cbd0d1d2dfdccd90d7d0ddfed9d3dfd7d290ddd1d3" style="color:#3b82f6"><span class="__cf_email__" data-cfemail="a3dad6cdcccfc2c1d08dcacdc0e3c4cec2cacf8dc0ccce">[email&#160;protected]</span></a>
+    </div>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
+
+  <!-- ④ 비활성화(퇴사) 화면 -->
+  <div id="inactiveView">
+    <div class="status-icon">🔒</div>
+    <div class="status-title">계정이 비활성화되었습니다</div>
+    <div class="status-body">
+      현재 계정이 비활성화 상태입니다.<br>
+      복직이나 재사용을 원하시면 아래로 연락주세요.<br><br>
+      <a href="/cdn-cgi/l/email-protection#2e575b4041424f4c5d0047404d6e49434f4742004d4143" style="color:#3b82f6"><span class="__cf_email__" data-cfemail="c6bfb3a8a9aaa7a4b5e8afa8a586a1aba7afaae8a5a9ab">[email&#160;protected]</span></a>
+    </div>
+    <button class="logout-btn" onclick="logout()">로그아웃</button>
+  </div>
+
+</div>
+
+<!--
+  ============================================================
+  Supabase 연결 — signup.html과 동일하게 수정해주세요
+  ============================================================
+-->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+// ★ 여기를 수정하세요! ★ (signup.html과 동일한 값)
+const SUPABASE_URL  = 'https://hslxclmezfudjgmehriy.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+
+// ============================================================
+// 페이지가 열릴 때: 이미 로그인되어 있으면 바로 상태 체크
+// ============================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    // 이미 로그인된 상태면 바로 상태 확인
+    await checkStatus(session.user);
+  }
+});
+
+
+// ============================================================
+// 비밀번호 보이기/숨기기
+// ============================================================
+function togglePw() {
+  const input = document.getElementById('password');
+  const eye   = document.querySelector('.pw-eye');
+  if (input.type === 'password') {
+    input.type = 'text';
+    eye.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    eye.textContent = '👁';
+  }
+}
+
+
+// ============================================================
+// 로그인 폼 제출
+// ============================================================
+document.getElementById('loginFormEl').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email || !password) return showError('이메일과 비밀번호를 입력해주세요.');
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>로그인 중...';
+
+  try {
+    // ★ Supabase 로그인
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // 로그인 성공 → 상태 확인
+    await checkStatus(data.user);
+
+  } catch (err) {
+    const msgs = {
+      'Invalid login credentials': '이메일 또는 비밀번호가 올바르지 않습니다.',
+      'Email not confirmed':       '이메일 인증이 필요합니다. 이메일을 확인해주세요.',
+    };
+    showError(msgs[err.message] || '로그인 실패: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '로그인';
+  }
+});
+
+
+// ============================================================
+// 계정 상태 확인 — 핵심 로직!
+//
+// 쉽게 말하면:
+// 로그인에 성공해도 바로 앱을 쓸 수 있는 게 아니에요.
+// 먼저 "내 계정이 어떤 상태인지" 확인해야 해요.
+// - pending  → 대기 화면 보여줌
+// - approved → 앱 본화면으로 이동
+// - rejected → 거절 화면 보여줌
+// - inactive → 비활성화 화면 보여줌
+// ============================================================
+async function checkStatus(user) {
+  try {
+    const { data: profile, error } = await sb
+      .from('user_profiles')
+      .select('status, name, email, role, rejection_reason')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) {
+      // user_profiles가 없으면 (아직 DB 트리거가 안 됐을 경우 대비)
+      showView('pending');
+      return;
+    }
+
+    switch (profile.status) {
+
+      case 'approved':
+        // ✅ 승인됨 → 앱 본화면으로 이동
+        if (profile.role === 'superadmin') {
+          window.location.href = 'admin.html'; // 관리자면 관리 페이지로
+        } else {
+          window.location.href = 'index.html'; // 일반 사용자면 앱으로
+        }
+        break;
+
+      case 'pending':
+        // ⏳ 대기중
+        document.getElementById('pendingEmail').textContent = profile.email;
+        showView('pending');
+        break;
+
+      case 'rejected':
+        // ❌ 거절됨
+        const reason = profile.rejection_reason || '자세한 사유는 이메일로 전달드렸습니다.';
+        document.getElementById('rejectionReason').textContent = reason;
+        showView('rejected');
+        break;
+
+      case 'inactive':
+      case 'withdrawal_requested':
+        // 🔒 비활성화 / 탈퇴 신청
+        showView('inactive');
+        break;
+
+      default:
+        showView('pending');
+    }
+
+  } catch (err) {
+    showError('상태 확인 중 오류가 발생했습니다: ' + err.message);
+  }
+}
+
+
+// ============================================================
+// 화면 전환 함수
+// ============================================================
+function showView(view) {
+  document.getElementById('loginForm').style.display   = view === 'login'    ? 'block' : 'none';
+  document.getElementById('pendingView').style.display  = view === 'pending'  ? 'block' : 'none';
+  document.getElementById('rejectedView').style.display = view === 'rejected' ? 'block' : 'none';
+  document.getElementById('inactiveView').style.display = view === 'inactive' ? 'block' : 'none';
+}
+
+
+// ============================================================
+// 로그아웃
+// ===
