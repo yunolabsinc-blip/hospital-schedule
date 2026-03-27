@@ -425,6 +425,20 @@ header{
   /* 모바일에서 schedule-wrap은 클래스로 제어 */
 }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(async function() {
+  const sb = supabase.createClient(
+    'https://hslxclmezfudjgmehriy.supabase.co',
+    'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
+  );
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  const { data: p } = await sb.from('user_profiles')
+    .select('status').eq('id', session.user.id).single();
+  if (!p || p.status !== 'approved') { window.location.href = 'login.html'; }
+})();
+</script>
 </head>
 <body>
 
