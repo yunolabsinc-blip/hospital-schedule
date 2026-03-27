@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>닥터체크 - 카카오톡 공유</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:#1a1a1a;
+  display:flex;
+  justify-content:center;
+  padding:0;
+  min-height:100vh;
+}
+.card{
+  width:100%;
+  max-width:420px;
+  background:#0d1f0f;
+  position:relative;
+  overflow:hidden;
+}
+
+/* 배경 효과 */
+.card::before{
+  content:'';position:absolute;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(45,90,61,.4),transparent 70%);
+  top:-150px;right:-150px;pointer-events:none;
+}
+.card::after{
+  content:'';position:absolute;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(196,121,42,.15),transparent 70%);
+  bottom:-80px;left:-80px;pointer-events:none;
+}
+
+/* ── 섹션 1: 헤드라인 ── */
+.hero{
+  padding:40px 28px 32px;
+  position:relative;z-index:1;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.brand{
+  font-size:11px;font-weight:700;color:#52b788;
+  letter-spacing:3px;text-transform:uppercase;
+  margin-bottom:20px;display:flex;align-items:center;gap:8px;
+}
+.brand::before{
+  content:'';width:24px;height:2px;background:#52b788;
+}
+.headline{
+  font-family:'Noto Serif KR',serif;
+  font-size:30px;font-weight:900;color:#fff;
+  line-height:1.3;margin-bottom:14px;
+}
+.headline em{color:#f4d06f;font-style:normal;}
+.sub{
+  font-size:14px;color:rgba(255,255,255,.55);
+  line-height:1.85;font-weight:300;
+}
+.sub strong{color:rgba(255,255,255,.85);font-weight:700;}
+
+/* ── 섹션 2: 공감 포인트 ── */
+.pain{
+  padding:24px 28px;
+  background:rgba(255,255,255,.03);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:1;
+}
+.pain-title{font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:14px;}
+.pain-item{
+  display:flex;align-items:flex-start;gap:10px;
+  margin-bottom:10px;
+}
+.pain-item:last-child{margin-bottom:0;}
+.pain-icon{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;margin-top:1px;
+}
+.pain-txt{font-size:13px;color:rgba(255,255,255,.65);line-height:1.65;}
+.pain-txt strong{color:#fff;font-weight:700;}
+
+/* ── 섹션 3: 기능 ── */
+.features{
+  padding:24px 28px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:1;
+}
+.feat-title{font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:14px;}
+.feat-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  margin-bottom:8px;
+}
+.feat-item:last-child{margin-bottom:0;}
+.feat-icon{font-size:20px;flex-shrink:0;}
+.feat-info{}
+.feat-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;}
+.feat-desc{font-size:11px;color:rgba(255,255,255,.45);line-height:1.5;}
+
+/* ── 섹션 4: 실제 화면 미리보기 ── */
+.preview-section{
+  padding:24px 28px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:1;
+}
+.preview-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:2px;margin-bottom:14px;}
+.mock-phone{
+  background:#f4f3ef;border-radius:14px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.1);
+}
+.mock-hd{
+  background:#fff;border-bottom:1px solid #e5e3dc;
+  padding:8px 12px;display:flex;align-items:center;justify-content:space-between;
+}
+.mock-logo{font-size:11px;font-weight:700;color:#2d5a3d;}
+.mock-date{font-size:10px;color:#a8a8a0;font-weight:600;}
+.mock-body{padding:8px;}
+.mock-card{background:#fff;border:1px solid #e5e3dc;border-radius:8px;overflow:hidden;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.mock-card-hd{padding:7px 10px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:6px;}
+.mock-dr{font-size:11px;font-weight:800;color:#1a1a18;}
+.mock-dept{font-size:9px;background:#e8f0eb;color:#2d5a3d;padding:1px 5px;border-radius:6px;font-weight:600;}
+.mock-sc{width:100%;border-collapse:collapse;font-size:9px;}
+.mock-sc th{padding:4px;background:#f9f8f5;border:1px solid #e5e3dc;text-align:center;font-weight:600;color:#a8a8a0;}
+.mock-sc td{padding:5px 3px;border:1px solid #e5e3dc;text-align:center;}
+.mock-am td{background:#f0f7ff;}
+.mock-pm td{background:#fff8f0;}
+.mock-lam{font-weight:700;color:#1565c0;background:#dceeff!important;font-size:9px;text-align:center!important;}
+.mock-lpm{font-weight:700;color:#c45000;background:#ffe8cc!important;font-size:9px;text-align:center!important;}
+.mock-dot{color:#2d5a3d;font-size:11px;}
+.mock-bds{padding:5px 10px;background:#f9f8f5;border-top:1px solid #f0f0f0;display:flex;gap:3px;flex-wrap:wrap;}
+.mock-bd-b{font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;background:#dceeff;color:#1565c0;}
+.mock-bd-g{font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;background:#e8f5e9;color:#1b5e20;}
+.mock-tabs{display:flex;background:#fff;border-bottom:1px solid #e5e3dc;}
+.mock-tab{flex:1;padding:6px 4px;font-size:9px;text-align:center;color:#a8a8a0;border-bottom:2px solid transparent;}
+.mock-tab.on{color:#2d5a3d;border-bottom-color:#2d5a3d;font-weight:700;}
+
+/* ── 섹션 5: 후기 ── */
+.review{
+  padding:24px 28px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:1;
+}
+.review-box{
+  background:rgba(244,208,111,.07);border:1px solid rgba(244,208,111,.2);
+  border-radius:14px;padding:18px 20px;
+}
+.review-quote{
+  font-size:22px;color:#f4d06f;font-family:Georgia,serif;
+  margin-bottom:8px;line-height:1;
+}
+.review-txt{
+  font-size:14px;color:rgba(255,255,255,.8);line-height:1.8;
+  margin-bottom:12px;font-style:italic;
+}
+.review-author{
+  display:flex;align-items:center;gap:8px;
+  padding-top:12px;border-top:1px solid rgba(244,208,111,.15);
+}
+.review-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#2d5a3d,#52b788);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.review-name{font-size:12px;font-weight:700;color:rgba(255,255,255,.7);}
+.review-role{font-size:11px;color:rgba(255,255,255,.35);}
+
+/* ── 섹션 6: 가격 ── */
+.pricing{
+  padding:24px 28px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:1;
+}
+.price-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;}
+.price-left{}
+.price-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;margin-bottom:6px;}
+.price-orig{font-size:16px;color:rgba(255,255,255,.25);text-decoration:line-through;margin-bottom:4px;}
+.price-amount{font-size:44px;font-weight:900;color:#f4d06f;line-height:1;}
+.price-amount span{font-size:18px;color:rgba(255,255,255,.4);font-weight:400;}
+.price-trial{font-size:12px;color:#52b788;font-weight:700;margin-top:6px;}
+.sale-tag{
+  background:linear-gradient(135deg,#f4d06f,#e8a820);
+  color:#0d1f0f;font-size:13px;font-weight:900;
+  padding:8px 16px;border-radius:100px;
+  white-space:nowrap;
+}
+.includes{margin-bottom:16px;}
+.inc-item{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:rgba(255,255,255,.6);
+  padding:5px 0;
+}
+.inc-check{color:#52b788;font-size:13px;flex-shrink:0;}
+
+/* ── 섹션 7: CTA ── */
+.cta{
+  padding:24px 28px 28px;
+  position:relative;z-index:1;
+}
+.cta-btn{
+  display:block;width:100%;
+  background:linear-gradient(135deg,#52b788,#2d8a5a);
+  color:#0d1f0f;font-size:16px;font-weight:900;
+  padding:18px;border-radius:14px;text-align:center;
+  margin-bottom:14px;
+  box-shadow:0 8px 24px rgba(82,183,136,.35);
+  letter-spacing:.3px;
+}
+.cta-sub{font-size:12px;color:rgba(255,255,255,.35);text-align:center;line-height:1.7;}
+.cta-sub strong{color:rgba(255,255,255,.6);}
+
+/* ── 기업 문의 ── */
+.biz{
+  margin:0 28px 24px;padding:16px 18px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;position:relative;z-index:1;
+}
+.biz-title{font-size:12px;font-weight:700;color:#f4d06f;margin-bottom:6px;}
+.biz-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.65;margin-bottom:8px;}
+.biz-mail{font-size:13px;font-weight:700;color:#52b788;}
+
+/* ── 푸터 ── */
+.footer{
+  padding:16px 28px 24px;
+  border-top:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:1;
+}
+.footer-brand{font-size:15px;font-weight:900;color:rgba(255,255,255,.8);letter-spacing:.5px;}
+.footer-brand span{color:#52b788;}
+.footer-company{font-size:10px;color:rgba(255,255,255,.25);margin-top:3px;}
+.footer-mail{font-size:11px;color:#52b788;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- 헤드라인 -->
+  <div class="hero">
+    <div class="brand">제약, 의료기기 영업 전용</div>
+    <div class="headline">
+      병원 홈페이지<br>
+      매번 들어가는<br>
+      <em>그 시간, 끝냈습니다</em>
+    </div>
+    <div class="sub">
+      진료시간표부터 활동계획, 기록까지<br>
+      <strong>하나의 앱으로 — PC·모바일 실시간 동기화</strong>
+    </div>
+  </div>
+
+  <!-- 공감 포인트 -->
+  <div class="pain">
+    <div class="pain-title">이런 불편함, 저도 알아요</div>
+    <div class="pain-item">
+      <div class="pain-icon">😮‍💨</div>
+      <div class="pain-txt"><strong>거래처 생길 때마다</strong> 병원 홈페이지 들어가서 진료시간 확인하고 엑셀에 정리</div>
+    </div>
+    <div class="pain-item">
+      <div class="pain-icon">📋</div>
+      <div class="pain-txt"><strong>방문 계획</strong>은 수첩에, <strong>활동기록</strong>은 카톡에, <strong>성과</strong>는 또 다른 엑셀에</div>
+    </div>
+    <div class="pain-item">
+      <div class="pain-icon">📱</div>
+      <div class="pain-txt">사무실 PC에서 정리했는데 외근 중 모바일엔 <strong>아무것도 없는</strong> 상황</div>
+    </div>
+  </div>
+
+  <!-- 기능 -->
+  <div class="features">
+    <div class="feat-title">닥터체크가 해결합니다</div>
+    <div class="feat-item">
+      <div class="feat-icon">📋</div>
+      <div class="feat-info">
+        <div class="feat-name">진료시간표 관리</div>
+        <div class="feat-desc">한번 입력하면 끝 — 오전/오후 진료 한눈에 확인, 활동계획 바로 연결</div>
+      </div>
+    </div>
+    <div class="feat-item">
+      <div class="feat-icon">📅</div>
+      <div class="feat-info">
+        <div class="feat-name">주간 활동계획 캘린더</div>
+        <div class="feat-desc">셀 클릭 한번으로 계획 등록, 전주 복사로 반복 일정도 5초 만에</div>
+      </div>
+    </div>
+    <div class="feat-item">
+      <div class="feat-icon">✅</div>
+      <div class="feat-info">
+        <div class="feat-name">완료 체크 → 활동기록 자동 반영</div>
+        <div class="feat-desc">방문 당일 체크 하나로 끝, 활동계획·결과 내용 구분 저장</div>
+      </div>
+    </div>
+    <div class="feat-item">
+      <div class="feat-icon">☁️</div>
+      <div class="feat-info">
+        <div class="feat-name">PC + 모바일 실시간 동기화</div>
+        <div class="feat-desc">앱 설치 없이 브라우저만으로, 어디서든 같은 데이터</div>
+      </div>
+    </div>
+    <div class="feat-item">
+      <div class="feat-icon">📥</div>
+      <div class="feat-info">
+        <div class="feat-name">엑셀 추출로 보고서 완성</div>
+        <div class="feat-desc">병원·의료진·제품별 활동 성과, 클릭 한번에 엑셀 파일로</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 실제 화면 미리보기 -->
+  <div class="preview-section">
+    <div class="preview-label">실제 화면</div>
+    <div class="mock-phone">
+      <div class="mock-hd">
+        <div class="mock-logo">📋 닥터체크</div>
+        <div class="mock-date">3월 28일 (금)</div>
+      </div>
+      <div class="mock-tabs">
+        <div class="mock-tab on">📋 진료시간표</div>
+        <div class="mock-tab">📅 활동계획</div>
+        <div class="mock-tab">📊 활동기록</div>
+      </div>
+      <div class="mock-body">
+        <div style="font-size:12px;font-weight:700;color:#1a1a18;margin-bottom:6px;padding-left:2px;">○○병원</div>
+        <div class="mock-card">
+          <div class="mock-card-hd">
+            <span style="font-size:11px;">⭐</span>
+            <span class="mock-dr">김○○ 원장</span>
+            <span class="mock-dept">정형외과</span>
+            <div style="margin-left:auto;font-size:9px;background:#e8f0eb;color:#2d5a3d;padding:2px 7px;border-radius:6px;font-weight:700;">📅 활동계획</div>
+          </div>
+          <table class="mock-sc">
+            <thead><tr><th></th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr></thead>
+            <tbody>
+              <tr class="mock-am"><td class="mock-lam">오전</td><td><span class="mock-dot">●</span></td><td><span class="mock-dot">●</span></td><td><span class="mock-dot">●</span></td><td></td><td><span class="mock-dot">●</span></td><td></td></tr>
+              <tr class="mock-pm"><td class="mock-lpm">오후</td><td><span class="mock-dot">●</span></td><td></td><td><span class="mock-dot">●</span></td><td><span class="mock-dot">●</span></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+          <div class="mock-bds">
+            <span style="font-size:8px;color:#a8a8a0;font-weight:700;">📅</span>
+            <span class="mock-bd-g">✅ 3/25 오전</span>
+            <span class="mock-bd-b">📋 3/31 오전</span>
+          </div>
+        </div>
+        <div class="mock-card">
+          <div class="mock-card-hd">
+            <span style="font-size:11px;">☆</span>
+            <span class="mock-dr">이○○ 원장</span>
+            <span class="mock-dept">내과</span>
+          </div>
+          <table class="mock-sc">
+            <thead><tr><th></th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr></thead>
+            <tbody>
+              <tr class="mock-am"><td class="mock-lam">오전</td><td></td><td><span class="mock-dot">●</span></td><td></td><td><span class="mock-dot">●</span></td><td><span class="mock-dot">●</span></td><td></td></tr>
+              <tr class="mock-pm"><td class="mock-lpm">오후</td><td><span class="mock-dot">●</span></td><td><span class="mock-dot">●</span></td><td></td><td></td><td><span class="mock-dot">●</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 후기 -->
+  <div class="review">
+    <div class="review-box">
+      <div class="review-quote">"</div>
+      <div class="review-txt">15년 영업하면서 이런 게 있었으면 했는데, 딱 필요한 기능만 있어요. 병원 홈페이지 북마크 다 지웠습니다.</div>
+      <div class="review-author">
+        <div class="review-avatar">💊</div>
+        <div>
+          <div class="review-name">의료기기 영업 15년차</div>
+          <div class="review-role">닥터체크 사용자</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 가격 -->
+  <div class="pricing">
+    <div class="price-row">
+      <div class="price-left">
+        <div class="price-label">지금 바로 시작하세요</div>
+        <div class="price-orig">월 19,800원</div>
+        <div class="price-amount">₩9,900<span>/월</span></div>
+        <div class="price-trial">✓ 14일 무료 체험 · 카드 등록 없이 시작</div>
+      </div>
+      <div class="sale-tag">🎉 반값</div>
+    </div>
+    <div class="includes">
+      <div class="inc-item"><span class="inc-check">✓</span> 진료시간표 · 활동계획 · 기록 모든 기능</div>
+      <div class="inc-item"><span class="inc-check">✓</span> PC + 모바일 실시간 동기화</div>
+      <div class="inc-item"><span class="inc-check">✓</span> 엑셀 추출 (병원·의료진·제품별)</div>
+      <div class="inc-item"><span class="inc-check">✓</span> 언제든 해지 가능 · 설치 불필요</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <div class="cta-btn">14일 무료로 시작하기 →</div>
+    <div class="cta-sub">
+      지금 가입하면 <strong>첫 달 9,900원</strong> (정상가 19,800원)<br>
+      브라우저에서 바로 — 앱 설치 없음
+    </div>
+  </div>
+
+  <!-- 기업 문의 -->
+  <div class="biz">
+    <div class="biz-title">🏢 기업/팀 도입 문의</div>
+    <div class="biz-desc">영업팀 단위 도입 환영합니다. 동일 요금(인당 9,900원) 적용!</div>
+    <div class="biz-mail">📧 yunolabs.inc@gmail.com</div>
+  </div>
+
+  <!-- 푸터 -->
+  <div class="footer">
+    <div>
+      <div class="footer-brand">닥터<span>체크</span></div>
+      <div class="footer-company">주식회사 유노랩스</div>
+    </div>
+    <div class="footer-mail">yunolabs.inc@gmail.com</div>
+  </div>
+
+</div>
+</body>
+</html>
