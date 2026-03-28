@@ -128,10 +128,12 @@ function loadAllList(){
 function filterAllUsers(){
   var co=(document.getElementById('filterCompany')||{}).value||'';
   var st=(document.getElementById('filterStatus')||{}).value||'';
+  var pr=(document.getElementById('filterPrice')||{}).value||'';
   var kw=((document.getElementById('filterSearch')||{}).value||'').toLowerCase();
   renderAllUsers(_allUsersData.filter(function(u){
     if(co&&u.company!==co)return false;
     if(st&&u.status!==st)return false;
+    if(pr&&(u.price_plan||'beta')!==pr)return false;
     if(kw&&!(u.name||'').toLowerCase().includes(kw)&&!(u.email||'').toLowerCase().includes(kw))return false;
     return true;
   }));
@@ -206,6 +208,7 @@ function exportAllUsers(){
 function loadUserData(){
   var tb=document.getElementById('activityTableBody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="9" style="padding:30px;text-align:center;color:#aaa">Loading...</td></tr>';
+  sb.from('user_profiles').select('email,company').then(function(pr){var m={};(pr.data||[]).forEach(function(p){m[p.email]=p.company||'';});window._pMap=m;});
   sb.from('user_app_data').select('user_id,email,name,company,data_v9,synced_at').order('synced_at',{ascending:false})
     .then(function(r){
       var data=r.data||[];
@@ -226,7 +229,7 @@ function loadUserData(){
             var dr=doctors[drIdx];
             var done=!!rec.checked;
             if(done)totalR++;
-            rows.push({company:user.company||'',user:user.name||user.email,hosp:hosp?hosp.name:hospId,dr:dr?dr.name:drKey,dept:dr?(dr.dept||''):'',date:date,time:rec.time||'',products:Array.isArray(rec.products)?rec.products.join(', '):(rec.product||''),note:rec.note||rec.planNote||'',type:done?'completed':'planned'});
+            rows.push({company:user.company||(window._pMap&&window._pMap[user.email])||'',user:user.name||user.email,hosp:hosp?hosp.name:hospId,dr:dr?dr.name:drKey,dept:dr?(dr.dept||''):'',date:date,time:rec.time||'',products:Array.isArray(rec.products)?rec.products.join(', '):(rec.product||''),note:rec.note||rec.planNote||'',type:done?'completed':'planned'});
           });
         });
       });
