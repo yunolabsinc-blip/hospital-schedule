@@ -146,8 +146,8 @@ body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-
     <button class="btn-signup" id="openSignupBtn">회원가입 신청</button>
 
     <div class="beta-notice">
-      🎉 베타 서비스 무료 운영 중<br>
-      지금 가입하시면 정식 출시 전까지 <strong>무료</strong>로 이용하실 수 있습니다
+      🎉 2025년 5월 정식 출시 예정<br>
+      베타 기간 동안 <strong>모든 기능 무료</strong> 제공
     </div>
   </div>
 
@@ -159,7 +159,7 @@ body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-
       가입 신청을 받았습니다.<br>
       담당자 검토 후 이메일로 알려드릴게요.<br><br>
       보통 <strong>1 영업일 이내</strong> 처리됩니다.<br>
-      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      문의: <a href="/cdn-cgi/l/email-protection#7009051e1f1c1112035e191e1330171d11191c5e131f1d" style="color:#2563eb"><span class="__cf_email__" data-cfemail="671e1209080b060514490e090427000a060e0b4904080a">[email&#160;protected]</span></a>
     </div>
     <button class="btn-out" id="logoutBtn1">로그아웃</button>
   </div>
@@ -170,7 +170,7 @@ body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-
     <div class="status-title">가입이 거절되었습니다</div>
     <div class="status-body">
       <span id="rejectReason"></span><br><br>
-      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      문의: <a href="/cdn-cgi/l/email-protection#5d24283332313c3f2e7334333e1d3a303c3431733e3230" style="color:#2563eb"><span class="__cf_email__" data-cfemail="2059554e4f4c4142530e494e4360474d41494c0e434f4d">[email&#160;protected]</span></a>
     </div>
     <button class="btn-out" id="logoutBtn2">로그아웃</button>
   </div>
@@ -181,7 +181,7 @@ body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-
     <div class="status-title">계정이 비활성화되었습니다</div>
     <div class="status-body">
       재사용을 원하시면 아래로 연락주세요.<br><br>
-      <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      <a href="/cdn-cgi/l/email-protection#bbc2ced5d4d7dad9c895d2d5d8fbdcd6dad2d795d8d4d6" style="color:#2563eb"><span class="__cf_email__" data-cfemail="89f0fce7e6e5e8ebfaa7e0e7eac9eee4e8e0e5a7eae6e4">[email&#160;protected]</span></a>
     </div>
     <button class="btn-out" id="logoutBtn3">로그아웃</button>
   </div>
@@ -207,6 +207,10 @@ body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-
       <div class="mfield">
         <label>회사명 <span class="req">필수</span></label>
         <input type="text" id="findIdCompany" placeholder="가입한 회사명">
+      </div>
+      <div class="mfield">
+        <label>핸드폰 번호 <span class="req">필수</span></label>
+        <input type="tel" id="findIdPhone" placeholder="010-0000-0000">
       </div>
       <button class="btn-submit" id="findIdSubmit">이메일 찾기</button>
       <div class="merr-box" id="findIdErr"></div>
@@ -266,6 +270,11 @@ body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-
       <p class="sec">기본 정보</p>
       <div class="mfield"><label>이름 <span class="req">필수</span></label><input type="text" id="sName" placeholder="홍길동"></div>
       <div class="mfield"><label>이메일 <span class="req">필수</span></label><input type="email" id="sEmail" placeholder="gildong@company.co.kr"></div>
+      <div class="mfield">
+        <label>핸드폰 번호 <span class="req">필수</span></label>
+        <input type="tel" id="sPhone" placeholder="010-0000-0000" oninput="formatPhone(this)">
+        <div class="hint gray">본인 확인 및 가입 문의에 사용됩니다</div>
+      </div>
 
       <p class="sec">비밀번호</p>
       <div class="mfield">
@@ -324,7 +333,7 @@ body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-
 
 
 <!-- ════ 스크립트 ════ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // Supabase는 위 CDN이 로드된 후 초기화
 var sb;
@@ -540,8 +549,9 @@ async function doFindId() {
   var btn     = document.getElementById('findIdSubmit');
 
   errBox.style.display = 'none';
-  if (!name || !company) {
-    errBox.textContent = '⚠️ 이름과 회사명을 모두 입력해주세요.';
+  var phone = document.getElementById('findIdPhone').value.replace(/[^0-9]/g,'');
+  if (!name || !company || !phone) {
+    errBox.textContent = '⚠️ 이름, 회사명, 핸드폰 번호를 모두 입력해주세요.';
     errBox.style.display = 'block'; return;
   }
 
@@ -552,6 +562,7 @@ async function doFindId() {
       .select('email')
       .eq('name', name)
       .eq('company', company)
+      .eq('phone', phone)
       .maybeSingle();
 
     if (r.error || !r.data) {
@@ -648,6 +659,14 @@ function checkConfirm() {
 }
 
 
+// ── 핸드폰 번호 자동 포맷 ──
+function formatPhone(input) {
+  var v = input.value.replace(/[^0-9]/g, '');
+  if (v.length <= 3) input.value = v;
+  else if (v.length <= 7) input.value = v.substring(0,3) + '-' + v.substring(3);
+  else input.value = v.substring(0,3) + '-' + v.substring(3,7) + '-' + v.substring(7,11);
+}
+
 // ── 가입 신청 ──
 async function doSignup() {
   var name    = document.getElementById('sName').value.trim();
@@ -661,8 +680,10 @@ async function doSignup() {
   var btn     = document.getElementById('submitBtn');
 
   errBox.style.display = 'none';
+  var phone = (document.getElementById('sPhone').value || '').replace(/[^0-9]/g,'');
   if (!name)    { errBox.textContent='⚠️ 이름을 입력해주세요.'; errBox.style.display='block'; return; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errBox.textContent='⚠️ 올바른 이메일을 입력해주세요.'; errBox.style.display='block'; return; }
+  if (!phone || phone.length < 10) { errBox.textContent='⚠️ 올바른 핸드폰 번호를 입력해주세요.'; errBox.style.display='block'; return; }
   if (pw.length < 8) { errBox.textContent='⚠️ 비밀번호는 8자 이상이어야 합니다.'; errBox.style.display='block'; return; }
   if (!checkConfirm()) { errBox.textContent='⚠️ 비밀번호가 일치하지 않습니다.'; errBox.style.display='block'; return; }
   if (!company) { errBox.textContent='⚠️ 회사명을 입력해주세요.'; errBox.style.display='block'; return; }
@@ -674,24 +695,8 @@ async function doSignup() {
   try {
     var r = await sb.auth.signUp({
       email: email, password: pw,
-      options: { data: { name:name, company:company, job_title:role, region:region } }
+      options: { data: { name:name, company:company, job_title:role, region:region, phone:phone } }
     });
     if (r.error) {
       var msgs = { 'User already registered': '이미 가입된 이메일입니다. 로그인해주세요.' };
-      errBox.textContent = '⚠️ ' + (msgs[r.error.message] || r.error.message);
-      errBox.style.display = 'block'; return;
-    }
-    document.getElementById('signupFormWrap').style.display = 'none';
-    document.getElementById('signupSuccess').style.display  = 'block';
-    document.getElementById('successEmail').textContent = email;
-  } catch(e) {
-    errBox.textContent = '⚠️ 오류: ' + e.message;
-    errBox.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '가입 신청';
-  }
-}
-</script>
-</body>
-</html>
+      errBox.textContent =
