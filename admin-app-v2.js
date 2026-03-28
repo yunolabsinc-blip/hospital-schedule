@@ -1,480 +1,237 @@
-// ── Supabase 초기화 ──
-const SUPABASE_URL  = 'https://hslxclmezfudjgmehriy.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-let currentRejectUserId = null;
+var sb, currentRejectUserId = null;
 
-async function loadAll() {
-  await Promise.all([
-    loadStats(),
-    loadPendingList(),
-    loadAllList(),
-  ]);
-}
-
-
-// ============================================================
-// 통계 로드
-// ============================================================
-async function loadStats() {
-  const { data } = await sb
-    .from('user_profiles')
-    .select('status');
-
-  if (!data) return;
-
-  const counts = { pending:0, approved:0, rejected:0, inactive:0 };
-  data.forEach(u => {
-    if (u.status in counts) counts[u.status]++;
-    if (u.status === 'withdrawal_requested') counts.inactive++;
-  });
-
-  document.getElementById('statPending').textContent  = counts.pending;
-  document.getElementById('statApproved').textContent = counts.approved;
-  document.getElementById('statRejected').textContent = counts.rejected;
-  document.getElementById('statInactive').textContent = counts.inactive;
-  document.getElementById('pendingBadge').textContent = counts.pending;
-}
-
-
-// ============================================================
-// 가입 신청 목록 로드 (pending 상태만)
-// ============================================================
-async function loadPendingList() {
-  const { data, error } = await sb
-    .from('user_profiles')
-    .select('*')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false });
-
-  const container = document.getElementById('pendingList');
-
-  if (error || !data || data.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">✅</div>
-        대기 중인 가입 신청이 없습니다
-      </div>`;
-    return;
-  }
-
-  container.innerHTML = data.map(user => `
-    <div class="user-card pending-card" id="card-${user.id}">
-      <div class="avatar av-pending">${getInitials(user.name)}</div>
-      <div class="user-info">
-        <div class="user-name">${esc(user.name)}</div>
-        <div class="user-detail">${esc(user.email)} · ${esc(user.company)}</div>
-        <div class="user-meta">
-          직책: ${esc(user.job_title || '미입력')}
-          · 지역: ${esc(user.region || '미입력')}
-          · 신청일: ${formatDate(user.created_at)}
-        </div>
-        <div class="user-meta" style="margin-top:4px">
-          <select onchange="setPendingRole('${user.id}', this.value)" style="font-size:11px;padding:2px 6px;border:1px solid #e2e8f0;border-radius:6px;color:#555;background:white;cursor:pointer">
-            <option value="user">역할: 영업 담당자</option>
-            <option value="manager">역할: 팀장 / 관리자</option>
-          </select>
-        </div>
-      </div>
-      <span class="status-badge pending">대기 중</span>
-      <div class="action-btns">
-        <button class="btn-approve" onclick="approveWithRole('${user.id}')">승인</button>
-        <button class="btn-reject"  onclick="openRejectModal('${user.id}')">거절</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-
-// ============================================================
-// 전체 사용자 목록 로드
-// ============================================================
-async function loadAllList() {
-  const { data, error } = await sb
-    .from('user_profiles')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  const container = document.getElementById('allList');
-
-  if (error || !data) {
-    container.innerHTML = '<div class="empty-state">데이터를 불러올 수 없습니다</div>';
-    return;
-  }
-
-  const statusLabel = {
-    pending:              '대기 중',
-    approved:             '승인됨',
-    rejected:             '거절됨',
-    inactive:             '비활성화',
-    withdrawal_requested: '탈퇴 신청',
-  };
-
-  container.innerHTML = data.map(user => {
-    const st    = user.status;
-    const stLbl = statusLabel[st] || st;
-    const avCls = st === 'approved' ? 'av-approved'
-                : st === 'pending'  ? 'av-pending'
-                : st === 'rejected' ? 'av-rejected'
-                : 'av-inactive';
-
-    // 액션 버튼 결정
-    let actions = '';
-    if (st === 'pending') {
-      actions = `
-        <button class="btn-approve" onclick="approve('${user.id}')">승인</button>
-        <button class="btn-reject"  onclick="openRejectModal('${user.id}')">거절</button>`;
-    } else if (st === 'approved') {
-      actions = `<button class="btn-deactivate" onclick="setInactive('${user.id}')">비활성화</button>`;
-    } else if (st === 'inactive') {
-      actions = `<button class="btn-activate" onclick="approve('${user.id}')">재활성화</button>`;
-    }
-
-    return `
-      <div class="user-card" id="card-all-${user.id}">
-        <div class="avatar ${avCls}">${getInitials(user.name)}</div>
-        <div class="user-info">
-          <div class="user-name">${esc(user.name)}
-            ${user.role === 'superadmin' ? ' 👑' : user.role === 'manager' ? ' 🎖️' : ''}
-          </div>
-          <div class="user-detail">${esc(user.email)} · ${esc(user.company)}</div>
-          <div class="user-meta">
-            역할: ${user.role} · 직책: ${esc(user.job_title || '미입력')}
-            · 가입: ${formatDate(user.created_at)}
-          </div>
-        </div>
-        <span class="status-badge ${st}">${stLbl}</span>
-        <div class="action-btns">${actions}</div>
-      </div>`;
-  }).join('');
-}
-
-
-// ============================================================
-// 역할 임시 저장 (승인 전)
-// ============================================================
-const pendingRoles = {};
-function setPendingRole(userId, role) {
-  pendingRoles[userId] = role;
-}
-
-// ============================================================
-// 승인 처리 (역할 포함)
-// ============================================================
-async function approveWithRole(userId) {
-  const role = pendingRoles[userId] || 'user';
-  const roleLabel = role === 'manager' ? '팀장/관리자' : '영업 담당자';
-  if (!confirm(`이 사용자를 [${roleLabel}] 역할로 승인하시겠습니까?`)) return;
-
-  const { error } = await sb
-    .from('user_profiles')
-    .update({
-      status:      'approved',
-      role:        role,
-      approved_at: new Date().toISOString(),
-    })
-    .eq('id', userId);
-
-  if (error) { alert('오류: ' + error.message); return; }
-
-  // 승인 이메일 발송 (Supabase 이메일 기능 사용)
-  // 실제 이메일 발송은 관리자가 수동으로 하거나 Edge Function으로 처리
-  // 지금은 알림창으로 대신 안내
-  const userEmail = document.querySelector(`#card-all-${userId} .user-detail`)?.textContent?.split('·')[0]?.trim() || '';
-  const userName  = document.querySelector(`#card-all-${userId} .user-name`)?.textContent?.trim() || '';
-
-  alert(`✅ ${userName}님이 승인되었습니다!\n\n` +
-    `📧 승인 안내를 이메일(${userEmail})로 직접 보내주세요.\n\n` +
-    `─────────────────\n` +
-    `제목: [닥터체크Pro] 가입이 승인되었습니다!\n\n` +
-    `안녕하세요, ${userName}님!\n` +
-    `닥터체크Pro 가입이 승인되었습니다.\n` +
-    `지금 바로 로그인하여 이용하실 수 있습니다.\n\n` +
-    `▶ https://yunolabsinc-blip.github.io/hospital-schedule/login.html\n` +
-    `─────────────────`
+(function init() {
+  sb = supabase.createClient(
+    'https://hslxclmezfudjgmehriy.supabase.co',
+    'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
   );
-  await loadAll();
+  document.addEventListener('DOMContentLoaded', function() {
+    sb.auth.getSession().then(function(r) {
+      var s = r.data && r.data.session;
+      if (!s) { window.location.href = 'login.html'; return; }
+      sb.from('user_profiles').select('status,role,name').eq('id', s.user.id).maybeSingle()
+        .then(function(r2) {
+          var p = r2.data;
+          if (!p || p.status !== 'approved' || p.role !== 'superadmin') {
+            window.location.href = 'login.html'; return;
+          }
+          document.getElementById('adminEmail').textContent = s.user.email + ' (superadmin)';
+          loadAll();
+        });
+    });
+  });
+})();
+
+function logout() {
+  sb.auth.signOut().then(function() { window.location.href = 'login.html'; });
 }
 
-async function approve(userId) {
-  await approveWithRole(userId);
-}
-
-
-// ============================================================
-// 거절 모달
-// ============================================================
-function openRejectModal(userId) {
-  currentRejectUserId = userId;
-  document.getElementById('rejectReason').value = '';
-  document.getElementById('rejectModal').classList.add('open');
-}
-
-function closeRejectModal() {
-  currentRejectUserId = null;
-  document.getElementById('rejectModal').classList.remove('open');
-}
-
-async function confirmReject() {
-  const reason = document.getElementById('rejectReason').value.trim();
-
-  const { error } = await sb
-    .from('user_profiles')
-    .update({
-      status:           'rejected',
-      rejection_reason: reason || null,
-    })
-    .eq('id', currentRejectUserId);
-
-  closeRejectModal();
-
-  if (error) { alert('오류: ' + error.message); return; }
-
-  alert('거절 처리되었습니다.');
-  await loadAll();
-}
-
-
-// ============================================================
-// 비활성화 (퇴사 등)
-// ============================================================
-async function setInactive(userId) {
-  const reason = prompt('비활성화 사유를 입력하세요:\n(퇴사 / 휴직 / 장기미사용)');
-  if (reason === null) return; // 취소
-
-  const { error } = await sb
-    .from('user_profiles')
-    .update({
-      status:          'inactive',
-      inactive_at:     new Date().toISOString(),
-      inactive_reason: reason || '퇴사',
-    })
-    .eq('id', userId);
-
-  if (error) { alert('오류: ' + error.message); return; }
-
-  alert('비활성화되었습니다.');
-  await loadAll();
-}
-
-
-// ============================================================
-// 탭 전환
-// ============================================================
 function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
   event.target.classList.add('active');
-
   document.getElementById('pendingTab').style.display = tab === 'pending' ? 'block' : 'none';
   document.getElementById('allTab').style.display     = tab === 'all'     ? 'block' : 'none';
   document.getElementById('dataTab').style.display    = tab === 'data'    ? 'block' : 'none';
-
   if (tab === 'data') loadUserData();
 }
 
-// ============================================================
-// 활동 데이터 로드
-// ============================================================
-async function loadUserData() {
-  const tbody = document.getElementById('activityTableBody');
-  tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#aaa">불러오는 중...</td></tr>';
+function loadAll() {
+  loadStats();
+  loadPendingList();
+  loadAllList();
+}
 
-  try {
-    // user_app_data 테이블에서 모든 사용자 데이터 조회
-    const { data, error } = await sb
-      .from('user_app_data')
-      .select('user_id, email, name, company, data_v9, synced_at')
-      .order('synced_at', { ascending: false });
+function loadStats() {
+  sb.from('user_profiles').select('status').then(function(r) {
+    var d = r.data || [];
+    var cnt = function(s) { return d.filter(function(u){return u.status===s;}).length; };
+    var el = function(id,v) { var e=document.getElementById(id); if(e) e.textContent=v; };
+    el('statPending',cnt('pending'));
+    el('statApproved',cnt('approved'));
+    el('statRejected',cnt('rejected'));
+    el('statInactive',cnt('inactive'));
+    var badge = document.getElementById('pendingBadge');
+    if (badge) badge.textContent = cnt('pending');
+  });
+}
 
-    if (error) {
-      tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#e53e3e">오류: ' + error.message + '<br><small>user_app_data 테이블이 없을 수 있어요. SQL을 먼저 실행해주세요.</small></td></tr>';
-      return;
-    }
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-    if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="padding:40px;text-align:center;color:#aaa">아직 데이터가 없습니다<br><small style="font-size:11px;color:#ccc">사용자가 로그인하면 자동으로 동기화됩니다</small></td></tr>';
-      document.getElementById('statSyncUsers').textContent = '0';
-      document.getElementById('statHospitals').textContent = '0';
-      document.getElementById('statDoctors').textContent = '0';
-      document.getElementById('statRecords').textContent = '0';
-      return;
-    }
+function formatDate(iso) {
+  if (!iso) return '';
+  var d = new Date(iso);
+  return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+}
 
-    // 사용자 필터 업데이트
-    const filter = document.getElementById('dataUserFilter');
-    filter.innerHTML = '<option value="all">전체 사용자</option>' +
-      data.map(d => '<option value="' + esc(d.user_id) + '">' + esc(d.name || d.email) + ' (' + esc(d.company || '') + ')</option>').join('');
+function loadPendingList() {
+  var container = document.getElementById('pendingList');
+  if (!container) return;
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  sb.from('user_profiles').select('*').eq('status','pending').order('created_at',{ascending:false})
+    .then(function(r) {
+      var data = r.data || [];
+      if (!data.length) { container.innerHTML = '<p style="color:#aaa;padding:20px">No pending requests</p>'; return; }
+      container.innerHTML = data.map(function(u) {
+        return '<div class="user-card pending-card" id="card-'+u.id+'">'+
+          '<div class="avatar av-pending">'+esc((u.name||'?')[0].toUpperCase())+'</div>'+
+          '<div class="user-info">'+
+          '<div class="user-name">'+esc(u.name)+'</div>'+
+          '<div class="user-detail">'+esc(u.email)+' - '+esc(u.company)+'</div>'+
+          '<div class="user-meta">'+esc(u.job_title||'')+' / '+esc(u.region||'No region')+' / '+formatDate(u.created_at)+'</div>'+
+          '<div style="margin-top:4px"><select onchange="setPendingRole(\''+u.id+'\',this.value)" style="font-size:11px;padding:2px 6px;border:1px solid #e2e8f0;border-radius:6px">'+
+          '<option value="user">Sales Rep</option>'+
+          '<option value="manager">Manager</option>'+
+          '</select></div>'+
+          '</div>'+
+          '<span class="status-badge pending">Pending</span>'+
+          '<div class="action-btns">'+
+          '<button class="btn-approve" onclick="approveUser(\''+u.id+'\')">승인</button>'+
+          '<button class="btn-reject" onclick="openRejectModal(\''+u.id+'\')">거절</button>'+
+          '</div></div>';
+      }).join('');
+    });
+}
 
-    // 통계 계산
-    let totalHospitals = 0, totalDoctors = 0, totalRecords = 0;
-    const allRows = [];
+var pendingRoles = {};
+function setPendingRole(uid, role) { pendingRoles[uid] = role; }
 
-    data.forEach(user => {
-      const v9 = user.data_v9;
-      if (!v9) return;
+function approveUser(uid) {
+  var role = pendingRoles[uid] || 'user';
+  if (!confirm('Approve this user as ' + role + '?')) return;
+  sb.from('user_profiles').update({status:'approved',role:role,approved_at:new Date().toISOString()}).eq('id',uid)
+    .then(function(r) {
+      if (r.error) { alert('Error: '+r.error.message); return; }
+      alert('Approved!');
+      loadAll();
+    });
+}
 
-      const hospitals = v9.hospitals || [];
-      const doctors = v9.doctors || [];
-      const plans = v9.plans || {};
+function openRejectModal(uid) {
+  currentRejectUserId = uid;
+  document.getElementById('rejectModal').style.display = 'flex';
+}
 
-      totalHospitals += hospitals.length;
-      totalDoctors += doctors.length;
+function closeRejectModal() {
+  document.getElementById('rejectModal').style.display = 'none';
+  document.getElementById('rejectReason').value = '';
+  currentRejectUserId = null;
+}
 
-      // 완료된 활동기록 추출
-      Object.entries(plans).forEach(([drKey, dates]) => {
-        if (typeof dates !== 'object') return;
-        Object.entries(dates).forEach(([date, record]) => {
-          if (!record || !record.checked) return;
-          totalRecords++;
+function confirmReject() {
+  if (!currentRejectUserId) return;
+  var reason = document.getElementById('rejectReason').value.trim();
+  sb.from('user_profiles').update({status:'rejected',rejection_reason:reason}).eq('id',currentRejectUserId)
+    .then(function(r) {
+      if (r.error) { alert('Error: '+r.error.message); return; }
+      closeRejectModal();
+      loadAll();
+    });
+}
 
-          // 의사 정보 찾기
-          const drIdx = parseInt(drKey.split('_').pop()) || 0;
-          const hospId = drKey.replace(/_\d+$/, '');
-          const hospital = hospitals.find(h => h.id === hospId);
-          const doctor = doctors[drIdx] || doctors.find(d => d.id === drKey);
+function loadAllList() {
+  var container = document.getElementById('allList');
+  if (!container) return;
+  container.innerHTML = '<div class="loading">Loading...</div>';
+  sb.from('user_profiles').select('*').order('created_at',{ascending:false})
+    .then(function(r) {
+      var data = r.data || [];
+      container.innerHTML = data.map(function(u) {
+        var badgeClass = u.status==='approved'?'approved':u.status==='pending'?'pending':'rejected';
+        return '<div class="user-card" id="card-all-'+u.id+'">'+
+          '<div class="avatar">'+esc((u.name||'?')[0].toUpperCase())+'</div>'+
+          '<div class="user-info">'+
+          '<div class="user-name">'+esc(u.name)+(u.role==='superadmin'?' 👑':'')+'</div>'+
+          '<div class="user-detail">'+esc(u.email)+' - '+esc(u.company)+'</div>'+
+          '<div class="user-meta">'+esc(u.role)+' / '+esc(u.job_title||'')+' / '+formatDate(u.created_at)+'</div>'+
+          '</div>'+
+          '<span class="status-badge '+badgeClass+'">'+esc(u.status)+'</span>'+
+          (u.status!=='superadmin'?'<div class="action-btns"><button class="btn-reject" onclick="deactivateUser(\''+u.id+'\')" style="background:#f59e0b;border-color:#f59e0b">비활성화</button></div>':'')+
+          '</div>';
+      }).join('');
+    });
+}
 
-          allRows.push({
-            userName: user.name || user.email,
-            company: user.company || '',
-            hospitalName: hospital?.name || hospId,
-            doctorName: doctor?.name || drKey.split('_')[0],
-            doctorDept: doctor?.dept || '',
-            date: date,
-            time: record.time || '',
-            products: Array.isArray(record.products) ? record.products.join(', ') : (record.product || ''),
-            note: record.note || '',
-            syncedAt: user.synced_at ? user.synced_at.substring(0,10) : ''
+function deactivateUser(uid) {
+  if (!confirm('Deactivate this user?')) return;
+  sb.from('user_profiles').update({status:'inactive',inactive_at:new Date().toISOString()}).eq('id',uid)
+    .then(function(r) {
+      if (r.error) { alert('Error: '+r.error.message); return; }
+      loadAll();
+    });
+}
+
+function loadUserData() {
+  var tbody = document.getElementById('activityTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#aaa">Loading...</td></tr>';
+  sb.from('user_app_data').select('user_id,email,name,company,data_v9,synced_at').order('synced_at',{ascending:false})
+    .then(function(r) {
+      var data = r.data || [];
+      if (r.error) { tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#e53e3e">'+r.error.message+'</td></tr>'; return; }
+      if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#aaa">No data yet</td></tr>'; return; }
+      var rows = [];
+      var totalH=0, totalD=0, totalR=0;
+      data.forEach(function(user) {
+        var v9 = user.data_v9;
+        if (!v9) return;
+        var hospitals = v9.hospitals || [];
+        var doctors = v9.doctors || [];
+        var plans = v9.plans || {};
+        totalH += hospitals.length; totalD += doctors.length;
+        Object.keys(plans).forEach(function(drKey) {
+          var dates = plans[drKey];
+          if (typeof dates !== 'object') return;
+          Object.keys(dates).forEach(function(date) {
+            var rec = dates[date];
+            if (!rec || !rec.checked) return;
+            totalR++;
+            var hospId = drKey.replace(/_\d+$/, '');
+            var drIdx = parseInt(drKey.split('_').pop()) || 0;
+            var hosp = hospitals.find(function(h){return h.id===hospId;});
+            var dr = doctors[drIdx];
+            rows.push({
+              user: user.name||user.email, company: user.company||'',
+              hosp: hosp?hosp.name:hospId, dr: dr?dr.name:drKey,
+              dept: dr?dr.dept:'', date:date, time:rec.time||'',
+              products: Array.isArray(rec.products)?rec.products.join(', '):(rec.product||''),
+              note: rec.note||'', synced: (user.synced_at||'').substring(0,10)
+            });
           });
         });
       });
+      var el=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+      el('statSyncUsers',data.length); el('statHospitals',totalH); el('statDoctors',totalD); el('statRecords',totalR);
+      window._activityRows = rows;
+      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#aaa">No completed records</td></tr>'; return; }
+      tbody.innerHTML = rows.map(function(r,i) {
+        var bg = i%2===0?'':'background:#fafafa';
+        return '<tr style="border-bottom:1px solid #f0f0f0;'+bg+'">'+
+          '<td style="padding:10px 14px"><div style="font-weight:500">'+esc(r.user)+'</div><div style="font-size:11px;color:#aaa">'+esc(r.company)+'</div></td>'+
+          '<td style="padding:10px 14px;font-size:13px">'+esc(r.hosp)+'</td>'+
+          '<td style="padding:10px 14px"><div>'+esc(r.dr)+'</div><div style="font-size:11px;color:#aaa">'+esc(r.dept)+'</div></td>'+
+          '<td style="padding:10px 14px;font-size:13px">'+esc(r.date)+'</td>'+
+          '<td style="padding:10px 14px;font-size:13px">'+esc(r.time)+'</td>'+
+          '<td style="padding:10px 14px;font-size:12px;color:#2563eb">'+esc(r.products)+'</td>'+
+          '<td style="padding:10px 14px;font-size:12px;color:#555">'+esc(r.note)+'</td>'+
+          '</tr>';
+      }).join('');
     });
-
-    // 통계 표시
-    document.getElementById('statSyncUsers').textContent = data.length;
-    document.getElementById('statHospitals').textContent = totalHospitals;
-    document.getElementById('statDoctors').textContent = totalDoctors;
-    document.getElementById('statRecords').textContent = totalRecords;
-
-    // 전역 저장 (엑셀 추출용)
-    window._activityRows = allRows;
-    window._userData = data;
-
-    // 테이블 렌더링
-    if (allRows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#aaa">완료된 활동기록이 없습니다</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = allRows.map((r, i) => `
-      <tr style="border-bottom:1px solid #f0f0f0;${i%2===0?'':'background:#fafafa'}">
-        <td style="padding:10px 14px">
-          <div style="font-weight:500;font-size:13px">${esc(r.userName)}</div>
-          <div style="font-size:11px;color:#aaa">${esc(r.company)}</div>
-        </td>
-        <td style="padding:10px 14px;font-size:13px">${esc(r.hospitalName)}</td>
-        <td style="padding:10px 14px">
-          <div style="font-size:13px">${esc(r.doctorName)}</div>
-          <div style="font-size:11px;color:#aaa">${esc(r.doctorDept)}</div>
-        </td>
-        <td style="padding:10px 14px;font-size:13px;white-space:nowrap">${esc(r.date)}</td>
-        <td style="padding:10px 14px;font-size:13px">${esc(r.time)}</td>
-        <td style="padding:10px 14px;font-size:12px;color:#2563eb">${esc(r.products)}</td>
-        <td style="padding:10px 14px;font-size:12px;color:#555;max-width:200px">${esc(r.note)}</td>
-      </tr>
-    `).join('');
-
-  } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:#e53e3e">오류: ' + e.message + '</td></tr>';
-  }
 }
 
-// ============================================================
-// 엑셀 추출
-// ============================================================
 function exportExcel() {
-  const rows = window._activityRows;
-  if (!rows || rows.length === 0) {
-    alert('추출할 데이터가 없습니다. 먼저 새로고침을 눌러주세요.');
-    return;
-  }
-
-  // CSV 생성
-  const headers = ['사용자', '회사', '거래처', '의사', '진료과', '날짜', '시간대', '제품', '활동내용', '동기화일'];
-  const csvRows = [
-    headers.join(','),
-    ...rows.map(r => [
-      '"' + (r.userName||'').replace(/"/g,'""') + '"',
-      '"' + (r.company||'').replace(/"/g,'""') + '"',
-      '"' + (r.hospitalName||'').replace(/"/g,'""') + '"',
-      '"' + (r.doctorName||'').replace(/"/g,'""') + '"',
-      '"' + (r.doctorDept||'').replace(/"/g,'""') + '"',
-      '"' + (r.date||'').replace(/"/g,'""') + '"',
-      '"' + (r.time||'').replace(/"/g,'""') + '"',
-      '"' + (r.products||'').replace(/"/g,'""') + '"',
-      '"' + (r.note||'').replace(/"/g,'""') + '"',
-      '"' + (r.syncedAt||'').replace(/"/g,'""') + '"',
-    ].join(','))
-  ];
-
-  // BOM 추가 (한글 엑셀 깨짐 방지)
-  const bom = '﻿';
-  const csvContent = bom + csvRows.join('
-');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8'
-
-// ── 전역 등록 (onclick에서 호출 가능하도록) ──
-window.logout = logout;
-window.loadAll = loadAll;
-window.approve = approve;
-window.approveWithRole = approveWithRole;
-window.openRejectModal = openRejectModal;
-window.rejectUser = rejectUser;
-window.deactivateUser = deactivateUser;
-window.switchTab = switchTab;
-window.loadUserData = loadUserData;
-window.exportExcel = exportExcel;
-window.setPendingRole = setPendingRole;
-
-// ── 로그아웃 ──
-async function logout() {
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
+  var rows = window._activityRows;
+  if (!rows || !rows.length) { alert('No data. Click refresh first.'); return; }
+  var headers = ['User','Company','Hospital','Doctor','Dept','Date','Time','Products','Note','Synced'];
+  var csv = [headers.join(',')].concat(rows.map(function(r) {
+    return [r.user,r.company,r.hosp,r.dr,r.dept,r.date,r.time,r.products,r.note,r.synced]
+      .map(function(v){return '"'+(v||'').replace(/"/g,'""')+'"';}).join(',');
+  })).join('\n');
+  var blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href=url; a.download='drcheck_activity_'+new Date().toISOString().substring(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
-
-// ── 앱 시작 ──
-document.addEventListener('DOMContentLoaded', function() {
-  (async function() {
-    // 1. 로그인 여부 확인
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        window.location.href = 'login.html'; // 로그인 안 됐으면 로그인 페이지로
-        return;
-      }
-    
-      // 2. superadmin인지 확인
-      const { data: profile } = await sb
-        .from('user_profiles')
-        .select('role, email, name')
-        .eq('id', session.user.id)
-        .single();
-    
-      if (!profile || profile.role !== 'superadmin') {
-        // superadmin이 아니면 앱으로 보냄
-        window.location.href = 'index.html';
-        return;
-      }
-    
-      // 3. 관리자 이메일 표시
-      document.getElementById('adminEmail').textContent = profile.email + ' (superadmin)';
-    
-      // 4. 데이터 불러오기
-      await loadAll();
-    });
-    
-    
-    // ============================================================
-    // 전체 데이터 로드
-    // ============================================================
-  })();
-});
