@@ -96,6 +96,7 @@ async function checkStatus(user) {
     var p=r.data;
     if(!p){showView('pending');return;}
     if(p.status==='approved'){
+      try{var _mi=JSON.parse(localStorage.getItem('hs_myinfo')||'{}');if(!_mi.company&&p.company){localStorage.setItem('hs_myinfo',JSON.stringify({name:p.name||'',company:p.company||'',job_title:p.job_title||'',region:p.region||'',phone:p.phone||'',email:sess.user.email}));};}catch(e){}
       // 주안메디칼 이외 신규 사용자 로컬 데이터 초기화
       if(p.company !== '주안메디칼') {
         var hasOwnData = !!(localStorage.getItem('myschedule_v9') && JSON.parse(localStorage.getItem('myschedule_v9')).hospitals && JSON.parse(localStorage.getItem('myschedule_v9')).hospitals.length > 0);
