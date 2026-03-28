@@ -6,9 +6,8 @@
 <title>닥터체크Pro</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
-  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+  font-family: -apple-system, 'Noto Sans KR', sans-serif;
   background: #f0f4f8;
   min-height: 100vh;
   display: flex;
@@ -16,8 +15,6 @@ body {
   justify-content: center;
   padding: 20px;
 }
-
-/* ───── 메인 카드 ───── */
 .card {
   background: white;
   border-radius: 20px;
@@ -26,285 +23,165 @@ body {
   max-width: 380px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.10);
 }
-
-/* ───── 로고 ───── */
-.logo-wrap {
-  text-align: center;
-  margin-bottom: 28px;
-}
-.logo-name {
-  font-size: 26px;
-  font-weight: 700;
-  color: #1a1a1a;
-  letter-spacing: -0.5px;
-}
-.logo-pro {
-  color: #2563eb;
-  font-size: 0.68em;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-.logo-sub {
-  font-size: 13px;
-  color: #888;
-  margin-top: 5px;
-}
-
-/* ───── 입력 필드 ───── */
+.logo-wrap { text-align: center; margin-bottom: 28px; }
+.logo-name { font-size: 26px; font-weight: 700; color: #1a1a1a; }
+.logo-pro { color: #2563eb; font-size: 0.68em; font-weight: 700; }
+.logo-sub { font-size: 13px; color: #888; margin-top: 5px; }
 .field { margin-bottom: 14px; }
-.field label {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: #555;
-  margin-bottom: 6px;
-}
+.field label { display: block; font-size: 12px; font-weight: 500; color: #555; margin-bottom: 6px; }
 .field input {
-  width: 100%;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 14px;
-  color: #1a1a1a;
-  outline: none;
-  transition: border-color 0.15s;
-  font-family: inherit;
-  background: #fafafa;
+  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  padding: 12px 14px; font-size: 14px; color: #1a1a1a;
+  outline: none; background: #fafafa; font-family: inherit;
 }
 .field input:focus { border-color: #2563eb; background: white; }
-
-/* 비밀번호 눈 아이콘 */
 .pw-wrap { position: relative; }
 .pw-wrap input { padding-right: 44px; }
 .pw-eye {
-  position: absolute; right: 13px; top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer; font-size: 17px; color: #aaa;
-  user-select: none; line-height: 1;
+  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+  cursor: pointer; font-size: 17px; color: #aaa; user-select: none;
 }
-.pw-eye:hover { color: #555; }
-
-/* ───── 로그인 버튼 ───── */
+.remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.remember-row input[type=checkbox] { width: 15px; height: 15px; accent-color: #2563eb; cursor: pointer; }
+.remember-row label { font-size: 12px; color: #666; cursor: pointer; }
 .btn-login {
-  width: 100%; padding: 14px;
-  background: #2563eb; color: white;
-  border: none; border-radius: 10px;
-  font-size: 15px; font-weight: 600;
-  cursor: pointer; margin-top: 6px;
-  transition: background 0.15s;
-  font-family: inherit;
+  width: 100%; padding: 14px; background: #2563eb; color: white;
+  border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
 }
 .btn-login:hover { background: #1d4ed8; }
-.btn-login:disabled { background: #94a3b8; cursor: not-allowed; }
-
-/* ───── 에러 메시지 ───── */
 .err-box {
-  background: #fef2f2; border: 1px solid #fca5a5;
-  color: #991b1b; border-radius: 8px;
-  padding: 10px 14px; font-size: 12px;
-  margin-top: 12px; display: none; line-height: 1.5;
+  background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+  border-radius: 8px; padding: 10px 14px; font-size: 12px;
+  margin-top: 12px; display: none;
 }
-
-/* ───── 구분선 ───── */
-.divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 22px 0 18px;
-}
-.divider::before, .divider::after {
-  content: ''; flex: 1; height: 1px; background: #e8e8e8;
-}
+.divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 16px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e8e8e8; }
 .divider span { font-size: 12px; color: #aaa; white-space: nowrap; }
-
-/* ───── 회원가입 버튼 ───── */
 .btn-signup {
-  width: 100%; padding: 13px;
-  background: white; color: #2563eb;
-  border: 1.5px solid #2563eb; border-radius: 10px;
-  font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: all 0.15s;
-  font-family: inherit;
+  width: 100%; padding: 13px; background: white; color: #2563eb;
+  border: 1.5px solid #2563eb; border-radius: 10px; font-size: 14px;
+  font-weight: 600; cursor: pointer; font-family: inherit;
 }
 .btn-signup:hover { background: #eff6ff; }
-
-/* ───── 스피너 ───── */
+.beta-notice {
+  background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px;
+  padding: 10px 14px; font-size: 12px; color: #166534;
+  margin-top: 16px; text-align: center; line-height: 1.6;
+}
 .spinner {
   display: inline-block; width: 15px; height: 15px;
-  border: 2px solid rgba(255,255,255,0.4);
-  border-top-color: white; border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: white;
+  border-radius: 50%; animation: spin 0.6s linear infinite;
   vertical-align: middle; margin-right: 6px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* ───── 상태 화면 (승인대기/거절/비활성) ───── */
-.status-view {
-  display: none; text-align: center; padding: 8px 0;
-}
+.status-view { display: none; text-align: center; padding: 8px 0; }
 .status-icon { font-size: 44px; margin-bottom: 14px; }
 .status-title { font-size: 17px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
-.status-body  { font-size: 13px; color: #666; line-height: 1.7; }
-.btn-logout {
-  margin-top: 20px; padding: 9px 22px;
-  border: 1.5px solid #e2e8f0; border-radius: 8px;
-  background: white; color: #555; font-size: 13px;
+.status-body { font-size: 13px; color: #666; line-height: 1.7; }
+.btn-out {
+  margin-top: 20px; padding: 9px 22px; border: 1.5px solid #e2e8f0;
+  border-radius: 8px; background: white; color: #555; font-size: 13px;
   cursor: pointer; font-family: inherit;
 }
-.btn-logout:hover { background: #f5f5f5; }
-
-/* ════════════════════════════════════════════
-   회원가입 모달
-════════════════════════════════════════════ */
 .modal-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 200;
+  align-items: center; justify-content: center; padding: 20px;
 }
 .modal-overlay.open { display: flex; }
-
 .modal-box {
-  background: white;
-  border-radius: 20px;
-  padding: 28px 28px 24px;
-  width: 100%;
-  max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
+  background: white; border-radius: 20px; padding: 28px 28px 24px;
+  width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto;
   position: relative;
 }
-
 .modal-close {
-  position: absolute; top: 16px; right: 18px;
-  font-size: 22px; color: #aaa; cursor: pointer;
-  line-height: 1; background: none; border: none;
-  font-family: inherit;
+  position: absolute; top: 16px; right: 18px; font-size: 22px;
+  color: #aaa; cursor: pointer; background: none; border: none;
 }
-.modal-close:hover { color: #333; }
-
-.modal-logo {
-  text-align: center;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 18px;
-}
-.modal-logo .logo-name { font-size: 20px; }
-.modal-logo .logo-sub  { font-size: 12px; }
-
-.sec-title {
-  font-size: 10px; font-weight: 600; color: #aaa;
-  letter-spacing: 0.07em; text-transform: uppercase;
-  margin: 16px 0 10px;
-}
-.sec-title:first-of-type { margin-top: 0; }
-
-/* 모달 내 필드 */
-.mfield { margin-bottom: 12px; }
-.mfield label {
-  display: flex; justify-content: space-between;
-  font-size: 12px; font-weight: 500; color: #555;
-  margin-bottom: 5px;
-}
+.modal-logo { text-align: center; padding-bottom: 16px; border-bottom: 1px solid #f0f0f0; margin-bottom: 16px; }
+.sec { font-size: 10px; font-weight: 600; color: #aaa; letter-spacing: 0.07em; text-transform: uppercase; margin: 14px 0 8px; }
+.mfield { margin-bottom: 10px; }
+.mfield label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; color: #555; margin-bottom: 4px; }
 .mfield label .req { color: #e53e3e; font-size: 11px; }
 .mfield input {
-  width: 100%; border: 1.5px solid #e2e8f0;
-  border-radius: 8px; padding: 10px 12px;
-  font-size: 13px; color: #1a1a1a; outline: none;
-  transition: border-color 0.15s; font-family: inherit;
-  background: #fafafa;
+  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px;
+  padding: 9px 12px; font-size: 13px; color: #1a1a1a; outline: none;
+  background: #fafafa; font-family: inherit;
 }
 .mfield input:focus { border-color: #2563eb; background: white; }
-.mfield input.ok  { border-color: #22c55e; }
+.mfield input.ok { border-color: #22c55e; }
 .mfield input.err { border-color: #ef4444; }
-
-/* 비밀번호 강도 */
 .pw-bar-wrap { height: 3px; background: #f0f0f0; border-radius: 2px; margin: 3px 0 2px; }
 .pw-bar-fill { height: 100%; border-radius: 2px; width: 0; transition: width .3s, background .3s; }
 .hint { font-size: 11px; margin-top: 2px; }
-.hint.ok   { color: #22c55e; }
-.hint.err  { color: #ef4444; }
+.hint.ok { color: #22c55e; }
+.hint.err { color: #ef4444; }
 .hint.gray { color: #aaa; }
-
-/* 직책 버튼 */
 .role-btns { display: flex; gap: 6px; }
 .role-btn {
-  flex: 1; padding: 8px 4px;
-  border: 1.5px solid #e2e8f0; border-radius: 8px;
-  font-size: 11px; text-align: center; cursor: pointer;
-  color: #888; background: white; transition: all 0.15s;
-  font-family: inherit;
+  flex: 1; padding: 7px 4px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+  font-size: 11px; text-align: center; cursor: pointer; color: #888;
+  background: white; font-family: inherit;
 }
 .role-btn.on { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 500; }
-
-/* 가입 신청 버튼 */
+.agree-box {
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+  padding: 10px 12px; margin: 12px 0 8px; font-size: 11px; color: #555;
+  line-height: 1.7; max-height: 80px; overflow-y: auto;
+}
+.agree-check { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.agree-check input[type=checkbox] { width: 14px; height: 14px; accent-color: #2563eb; cursor: pointer; flex-shrink: 0; }
+.agree-check label { font-size: 12px; color: #333; cursor: pointer; }
 .btn-submit {
-  width: 100%; padding: 13px;
-  background: #2563eb; color: white;
-  border: none; border-radius: 10px;
-  font-size: 14px; font-weight: 600;
-  cursor: pointer; margin-top: 16px;
-  transition: background 0.15s; font-family: inherit;
+  width: 100%; padding: 12px; background: #2563eb; color: white;
+  border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 14px; font-family: inherit;
 }
-.btn-submit:hover { background: #1d4ed8; }
 .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
-
-.modal-note {
-  font-size: 11px; color: #aaa; text-align: center;
-  margin-top: 12px; line-height: 1.5;
-}
-
-/* 성공 화면 */
-.signup-success { display: none; text-align: center; padding: 20px 0; }
-.signup-success .status-icon { font-size: 48px; margin-bottom: 14px; }
-.signup-success .status-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
-.signup-success .status-body  { font-size: 13px; color: #666; line-height: 1.7; }
-
+.modal-note { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; line-height: 1.5; }
 .merr-box {
-  background: #fef2f2; border: 1px solid #fca5a5;
-  color: #991b1b; border-radius: 8px;
-  padding: 10px 14px; font-size: 12px;
-  margin-top: 10px; display: none; line-height: 1.5;
+  background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+  border-radius: 8px; padding: 10px 14px; font-size: 12px; margin-top: 10px; display: none;
 }
+.signup-success { display: none; text-align: center; padding: 20px 0; }
 </style>
 </head>
 <body>
 
-<!-- ════ 로그인 카드 ════ -->
 <div class="card">
-
-  <!-- 로고 -->
   <div class="logo-wrap">
     <div class="logo-name">닥터체크<span class="logo-pro">Pro</span></div>
     <div class="logo-sub">의료 영업 전용 거래처 관리</div>
   </div>
 
-  <!-- ① 로그인 폼 -->
   <div id="loginSection">
-    <form id="loginForm" novalidate>
-      <div class="field">
-        <label>이메일</label>
-        <input type="email" id="email" placeholder="이메일 입력" autocomplete="email">
+    <div class="field">
+      <label>이메일</label>
+      <input type="email" id="email" placeholder="이메일 입력" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>비밀번호</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" placeholder="비밀번호 입력" autocomplete="current-password">
+        <span class="pw-eye" id="loginEye">👁</span>
       </div>
-      <div class="field">
-        <label>비밀번호</label>
-        <div class="pw-wrap">
-          <input type="password" id="password" placeholder="비밀번호 입력" autocomplete="current-password">
-          <span class="pw-eye" onclick="toggleLoginPw()">👁</span>
-        </div>
-      </div>
-
-      <button type="submit" class="btn-login" id="loginBtn">로그인</button>
-      <div class="err-box" id="loginErr"></div>
-    </form>
-
+    </div>
+    <div class="remember-row">
+      <input type="checkbox" id="rememberMe">
+      <label for="rememberMe">아이디 기억하기</label>
+    </div>
+    <button class="btn-login" id="loginBtn">로그인</button>
+    <div class="err-box" id="loginErr"></div>
     <div class="divider"><span>계정이 없으신가요?</span></div>
-
-    <button class="btn-signup" onclick="openSignup()">회원가입 신청</button>
+    <button class="btn-signup" id="openSignupBtn">회원가입 신청</button>
+    <div class="beta-notice">
+      🎉 베타 서비스 무료 운영 중<br>
+      지금 가입하시면 정식 출시 전까지 <strong>무료</strong>로 이용하실 수 있습니다
+    </div>
   </div>
 
-  <!-- ② 승인 대기 화면 -->
   <div class="status-view" id="pendingView">
     <div class="status-icon">⏳</div>
     <div class="status-title">승인 대기 중입니다</div>
@@ -312,66 +189,59 @@ body {
       가입 신청을 받았습니다.<br>
       담당자 검토 후 이메일로 알려드릴게요.<br><br>
       보통 <strong>1 영업일 이내</strong> 처리됩니다.<br>
-      문의: <a href="/cdn-cgi/l/email-protection#09707c676665686b7a2760676a496e64686065276a6664" style="color:#2563eb"><span class="__cf_email__" data-cfemail="364f4358595a575445185f585576515b575f5a1855595b">[email&#160;protected]</span></a>
+      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
     </div>
-    <button class="btn-logout" onclick="logout()">로그아웃</button>
+    <button class="btn-out" id="logoutBtn1">로그아웃</button>
   </div>
 
-  <!-- ③ 거절 화면 -->
   <div class="status-view" id="rejectedView">
     <div class="status-icon">❌</div>
     <div class="status-title">가입이 거절되었습니다</div>
     <div class="status-body">
       <span id="rejectReason"></span><br><br>
-      문의: <a href="/cdn-cgi/l/email-protection#abd2dec5c4c7cac9d885c2c5c8ebccc6cac2c785c8c4c6" style="color:#2563eb"><span class="__cf_email__" data-cfemail="91e8e4fffefdf0f3e2bff8fff2d1f6fcf0f8fdbff2fefc">[email&#160;protected]</span></a>
+      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
     </div>
-    <button class="btn-logout" onclick="logout()">로그아웃</button>
+    <button class="btn-out" id="logoutBtn2">로그아웃</button>
   </div>
 
-  <!-- ④ 비활성화 화면 -->
   <div class="status-view" id="inactiveView">
     <div class="status-icon">🔒</div>
     <div class="status-title">계정이 비활성화되었습니다</div>
     <div class="status-body">
       재사용을 원하시면 아래로 연락주세요.<br><br>
-      <a href="/cdn-cgi/l/email-protection#166f6378797a777465387f787556717b777f7a3875797b" style="color:#2563eb"><span class="__cf_email__" data-cfemail="fb828e9594979a9988d5929598bb9c969a9297d5989496">[email&#160;protected]</span></a>
+      <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
     </div>
-    <button class="btn-logout" onclick="logout()">로그아웃</button>
+    <button class="btn-out" id="logoutBtn3">로그아웃</button>
   </div>
-
 </div>
 
 
-<!-- ════ 회원가입 모달 ════ -->
 <div class="modal-overlay" id="signupModal">
   <div class="modal-box">
-    <button class="modal-close" onclick="closeSignup()">✕</button>
+    <button class="modal-close" id="closeSignupBtn">✕</button>
 
-    <!-- 가입 폼 -->
-    <div id="signupForm">
+    <div id="signupFormWrap">
       <div class="modal-logo">
-        <div class="logo-name">닥터체크<span class="logo-pro">Pro</span></div>
+        <div class="logo-name" style="font-size:20px">닥터체크<span class="logo-pro">Pro</span></div>
         <div class="logo-sub">가입 신청</div>
       </div>
 
-      <p class="sec-title">기본 정보</p>
-
+      <p class="sec">기본 정보</p>
       <div class="mfield">
         <label>이름 <span class="req">필수</span></label>
-        <input type="text" id="s-name" placeholder="홍길동" autocomplete="name">
+        <input type="text" id="sName" placeholder="홍길동">
       </div>
       <div class="mfield">
         <label>이메일 <span class="req">필수</span></label>
-        <input type="email" id="s-email" placeholder="gildong@company.co.kr" autocomplete="email">
+        <input type="email" id="sEmail" placeholder="gildong@company.co.kr">
       </div>
 
-      <p class="sec-title">비밀번호</p>
-
+      <p class="sec">비밀번호</p>
       <div class="mfield">
         <label>비밀번호 <span class="req">필수</span></label>
         <div class="pw-wrap">
-          <input type="password" id="s-pw" placeholder="8자 이상" autocomplete="new-password">
-          <span class="pw-eye" onclick="toggleSignupPw('s-pw',this)">👁</span>
+          <input type="password" id="sPw" placeholder="8자 이상">
+          <span class="pw-eye" id="signupEye1">👁</span>
         </div>
         <div class="pw-bar-wrap"><div class="pw-bar-fill" id="pwBar"></div></div>
         <div class="hint gray" id="pwHint">8자 이상, 숫자·특수문자 포함 권장</div>
@@ -379,260 +249,348 @@ body {
       <div class="mfield">
         <label>비밀번호 확인 <span class="req">필수</span></label>
         <div class="pw-wrap">
-          <input type="password" id="s-pw2" placeholder="비밀번호 다시 입력" autocomplete="new-password">
-          <span class="pw-eye" onclick="toggleSignupPw('s-pw2',this)">👁</span>
+          <input type="password" id="sPw2" placeholder="비밀번호 다시 입력">
+          <span class="pw-eye" id="signupEye2">👁</span>
         </div>
         <div class="hint gray" id="confirmHint">비밀번호를 한 번 더 입력해주세요</div>
       </div>
 
-      <p class="sec-title">소속 정보</p>
-
+      <p class="sec">소속 정보</p>
       <div class="mfield">
         <label>회사명 <span class="req">필수</span></label>
-        <input type="text" id="s-company" placeholder="닥터약품" autocomplete="organization">
+        <input type="text" id="sCompany" placeholder="닥터약품">
       </div>
       <div class="mfield">
         <label>직책</label>
-        <div class="role-btns" id="roleBtns">
+        <div class="role-btns">
           <button type="button" class="role-btn on" data-role="영업 담당자">영업 담당자</button>
           <button type="button" class="role-btn" data-role="팀장 / 관리자">팀장 / 관리자</button>
           <button type="button" class="role-btn" data-role="기타">기타</button>
         </div>
-        <input type="hidden" id="s-role" value="영업 담당자">
+        <input type="hidden" id="sRole" value="영업 담당자">
       </div>
       <div class="mfield">
         <label>담당 지역 <span style="color:#aaa;font-size:11px">선택</span></label>
-        <input type="text" id="s-region" placeholder="예: 서울 강남, 종합병원 위주">
+        <input type="text" id="sRegion" placeholder="예: 서울 강남, 종합병원 위주">
       </div>
 
-      <button class="btn-submit" id="submitBtn" onclick="doSignup()">가입 신청</button>
+      <p class="sec">개인정보 동의</p>
+      <div class="agree-box">
+        <strong>개인정보 수집 및 이용 동의</strong><br>
+        수집 항목: 이름, 이메일, 회사명, 직책, 담당지역<br>
+        수집 목적: 닥터체크Pro 서비스 제공 및 회원 관리<br>
+        보유 기간: 회원 탈퇴 후 30일까지<br>
+        동의를 거부할 권리가 있으나, 거부 시 서비스 이용이 제한됩니다.
+      </div>
+      <div class="agree-check">
+        <input type="checkbox" id="agreeCheck">
+        <label for="agreeCheck">개인정보 수집 및 이용에 동의합니다 <span style="color:#e53e3e">(필수)</span></label>
+      </div>
+
+      <button class="btn-submit" id="submitBtn">가입 신청</button>
       <div class="merr-box" id="signupErr"></div>
       <div class="modal-note">관리자 승인 후 이메일로 알려드립니다 (보통 1 영업일 이내)</div>
     </div>
 
-    <!-- 가입 성공 화면 -->
     <div class="signup-success" id="signupSuccess">
       <div class="status-icon">✅</div>
-      <div class="status-title">가입 신청 완료!</div>
-      <div class="status-body">
+      <div style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:8px">가입 신청 완료!</div>
+      <div style="font-size:13px;color:#666;line-height:1.7">
         <span id="successEmail"></span>으로<br>
         관리자 승인 결과를 알려드릴게요.<br><br>
         보통 <strong>1 영업일 이내</strong> 처리됩니다.
       </div>
-      <button class="btn-logout" style="margin-top:20px" onclick="closeSignup()">닫기</button>
+      <button class="btn-out" id="closeSuccessBtn" style="margin-top:20px">닫기</button>
     </div>
   </div>
 </div>
 
 
-<!-- ════ Supabase + 스크립트 ════ -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL  = 'https://hslxclmezfudjgmehriy.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+var sb = supabase.createClient(
+  'https://hslxclmezfudjgmehriy.supabase.co',
+  'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
+);
 
+// 페이지 로드
+window.addEventListener('DOMContentLoaded', function() {
 
-/* ──── 페이지 로드: 이미 로그인 돼 있으면 상태 체크 ──── */
-window.addEventListener('DOMContentLoaded', async () => {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) await checkStatus(session.user);
+  // 저장된 이메일 불러오기
+  var saved = localStorage.getItem('drcheck_email');
+  if (saved) {
+    document.getElementById('email').value = saved;
+    document.getElementById('rememberMe').checked = true;
+  }
+
+  // 이미 로그인된 경우
+  sb.auth.getSession().then(function(r) {
+    if (r.data && r.data.session) {
+      checkStatus(r.data.session.user);
+    }
+  });
+
+  // 로그인 버튼
+  document.getElementById('loginBtn').onclick = doLogin;
+
+  // 엔터키
+  document.getElementById('email').onkeydown = function(e) { if(e.key==='Enter') doLogin(); };
+  document.getElementById('password').onkeydown = function(e) { if(e.key==='Enter') doLogin(); };
+
+  // 비밀번호 보이기
+  document.getElementById('loginEye').onclick = function() {
+    var i = document.getElementById('password');
+    i.type = i.type==='password' ? 'text' : 'password';
+    this.textContent = i.type==='password' ? '👁' : '🙈';
+  };
+
+  // 회원가입 열기
+  document.getElementById('openSignupBtn').onclick = function() {
+    document.getElementById('signupModal').classList.add('open');
+  };
+
+  // 회원가입 닫기
+  document.getElementById('closeSignupBtn').onclick = closeSignup;
+  document.getElementById('closeSuccessBtn').onclick = closeSignup;
+  document.getElementById('signupModal').onclick = function(e) {
+    if (e.target === this) closeSignup();
+  };
+
+  // 로그아웃
+  document.getElementById('logoutBtn1').onclick = doLogout;
+  document.getElementById('logoutBtn2').onclick = doLogout;
+  document.getElementById('logoutBtn3').onclick = doLogout;
+
+  // 가입 제출
+  document.getElementById('submitBtn').onclick = doSignup;
+
+  // 비밀번호 눈
+  document.getElementById('signupEye1').onclick = function() {
+    var i = document.getElementById('sPw');
+    i.type = i.type==='password' ? 'text' : 'password';
+    this.textContent = i.type==='password' ? '👁' : '🙈';
+  };
+  document.getElementById('signupEye2').onclick = function() {
+    var i = document.getElementById('sPw2');
+    i.type = i.type==='password' ? 'text' : 'password';
+    this.textContent = i.type==='password' ? '👁' : '🙈';
+  };
+
+  // 비밀번호 강도
+  document.getElementById('sPw').oninput = checkPwStrength;
+  document.getElementById('sPw2').oninput = checkConfirm;
+
+  // 직책 버튼
+  document.querySelectorAll('.role-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      document.querySelectorAll('.role-btn').forEach(function(b) { b.classList.remove('on'); });
+      this.classList.add('on');
+      document.getElementById('sRole').value = this.dataset.role;
+    };
+  });
 });
 
 
-/* ──── 로그인 ──── */
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const pw    = document.getElementById('password').value;
-  if (!email || !pw) return showLoginErr('이메일과 비밀번호를 입력해주세요.');
+// 로그인
+async function doLogin() {
+  var email    = document.getElementById('email').value.trim();
+  var password = document.getElementById('password').value;
+  var remember = document.getElementById('rememberMe').checked;
+  var errBox   = document.getElementById('loginErr');
+  var btn      = document.getElementById('loginBtn');
 
-  const btn = document.getElementById('loginBtn');
+  errBox.style.display = 'none';
+
+  if (!email || !password) {
+    errBox.textContent = '⚠️ 이메일과 비밀번호를 입력해주세요.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  if (remember) {
+    localStorage.setItem('drcheck_email', email);
+  } else {
+    localStorage.removeItem('drcheck_email');
+  }
+
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>로그인 중...';
 
   try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
-    if (error) throw error;
-    await checkStatus(data.user);
-  } catch (err) {
-    const msgs = {
-      'Invalid login credentials': '이메일 또는 비밀번호가 올바르지 않습니다.',
-      'Email not confirmed':        '이메일 인증이 필요합니다.',
-    };
-    showLoginErr(msgs[err.message] || '로그인 실패: ' + err.message);
+    var r = await sb.auth.signInWithPassword({ email: email, password: password });
+
+    if (r.error) {
+      var msgs = {
+        'Invalid login credentials': '이메일 또는 비밀번호가 올바르지 않습니다.',
+        'Email not confirmed': '이메일 인증이 필요합니다. 관리자에게 문의해주세요.',
+        'Too many requests': '잠시 후 다시 시도해주세요.'
+      };
+      errBox.textContent = '⚠️ ' + (msgs[r.error.message] || r.error.message);
+      errBox.style.display = 'block';
+      return;
+    }
+
+    await checkStatus(r.data.user);
+
+  } catch(e) {
+    errBox.textContent = '⚠️ 오류: ' + e.message;
+    errBox.style.display = 'block';
   } finally {
     btn.disabled = false;
     btn.innerHTML = '로그인';
   }
-});
+}
 
 
-/* ──── 계정 상태 확인 ──── */
+// 상태 확인
 async function checkStatus(user) {
   try {
-    const { data: p, error } = await sb
+    var r = await sb
       .from('user_profiles')
-      .select('status, name, role, rejection_reason')
+      .select('status, role, rejection_reason')
       .eq('id', user.id)
       .maybeSingle();
 
-    if (error || !p) {
-      showView('pending'); return;
-    }
+    var p = r.data;
+
+    if (!p) { showView('pending'); return; }
+
     if (p.status === 'approved') {
-      window.location.href = p.role === 'superadmin' ? 'admin.html' : 'index.html';
+      window.location.href = (p.role === 'superadmin') ? 'admin.html' : 'index.html';
       return;
     }
     if (p.status === 'rejected') {
       document.getElementById('rejectReason').textContent =
         p.rejection_reason || '자세한 사유는 이메일로 전달드렸습니다.';
-      showView('rejected'); return;
+      showView('rejected');
+      return;
     }
     if (p.status === 'inactive' || p.status === 'withdrawal_requested') {
-      showView('inactive'); return;
+      showView('inactive');
+      return;
     }
     showView('pending');
-  } catch(err) {
+
+  } catch(e) {
     showView('pending');
   }
 }
 
 
-/* ──── 화면 전환 ──── */
+// 화면 전환
 function showView(v) {
-  document.getElementById('loginSection').style.display  = v === 'login'    ? 'block' : 'none';
-  document.getElementById('pendingView').style.display   = v === 'pending'  ? 'block' : 'none';
-  document.getElementById('rejectedView').style.display  = v === 'rejected' ? 'block' : 'none';
-  document.getElementById('inactiveView').style.display  = v === 'inactive' ? 'block' : 'none';
+  document.getElementById('loginSection').style.display  = v==='login'    ? 'block' : 'none';
+  document.getElementById('pendingView').style.display   = v==='pending'  ? 'block' : 'none';
+  document.getElementById('rejectedView').style.display  = v==='rejected' ? 'block' : 'none';
+  document.getElementById('inactiveView').style.display  = v==='inactive' ? 'block' : 'none';
 }
 
 
-/* ──── 로그아웃 ──── */
-async function logout() {
+// 로그아웃
+async function doLogout() {
   await sb.auth.signOut();
   location.reload();
 }
 
 
-/* ──── 비밀번호 표시/숨김 ──── */
-function toggleLoginPw() {
-  const inp = document.getElementById('password');
-  const eye = document.querySelector('#loginForm .pw-eye');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  eye.textContent = inp.type === 'password' ? '👁' : '🙈';
-}
-function toggleSignupPw(id, eye) {
-  const inp = document.getElementById(id);
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  eye.textContent = inp.type === 'password' ? '👁' : '🙈';
-}
-
-
-/* ──── 회원가입 모달 열기/닫기 ──── */
-function openSignup() {
-  document.getElementById('signupModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
+// 회원가입 닫기
 function closeSignup() {
   document.getElementById('signupModal').classList.remove('open');
-  document.body.style.overflow = '';
-  // 폼 초기화
-  document.getElementById('signupForm').style.display   = 'block';
-  document.getElementById('signupSuccess').style.display = 'none';
-  ['s-name','s-email','s-pw','s-pw2','s-company','s-region'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
+  document.getElementById('signupFormWrap').style.display = 'block';
+  document.getElementById('signupSuccess').style.display  = 'none';
   document.getElementById('signupErr').style.display = 'none';
+  document.getElementById('agreeCheck').checked = false;
+  ['sName','sEmail','sPw','sPw2','sCompany','sRegion'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
 }
 
-// 모달 바깥 클릭하면 닫기
-document.getElementById('signupModal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('signupModal')) closeSignup();
-});
 
-
-/* ──── 비밀번호 강도 체크 ──── */
-document.getElementById('s-pw').addEventListener('input', function() {
-  const pw = this.value;
-  let score = 0;
-  if (pw.length >= 8)         score++;
-  if (/[0-9]/.test(pw))       score++;
-  if (/[!@#$%^&*]/.test(pw))  score++;
-
-  const info = [
-    { w:'0%',   c:'#f0f0f0', t:'8자 이상, 숫자·특수문자 포함 권장', cls:'gray' },
-    { w:'33%',  c:'#ef4444', t:'약함 — 더 길게 만들어주세요',       cls:'err'  },
-    { w:'66%',  c:'#f59e0b', t:'보통 — 특수문자를 추가하면 좋아요', cls:'gray' },
-    { w:'100%', c:'#22c55e', t:'강함 — 좋습니다!',                  cls:'ok'   },
+// 비밀번호 강도
+function checkPwStrength() {
+  var pw = document.getElementById('sPw').value;
+  var score = 0;
+  if (pw.length >= 8) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[!@#$%^&*]/.test(pw)) score++;
+  var info = [
+    {w:'0%',  c:'#f0f0f0',t:'8자 이상, 숫자·특수문자 포함 권장',cls:'gray'},
+    {w:'33%', c:'#ef4444',t:'약함 — 더 길게 만들어주세요',      cls:'err'},
+    {w:'66%', c:'#f59e0b',t:'보통 — 특수문자를 추가하면 좋아요',cls:'gray'},
+    {w:'100%',c:'#22c55e',t:'강함 — 좋습니다!',                 cls:'ok'},
   ][score];
-
-  const bar  = document.getElementById('pwBar');
-  const hint = document.getElementById('pwHint');
-  bar.style.width      = info.w;
-  bar.style.background = info.c;
-  hint.textContent     = info.t;
-  hint.className       = 'hint ' + info.cls;
+  document.getElementById('pwBar').style.width = info.w;
+  document.getElementById('pwBar').style.background = info.c;
+  document.getElementById('pwHint').textContent = info.t;
+  document.getElementById('pwHint').className = 'hint ' + info.cls;
   checkConfirm();
-});
+}
 
-/* ──── 비밀번호 확인 ──── */
-document.getElementById('s-pw2').addEventListener('input', checkConfirm);
+
+// 비밀번호 확인
 function checkConfirm() {
-  const pw  = document.getElementById('s-pw').value;
-  const pw2 = document.getElementById('s-pw2').value;
-  const h   = document.getElementById('confirmHint');
-  const inp = document.getElementById('s-pw2');
+  var pw  = document.getElementById('sPw').value;
+  var pw2 = document.getElementById('sPw2').value;
+  var h   = document.getElementById('confirmHint');
+  var inp = document.getElementById('sPw2');
   if (!pw2) { h.textContent='비밀번호를 한 번 더 입력해주세요'; h.className='hint gray'; inp.className=''; return false; }
-  if (pw === pw2) { h.textContent='✓ 비밀번호가 일치합니다'; h.className='hint ok'; inp.className='ok'; return true; }
+  if (pw===pw2) { h.textContent='✓ 비밀번호가 일치합니다'; h.className='hint ok'; inp.className='ok'; return true; }
   h.textContent='✗ 비밀번호가 일치하지 않습니다'; h.className='hint err'; inp.className='err'; return false;
 }
 
 
-/* ──── 직책 버튼 ──── */
-document.getElementById('roleBtns').addEventListener('click', (e) => {
-  const btn = e.target.closest('.role-btn');
-  if (!btn) return;
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('s-role').value = btn.dataset.role;
-});
-
-
-/* ──── 가입 신청 ──── */
+// 가입 신청
 async function doSignup() {
-  const name    = document.getElementById('s-name').value.trim();
-  const email   = document.getElementById('s-email').value.trim();
-  const pw      = document.getElementById('s-pw').value;
-  const company = document.getElementById('s-company').value.trim();
-  const role    = document.getElementById('s-role').value;
-  const region  = document.getElementById('s-region').value.trim();
+  var name    = document.getElementById('sName').value.trim();
+  var email   = document.getElementById('sEmail').value.trim();
+  var pw      = document.getElementById('sPw').value;
+  var company = document.getElementById('sCompany').value.trim();
+  var role    = document.getElementById('sRole').value;
+  var region  = document.getElementById('sRegion').value.trim();
+  var agree   = document.getElementById('agreeCheck').checked;
+  var errBox  = document.getElementById('signupErr');
+  var btn     = document.getElementById('submitBtn');
 
-  if (!name)    return showSignupErr('이름을 입력해주세요.');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-                return showSignupErr('올바른 이메일을 입력해주세요.');
-  if (pw.length < 8) return showSignupErr('비밀번호는 8자 이상이어야 합니다.');
-  if (!checkConfirm()) return showSignupErr('비밀번호가 일치하지 않습니다.');
-  if (!company) return showSignupErr('회사명을 입력해주세요.');
+  errBox.style.display = 'none';
 
-  const btn = document.getElementById('submitBtn');
+  if (!name)    { errBox.textContent='⚠️ 이름을 입력해주세요.'; errBox.style.display='block'; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errBox.textContent='⚠️ 올바른 이메일을 입력해주세요.'; errBox.style.display='block'; return;
+  }
+  if (pw.length < 8) { errBox.textContent='⚠️ 비밀번호는 8자 이상이어야 합니다.'; errBox.style.display='block'; return; }
+  if (!checkConfirm()) { errBox.textContent='⚠️ 비밀번호가 일치하지 않습니다.'; errBox.style.display='block'; return; }
+  if (!company) { errBox.textContent='⚠️ 회사명을 입력해주세요.'; errBox.style.display='block'; return; }
+  if (!agree)   { errBox.textContent='⚠️ 개인정보 수집 및 이용에 동의해주세요.'; errBox.style.display='block'; return; }
+
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>신청 중...';
 
   try {
-    const { error } = await sb.auth.signUp({
-      email, password: pw,
-      options: { data: { name, company, job_title: role, region } }
+    var r = await sb.auth.signUp({
+      email: email,
+      password: pw,
+      options: { data: { name:name, company:company, job_title:role, region:region } }
     });
-    if (error) throw error;
 
-    // 성공
-    document.getElementById('signupForm').style.display    = 'none';
-    document.getElementById('signupSuccess').style.display = 'block';
-    document.getElementById('successEmail').textContent    = email;
+    if (r.error) {
+      var msgs = { 'User already registered': '이미 가입된 이메일입니다. 로그인해주세요.' };
+      errBox.textContent = '⚠️ ' + (msgs[r.error.message] || r.error.message);
+      errBox.style.display = 'block';
+      return;
+    }
 
-  } catch (err) {
-    const msgs = {
-      'User already registered': '이미 가입된 이메일입니다. 로그인�
+    document.getElementById('signupFormWrap').style.display = 'none';
+    document.getElementById('signupSuccess').style.display  = 'block';
+    document.getElementById('successEmail').textContent = email;
+
+  } catch(e) {
+    errBox.textContent = '⚠️ 오류: ' + e.message;
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '가입 신청';
+  }
+}
+</script>
+</body>
+</html>
