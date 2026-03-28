@@ -312,7 +312,7 @@ body {
       가입 신청을 받았습니다.<br>
       담당자 검토 후 이메일로 알려드릴게요.<br><br>
       보통 <strong>1 영업일 이내</strong> 처리됩니다.<br>
-      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      문의: <a href="/cdn-cgi/l/email-protection#09707c676665686b7a2760676a496e64686065276a6664" style="color:#2563eb"><span class="__cf_email__" data-cfemail="364f4358595a575445185f585576515b575f5a1855595b">[email&#160;protected]</span></a>
     </div>
     <button class="btn-logout" onclick="logout()">로그아웃</button>
   </div>
@@ -323,7 +323,7 @@ body {
     <div class="status-title">가입이 거절되었습니다</div>
     <div class="status-body">
       <span id="rejectReason"></span><br><br>
-      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      문의: <a href="/cdn-cgi/l/email-protection#abd2dec5c4c7cac9d885c2c5c8ebccc6cac2c785c8c4c6" style="color:#2563eb"><span class="__cf_email__" data-cfemail="91e8e4fffefdf0f3e2bff8fff2d1f6fcf0f8fdbff2fefc">[email&#160;protected]</span></a>
     </div>
     <button class="btn-logout" onclick="logout()">로그아웃</button>
   </div>
@@ -334,7 +334,7 @@ body {
     <div class="status-title">계정이 비활성화되었습니다</div>
     <div class="status-body">
       재사용을 원하시면 아래로 연락주세요.<br><br>
-      <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      <a href="/cdn-cgi/l/email-protection#166f6378797a777465387f787556717b777f7a3875797b" style="color:#2563eb"><span class="__cf_email__" data-cfemail="fb828e9594979a9988d5929598bb9c969a9297d5989496">[email&#160;protected]</span></a>
     </div>
     <button class="btn-logout" onclick="logout()">로그아웃</button>
   </div>
@@ -426,7 +426,7 @@ body {
 
 
 <!-- ════ Supabase + 스크립트 ════ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL  = 'https://hslxclmezfudjgmehriy.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT';
@@ -471,25 +471,32 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
 /* ──── 계정 상태 확인 ──── */
 async function checkStatus(user) {
-  const { data: p } = await sb
-    .from('user_profiles')
-    .select('status, name, role, rejection_reason')
-    .eq('id', user.id)
-    .single();
+  try {
+    const { data: p, error } = await sb
+      .from('user_profiles')
+      .select('status, name, role, rejection_reason')
+      .eq('id', user.id)
+      .maybeSingle();
 
-  if (!p || p.status === 'pending') {
-    showView('pending'); return;
+    if (error || !p) {
+      showView('pending'); return;
+    }
+    if (p.status === 'approved') {
+      window.location.href = p.role === 'superadmin' ? 'admin.html' : 'index.html';
+      return;
+    }
+    if (p.status === 'rejected') {
+      document.getElementById('rejectReason').textContent =
+        p.rejection_reason || '자세한 사유는 이메일로 전달드렸습니다.';
+      showView('rejected'); return;
+    }
+    if (p.status === 'inactive' || p.status === 'withdrawal_requested') {
+      showView('inactive'); return;
+    }
+    showView('pending');
+  } catch(err) {
+    showView('pending');
   }
-  if (p.status === 'approved') {
-    window.location.href = p.role === 'superadmin' ? 'admin.html' : 'index.html';
-    return;
-  }
-  if (p.status === 'rejected') {
-    document.getElementById('rejectReason').textContent =
-      p.rejection_reason || '자세한 사유는 이메일로 전달드렸습니다.';
-    showView('rejected'); return;
-  }
-  showView('inactive');
 }
 
 
@@ -628,25 +635,4 @@ async function doSignup() {
 
   } catch (err) {
     const msgs = {
-      'User already registered': '이미 가입된 이메일입니다. 로그인해주세요.',
-    };
-    showSignupErr(msgs[err.message] || '오류: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '가입 신청';
-  }
-}
-
-
-/* ──── 에러 표시 ──── */
-function showLoginErr(msg) {
-  const b = document.getElementById('loginErr');
-  b.textContent = '⚠️ ' + msg; b.style.display = 'block';
-}
-function showSignupErr(msg) {
-  const b = document.getElementById('signupErr');
-  b.textContent = '⚠️ ' + msg; b.style.display = 'block';
-}
-</script>
-</body>
-</html>
+      'User already registered': '이미 가입된 이메일입니다. 로그인�
