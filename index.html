@@ -417,13 +417,13 @@ header{
 
 <header>
   <div style="display:flex;flex-direction:column;flex-shrink:0;">
-    <div class="logo" onclick="goToFirstHosp()" style="cursor:pointer"><div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div><span style="display:block;font-size:11px;color:#888;margin-top:1px">거래첸 관리</span></div>
+    <div class="logo" onclick="goToFirstHosp()" style="cursor:pointer"><div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div></div>
     <div id="today-label" style="font-size:12px;font-weight:700;color:var(--text2);padding-left:22px;margin-top:2px;"></div>
   </div>
   <div id="sync-status" style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;"></div>
   <div class="global-search" id="gs-wrap">
     <span class="si">🔍</span>
-    <input type="text" id="gs-input" placeholder="의사·거래처 전체 검색..." oninput="onGlobalSearch(this.value)" onfocus="onGlobalSearch(this.value)" autocomplete="off">
+    <input type="text" id="gs-input" placeholder="검색" oninput="onGlobalSearch(this.value)" onfocus="onGlobalSearch(this.value)" autocomplete="off">
     <button class="sc" onclick="clearGlobalSearch()">✕</button>
     <div class="gs-results" id="gs-results"></div>
   </div>
@@ -3855,7 +3855,7 @@ function injectUijCheok(){
       // 로고 교체
       var logoDiv = document.querySelector('.logo');
       if (logoDiv) {
-        logoDiv.innerHTML = '<div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div><span style="display:block;font-size:11px;color:#888;margin-top:1px">거래첸 관리</span>';
+        logoDiv.innerHTML = '<div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div>';
       }
 
       // 이름+로그아웃 고정 div
@@ -4003,6 +4003,12 @@ function myInquiriesList(){
   });
 }
 
+
+function confirmDelHosp(id){
+  var ok=confirm("거래치를 삭제하시겠습니까?");
+  if(ok) delHosp(id);
+}
+// 거래치 삭제 confirm 엔터키 - 브라우저 기본 confirm은 엔터 자동 지원
 </script>
 <div id="inquiryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;padding:16px"><div style="background:white;border-radius:16px;padding:24px 20px;width:100%;max-width:480px;margin:0 auto;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:17px;font-weight:700;margin:0">고객 문의</h3><button onclick="closeInquiryModal()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button></div><input id="inquiryTitle" placeholder="제목을 입력해주세요" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;margin-bottom:10px"><textarea id="inquiryContent" placeholder="문의 내용을 입력해주세요" rows="5" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;resize:vertical;margin-bottom:14px"></textarea><div style="display:flex;gap:8px"><button onclick="myInquiriesList()" style="flex:1;padding:12px;background:#f1f5f9;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#475569;cursor:pointer">내 문의 보기</button><button onclick="submitInquiry()" style="flex:2;padding:12px;background:#2563eb;border:none;border-radius:10px;font-size:14px;font-weight:700;color:white;cursor:pointer">문의 제출</button></div></div></div><div id="myInquiriesModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;padding:16px"><div style="background:white;border-radius:16px;padding:24px 20px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:17px;font-weight:700;margin:0">내 문의 내역</h3><button onclick="closeMyInquiries()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button></div><div id="myInquiriesList_body" style="display:flex;flex-direction:column;gap:10px"><p style="text-align:center;color:#aaa;padding:20px">로딩 중...</p></div></div></div>
 </body>
