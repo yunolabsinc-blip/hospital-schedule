@@ -54,8 +54,19 @@ function loadPendingList(){
     .then(function(r){
       var data=r.data||[];
       if(!data.length){c.innerHTML='<p style="color:#aaa;padding:20px;text-align:center">승인 대기 중인 신청이 없습니다</p>';return;}
-      c.innerHTML=data.map(function(u){
-        return '<div class="user-card pending-card" id="card-'+u.id+'">'+
+      var bulkBar='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 12px;background:#f0f9ff;border-radius:8px;border:1px solid #bae6fd;flex-wrap:wrap">'+
+        '<input type="checkbox" id="checkAll" onchange="toggleAllPending(this)" style="width:15px;height:15px;cursor:pointer">' +
+        '<label for="checkAll" style="font-size:12px;font-weight:600;color:#0369a1;cursor:pointer">전체 선택</label>'+
+        '<select id="bulkRole" style="font-size:11px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px;margin-left:6px">' +
+          '<option value="user">영업 담당자</option><option value="manager">팔장/관리자</option></select>'+
+        '<select id="bulkPrice" style="font-size:11px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px">' +
+          '<option value="beta">베타(무료)</option><option value="4950">4,950원/월</option><option value="9900">9,900원/월</option>'+
+          '<option value="19800">19,800원/월</option><option value="49500">49,500원/년</option><option value="99000">99,000원/년</option><option value="enterprise">기업회원</option></select>'+
+        '<button onclick="approveBulk()" style="padding:4px 12px;background:#22c55e;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">선택 승인</button>'+
+      '</div>';
+      c.innerHTML=bulkBar+data.map(function(u){
+        return '<div class="user-card pending-card" id="card-'+u.id+'" style="position:relative;padding-left:36px">'+
+          '<input type="checkbox" class="pending-check" value="'+u.id+'" style="position:absolute;top:16px;left:12px;width:16px;height:16px;cursor:pointer" onchange="syncCheckAll()">'+
           '<div class="avatar av-pending">'+esc((u.name||'?')[0].toUpperCase())+'</div>'+
           '<div class="user-info">'+
             '<div class="user-name">'+esc(u.name)+'</div>'+
@@ -139,7 +150,7 @@ function renderAllUsers(data){
           '<button onclick="deleteUser(\''+u.id+'\')" style="background:#e53e3e;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">삭제</button>':
           '<button class="btn-reject" onclick="openDeactivateModal(\''+u.id+'\')" style="background:#f59e0b;border-color:#f59e0b;color:white">비활성화</button>'
         )+
-        '<button onclick="openPriceModal(\''+u.id+'\',\''+esc(u.price_plan||'beta')+'\')" style="background:#3b82f6;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">'+(PL[u.price_plan]||'베타(무료)')+'</button>'+
+        '<button onclick="openPriceModal(\''+u.id+'\',\''+esc(u.price_plan||'beta')+'\')" style="background:#3b82f6;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">가격</button>'+
       '</div>':'';
     return '<div class="user-card" id="card-all-'+u.id+'">'+
       '<div class="avatar">'+esc((u.name||'?')[0].toUpperCase())+'</div>'+
@@ -284,4 +295,22 @@ function _dlCsv(filename,csv){
   var a=document.createElement('a');
   a.href=url;a.download=filename;
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+function toggleAllPending(cb){document.querySelectorAll('.pending-check').forEach(function(c){c.checked=cb.checked;});}
+function syncCheckAll(){var all=document.querySelectorAll('.pending-check');var chk=document.querySelectorAll('.pending-check:checked');var ca=document.getElementById('checkAll');if(ca)ca.checked=all.length>0&&chk.length===all.length;}
+function approveBulk(){
+  var ids=Array.from(document.querySelectorAll('.pending-check:checked')).map(function(c){return c.value;});
+  if(!ids.length){alert('선택된 사용자가 없습니다.');return;}
+  var role=(document.getElementById('bulkRole')||{}).value||'user';
+  var price=(document.getElementById('bulkPrice')||{}).value||'beta';
+  if(!confirm(ids.length+'명을 일괄 승인하시겠습니까?\n요금제: '+(PL[price]||price)))return;
+  var exp=new Date();
+  if(price==='49500'||price==='99000')exp.setFullYear(exp.getFullYear()+1);
+  else exp.setMonth(exp.getMonth()+1);
+  var done=0;
+  ids.forEach(function(uid){
+    sb.from('user_profiles').update({status:'approved',role:role,approved_at:new Date().toISOString(),price_plan:price,plan_expires_at:exp.toISOString()}).eq('id',uid)
+      .then(function(r){done++;if(done===ids.length){alert('일괄 승인 완료! ('+done+'명)');loadAll();}});
+  });
 }
