@@ -227,7 +227,7 @@ function loadUserData() {
             rows.push({
               user:    user.name||user.email, company: user.company||'',
               hosp:    hosp?hosp.name:hospId, dr:     dr?dr.name:drKey,
-              dept:    dr?(dr.dept||')':'', date:  date, time: rec.time||'',
+              dept:    dr?(dr.dept||''):'',   date:  date, time: rec.time||'',
               products:Array.isArray(rec.products)?rec.products.join(', '):(rec.product||''),
               note:    rec.note||rec.planNote||'',
               type:    done?'completed':'planned',
