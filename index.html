@@ -690,34 +690,33 @@ header{
     .maybeSingle();
 
   if (!p || p.status !== 'approved') {
-    window.location.href = 'login.html';
-    return;
+    window.location.href = 'login.html'; return;
   }
 
-  // 2. 로고 닥터체크Pro로 변경
-  const logo = document.querySelector('.logo');
-  if (logo) {
-    logo.innerHTML = '닥터체크<span style="color:#2563eb;font-size:0.72em;font-weight:700">Pro</span>' +
-      '<span style="display:block;font-size:11px;font-weight:400;color:#888;margin-top:1px">거래처 관리</span>';
-    logo.style.color = '#1a1a1a';
+  // 2. 로고 교체 (이미지 → 텍스트)
+  const logoImg = document.querySelector('header img');
+  if (logoImg) {
+    const logoDiv = logoImg.parentElement;
+    logoDiv.innerHTML =
+      '<div style="display:flex;align-items:flex-start;line-height:1">' +
+      '<span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span>' +
+      '<span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span>' +
+      '</div>' +
+      '<span style="display:block;font-size:11px;color:#888;margin-top:2px">거래처 관리</span>';
   }
 
-  // 3. 헤더에 사용자 이름 + 로그아웃 버튼 추가
+  // 3. 헤더에 버튼 추가
   const hb = document.querySelector('.header-btns');
   if (hb) {
     if (p.role === 'superadmin') {
       const a = document.createElement('a');
-      a.href = 'admin.html';
-      a.className = 'btn btn-outline';
+      a.href = 'admin.html'; a.className = 'btn btn-outline';
       a.style.cssText = 'background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;text-decoration:none;display:inline-flex;align-items:center';
-      a.textContent = '관리자';
-      hb.appendChild(a);
+      a.textContent = '관리자'; hb.appendChild(a);
     }
     const ns = document.createElement('span');
     ns.style.cssText = 'font-size:12px;color:#666;display:inline-flex;align-items:center;padding:0 6px;white-space:nowrap';
-    ns.textContent = (p.name || session.user.email) + ' 님';
-    hb.appendChild(ns);
-
+    ns.textContent = (p.name || session.user.email) + ' 님'; hb.appendChild(ns);
     const lb = document.createElement('button');
     lb.className = 'btn btn-outline';
     lb.style.cssText = 'background:#fff0f0;border-color:#ffaaaa;color:#e53e3e';
@@ -731,7 +730,31 @@ header{
     hb.appendChild(lb);
   }
 
-  // 4. 타이틀 변경
   document.title = '닥터체크Pro';
+
+  // 4. localStorage 데이터를 Supabase에 자동 동기화 (백그라운드)
+  try {
+    const v9 = localStorage.getItem('myschedule_v9');
+    const v6 = localStorage.getItem('myschedule_v6');
+    const myinfo = localStorage.getItem('hs_myinfo');
+    const myproducts = localStorage.getItem('hs_myproducts');
+
+    if (v9 || v6) {
+      await sb.from('user_app_data').upsert({
+        user_id: session.user.id,
+        email: session.user.email,
+        name: p.name || '',
+        company: (myinfo ? JSON.parse(myinfo).company : '') || '',
+        data_v9: v9 ? JSON.parse(v9) : null,
+        data_v6: v6 ? JSON.parse(v6) : null,
+        myinfo: myinfo ? JSON.parse(myinfo) : null,
+        myproducts: myproducts ? JSON.parse(myproducts) : null,
+        synced_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+    }
+  } catch(syncErr) {
+    // 동기화 실패해도 앱 사용에 영향 없음 (무시)
+    console.log('sync skip:', syncErr.message);
+  }
 })();
 </script>
