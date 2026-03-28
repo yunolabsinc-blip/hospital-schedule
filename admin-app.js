@@ -1,20 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
-
-// ★ 여기를 수정하세요! ★
-const SUPABASE_URL  = 'https://hslxclmezfudjgmehriy.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT';
-
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-
-let currentRejectUserId = null; // 거절 모달에서 사용
-
-
-// ============================================================
-// 페이지 로드 — superadmin인지 확인
-// ============================================================
-window.addEventListener('DOMContentLoaded', async () => {
-  // 1. 로그인 여부 확인
+// 1. 로그인 여부 확인
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
     window.location.href = 'login.html'; // 로그인 안 됐으면 로그인 페이지로
@@ -461,52 +445,21 @@ function exportExcel() {
   const bom = '﻿';
   const csvContent = bom + csvRows.join('
 ');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const today = new Date().toISOString().substring(0,10);
-  a.href = url;
-  a.download = '닥터체크Pro_활동기록_' + today + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8'
 
+// ── 전역 등록 (onclick에서 호출 가능하도록) ──
+window.logout = logout;
+window.loadAll = loadAll;
+window.approve = approve;
+window.approveWithRole = approveWithRole;
+window.openRejectModal = openRejectModal;
+window.rejectUser = rejectUser;
+window.deactivateUser = deactivateUser;
+window.switchTab = switchTab;
+window.loadUserData = loadUserData;
+window.exportExcel = exportExcel;
+window.setPendingRole = setPendingRole;
 
-// ============================================================
-// 로그아웃
-// ============================================================
-async function logout() {
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-
-
-// ============================================================
-// 유틸 함수들
-// ============================================================
-
-// 이름 → 이니셜 (홍길동 → 홍)
-function getInitials(name) {
-  return name ? name.charAt(0) : '?';
-}
-
-// HTML 특수문자 이스케이프 (XSS 방지)
-function esc(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-// 날짜 포맷
-function formatDate(isoStr) {
-  if (!isoStr) return '';
-  const d = new Date(isoStr);
-  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-}
-
+document.addEventListener("DOMContentLoaded", function() {
+  loadAll();
 });
