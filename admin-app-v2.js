@@ -229,7 +229,15 @@ function exportAllUsers(){
   var data=_allUsersData.filter(function(u){if(co&&u.company!==co)return false;if(st&&u.status!==st)return false;if(kw&&!(u.name||'').toLowerCase().includes(kw)&&!(u.email||'').toLowerCase().includes(kw))return false;return true;});
   if(!data.length){alert('데이터 없음');return;}
   var h=['회사','이름','이메일','역할','직책','지역','전화','상태','요금제','만료일','가입일'];
-  var csv=[h.join(',')].concat(data.map(function(u){return[u.company,u.name,u.email,u.role,u.job_title,u.region,u.phone,u.status,PL[u.price_plan]||u.price_plan||'',fmtDate(u.plan_expires_at),fmtDate(u.created_at)].map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');})).join('\n');
+  // 엑셀 필터 행 추가
+  var filterInfo = [
+    '사용자: '+(user||'전체'),
+    '거래첸: '+(hosp||'전체'),
+    '의사: '+(doctor||'전체'),
+    '제품: '+(product||'전체'),
+    '검색기간: '+(dateFrom||'시작')+' ~ '+(dateTo||'종료')
+  ].join(' | ');
+  var csv=[filterInfo, h.join(',')].concat(data.map(function(u){return[u.company,u.name,u.email,u.role,u.job_title,u.region,u.phone,u.status,PL[u.price_plan]||u.price_plan||'',fmtDate(u.plan_expires_at),fmtDate(u.created_at)].map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');})).join('\n');
   _dlCsv('사용자목록_'+new Date().toISOString().substring(0,10)+'.csv',csv);
 }
 function loadUserData(){
@@ -283,7 +291,7 @@ function _updateFilters(rows){
     '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:80px">거래치<br>'+mkSel('filterDataHosp',uniq(rows.map(function(r){return r.hosp;})),'전체')+'</th>'+
     '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:70px">의사<br>'+mkSel('filterDataDoctor',uniq(rows.map(function(r){return r.dr;})),'전체')+'</th>'+
     '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;white-space:nowrap">날짜<div style="display:flex;gap:2px;margin-top:2px"><input type="date" id="filterDateFrom" onchange="filterActivityData()" value="'+cf+'" style="font-size:11px;padding:4px;border:1px solid #e2e8f0;border-radius:6px;width:115px"><span style="font-size:9px;color:#aaa">~</span><input type="date" id="filterDateTo" onchange="filterActivityData()" value="'+ct+'" style="font-size:11px;padding:4px;border:1px solid #e2e8f0;border-radius:6px;width:115px"></div></th>'+
-    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;white-space:nowrap">시간대</th>'+
+    
     '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:80px">제품<br>'+mkSel('filterDataProduct',prods,'전체')+'</th>'+
     '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:90px">활동계획<br>'+mkSel('filterDataType',['계획','결과'],'전체+결과')+'</th>'+
     '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:90px">활동결과</th>'+
@@ -315,7 +323,7 @@ function renderActivityTable(rows){
   var tb=document.getElementById('activityTableBody');
   if(!tb)return;
   _updateFilters(rows);
-  if(!rows.length){tb.innerHTML='<tr><td colspan="9" style="padding:30px;text-align:center;color:#aaa">필터 결과 없음</td></tr>';return;}
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8" style="padding:30px;text-align:center;color:#aaa">필터 결과 없음</td></tr>';return;}
   tb.innerHTML=rows.map(function(r,i){
     var bg=i%2===0?'':'background:#fafafa';
     var pn=esc(r.planNote||r.note||'');
@@ -326,7 +334,7 @@ function renderActivityTable(rows){
       '<td style="padding:8px 10px;font-size:12px">'+esc(r.hosp)+'</td>'+
       '<td style="padding:8px 10px"><div style="font-size:12px;white-space:nowrap">'+esc(r.dr)+'</div><div style="font-size:10px;color:#aaa">'+esc(r.dept)+'</div></td>'+
       '<td style="padding:8px 10px;font-size:12px;white-space:nowrap">'+esc(r.date)+'</td>'+
-      '<td style="padding:8px 10px;font-size:12px;white-space:nowrap">'+esc(r.time)+'</td>'+
+      
       '<td style="padding:8px 10px;font-size:11px;color:#2563eb">'+esc(r.products)+'</td>'+
       '<td style="padding:8px 10px;font-size:11px;color:#374151;min-width:100px;max-width:180px;word-break:break-word;white-space:pre-wrap">'+pn+'</td>'+
       '<td style="padding:8px 10px;font-size:11px;min-width:100px;max-width:180px;word-break:break-word;white-space:pre-wrap">'+rn+'</td>'+
@@ -343,8 +351,8 @@ function exportExcel(){
   var dateTo2=(document.getElementById('filterDateTo')||{}).value||'';
   var rows=_activityRows.filter(function(r){if(user&&r.user!==user)return false;if(hosp&&r.hosp!==hosp)return false;if(doctor&&r.dr!==doctor)return false;if(product&&!r.products.includes(product))return false;if(type&&r.type!==type)return false;return true;});
   if(!rows.length){alert('데이터 없음');return;}
-  var h=['회사','사용자','거래치','의사','진료과','날짜','시간대','제품','활동계획','활동결과'];
-  var csv=[h.join(',')].concat(rows.map(function(r){return[r.company,r.user,r.hosp,r.dr,r.dept,r.date,r.time,r.products,r.planNote||r.note||'',r.type==='completed'?(r.resultNote||r.note||''):'미완료'].map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');})).join('\n');
+  var h=['회사','사용자','거래치','의사','진료과','날짜','제품','활동계획','활동결과'];
+  var csv=[h.join(',')].concat(rows.map(function(r){return[r.company,r.user,r.hosp,r.dr,r.dept,r.date,r.products,r.planNote||r.note||'',r.type==='completed'?(r.resultNote||r.note||''):'미완료'].map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');})).join('\n');
   _dlCsv('활동데이터_'+new Date().toISOString().substring(0,10)+'.csv',csv);
 }
 function _dlCsv(filename,csv){
