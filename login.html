@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>닥터체크Pro — 로그인</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f6fa;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:white;border-radius:20px;padding:32px 28px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+.logo-wrap{text-align:center;margin-bottom:24px;}
+.logo-main{display:flex;justify-content:center;align-items:flex-start;line-height:1;}
+.logo-text{font-size:28px;font-weight:800;color:#1a1a1a;letter-spacing:-1px;}
+.logo-pro{font-size:13px;font-weight:700;color:#2563eb;margin-top:2px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:13px;color:#555;font-weight:500;margin-bottom:6px;}
+.field input{width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;outline:none;transition:border 0.2s;}
+.field input:focus{border-color:#2563eb;}
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:44px;}
+.pw-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;color:#aaa;}
+.options-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+.check-group{display:flex;gap:12px;align-items:center;}
+.check-item{display:flex;align-items:center;gap:5px;font-size:13px;color:#666;cursor:pointer;}
+.check-item input{width:15px;height:15px;cursor:pointer;}
+.links{display:flex;gap:12px;align-items:center;}
+.links a{font-size:13px;color:#2563eb;text-decoration:none;}
+.links a:hover{text-decoration:underline;}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-primary{background:#2563eb;color:white;}
+.btn-primary:hover{background:#1d4ed8;}
+.btn-outline{background:white;color:#2563eb;border:2px solid #2563eb;margin-top:10px;}
+.btn-outline:hover{background:#eff6ff;}
+.divider{text-align:center;color:#aaa;font-size:13px;margin:16px 0;position:relative;}
+.divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#e8e8e8;}
+.divider span{background:white;padding:0 12px;position:relative;}
+.error-msg{color:#e53e3e;font-size:13px;margin-top:8px;display:none;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-wrap">
+    <div class="logo-main">
+      <span class="logo-text">닥터체크</span><span class="logo-pro">Pro</span>
+    </div>
+    <div id="logoDate" style="font-size:13px;color:#94a3b8;text-align:center;margin-top:2px;letter-spacing:0.5px"></div>
+  </div>
 
+  <div style="margin-bottom:18px;padding:14px 16px;background:linear-gradient(135deg,#fef3c7,#fff7ed);border:1px solid #fde68a;border-radius:14px;text-align:left">
+    <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px">🎁 베타 멤버 한정: ‘커피 한 잔’의 기적</div>
+    <div style="font-size:13px;color:#78350f;line-height:1.7;margin-bottom:8px">
+      <span style="font-weight:600">평생 가격 보장:</span>
+      <span style="text-decoration:line-through;color:#b45309;font-size:12px">&#160;19,800원</span>
+      <span style="color:#dc2626;font-weight:800;font-size:16px"> → 4,950원 </span>
+      <span style="background:#dc2626;color:white;font-size:11px;padding:1px 7px;border-radius:10px;font-weight:700;vertical-align:middle">75% 파격 할인</span>
+    </div>
+    <div style="font-size:12px;color:#92400e;line-height:1.7;font-style:italic;margin-bottom:10px">“한 달 4,950원. 딸 커피 한 잔 값으로 ‘영업의 질’을 바꾸세요.”</div>
+    <div style="padding:9px 12px;background:rgba(255,255,255,0.75);border-radius:8px;font-size:12px;color:#78350f;line-height:1.7">
+      ✨ 지금 가입하면 정식 출시 전까지 <b>전 기능 100% 무료</b>!<br>
+      <span style="font-size:11px;color:#a16207">※ 5월 정식 출시 후 30일 이내 결제 시 이 혜택이 <b>평생 유지</b>됩니다.</span>
+    </div>
+  </div>
+
+  <div id="loginSection">
+    <div class="field">
+      <label>이메일</label>
+      <input type="email" id="email" placeholder="이메일 주소" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>비밀번호</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" placeholder="비밀번호 입력" autocomplete="current-password">
+        <span class="pw-eye" id="loginEye">👁</span>
+      </div>
+    </div>
+    <div class="options-row">
+      <div class="check-group">
+        <div class="check-item"><input type="checkbox" id="rememberEmail"><label for="rememberEmail">아이디 기억</label></div>
+        <div class="check-item"><input type="checkbox" id="autoLogin"><label for="autoLogin">자동 로그인</label></div>
+      </div>
+      <div class="links">
+        <a href="#" id="findIdLink">아이디 찾기</a>
+        <a href="#" id="findPwLink">비밀번호 찾기</a>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="loginBtn">로그인</button>
+    <div class="error-msg" id="loginError"></div>
+    <div class="divider"><span>계정이 없으신가요?</span></div>
+    <button class="btn btn-outline" id="goRegisterBtn">회원가입 신청</button>
+  </div>
+
+  <div id="registerSection" style="display:none">
+    <div style="display:flex;align-items:center;margin-bottom:20px;gap:8px">
+      <button id="backToLoginBtn" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">←</button>
+      <span style="font-size:16px;font-weight:700">회원가입 신청</span>
+    </div>
+    <div class="field"><label>이름 *</label><input type="text" id="regName" placeholder="실명"></div>
+    <div class="field"><label>이메일 *</label><input type="email" id="regEmail" placeholder="이메일 주소"></div>
+    <div class="field">
+      <label>비밀번호 *</label>
+      <div class="pw-wrap">
+        <input type="password" id="regPw" placeholder="8자 이상">
+        <span class="pw-eye" id="regEye">👁</span>
+      </div>
+    </div>
+    <div class="field"><label>비밀번호 확인 *</label><input type="password" id="regPw2" placeholder="비밀번호 다시 입력"></div>
+    <div class="field"><label>회사명 *</label><input type="text" id="regCompany" placeholder="회사명"></div>
+    <div class="field"><label>직책 *</label>
+      <select id="regJobTitle" style="width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;outline:none;background:white">
+        <option value="">직책 선택</option>
+        <option>영업 담당자</option><option>대리</option><option>과장</option>
+        <option>자장</option><option>부장</option><option>CSO</option><option>기타</option>
+      </select>
+    </div>
+    <div class="field"><label>담당 지역</label><input type="text" id="regRegion" placeholder="예: 서울/경기"></div>
+    <div class="field"><label>전화번호</label><input type="tel" id="regPhone" placeholder="010-0000-0000"></div>
+    <button class="btn btn-primary" id="registerBtn" style="margin-top:8px">가입 신청 제출</button>
+    <div class="error-msg" id="registerError"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="login-app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var d=new Date();
+  var el=document.getElementById('logoDate');
+  if(el)el.textContent=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+});
+</script>
+</body>
+</html>
