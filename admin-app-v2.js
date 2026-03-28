@@ -248,17 +248,21 @@ function _updateFilters(rows){
   setOpts('filterDataProduct',uniq(prods),'전체 제품');
 }
 function filterActivityData(){
-  var user=(document.getElementById('filterDataUser')||{}).value||'';
-  var hosp=(document.getElementById('filterDataHosp')||{}).value||'';
-  var doctor=(document.getElementById('filterDataDoctor')||{}).value||'';
+  var user   =(document.getElementById('filterDataUser')   ||{}).value||'';
+  var hosp   =(document.getElementById('filterDataHosp')   ||{}).value||'';
+  var doctor =(document.getElementById('filterDataDoctor') ||{}).value||'';
   var product=(document.getElementById('filterDataProduct')||{}).value||'';
-  var type=(document.getElementById('filterDataType')||{}).value||'';
+  var type   =(document.getElementById('filterDataType')   ||{}).value||'';
+  var dateFrom=(document.getElementById('filterDateFrom')  ||{}).value||'';
+  var dateTo  =(document.getElementById('filterDateTo')    ||{}).value||'';
   renderActivityTable(_activityRows.filter(function(r){
-    if(user&&r.user!==user)return false;
-    if(hosp&&r.hosp!==hosp)return false;
-    if(doctor&&r.dr!==doctor)return false;
+    if(user   &&r.user!==user)               return false;
+    if(hosp   &&r.hosp!==hosp)               return false;
+    if(doctor &&r.dr!==doctor)               return false;
     if(product&&!r.products.includes(product))return false;
-    if(type&&r.type!==type)return false;
+    if(type   &&r.type!==type)               return false;
+    if(dateFrom&&r.date<dateFrom)            return false;
+    if(dateTo  &&r.date>dateTo)              return false;
     return true;
   }));
 }
@@ -286,6 +290,8 @@ function exportExcel(){
   var doctor=(document.getElementById('filterDataDoctor')||{}).value||'';
   var product=(document.getElementById('filterDataProduct')||{}).value||'';
   var type=(document.getElementById('filterDataType')||{}).value||'';
+  var dateFrom2=(document.getElementById('filterDateFrom')||{}).value||'';
+  var dateTo2=(document.getElementById('filterDateTo')||{}).value||'';
   var rows=_activityRows.filter(function(r){if(user&&r.user!==user)return false;if(hosp&&r.hosp!==hosp)return false;if(doctor&&r.dr!==doctor)return false;if(product&&!r.products.includes(product))return false;if(type&&r.type!==type)return false;return true;});
   if(!rows.length){alert('데이터 없음');return;}
   var h=['회사','사용자','거래치','의사','진료과','날짜','시간대','제품','활동내용','구분'];
@@ -316,4 +322,47 @@ function approveBulk(){
     sb.from('user_profiles').update({status:'approved',role:role,approved_at:new Date().toISOString(),price_plan:price,plan_expires_at:exp.toISOString()}).eq('id',uid)
       .then(function(r){done++;if(done===ids.length){alert('일괄 승인 완료! ('+done+'명)');loadAll();}});
   });
+}
+
+// ── 고객문의 관리 ──
+function loadInquiries(){
+  var tb=document.getElementById('inquiryTableBody');if(!tb)return;
+  tb.innerHTML='<tr><td colspan="6" style="padding:30px;text-align:center;color:#aaa">Loading...</td></tr>';
+  sb.from('inquiries').select('*').order('created_at',{ascending:false})
+    .then(function(r){
+      var data=r.data||[];
+      if(!data.length){tb.innerHTML='<tr><td colspan="6" style="padding:30px;text-align:center;color:#aaa">고객 문의가 없습니다</td></tr>';return;}
+      var badge=document.getElementById('inquiryBadge');
+      var pending=data.filter(function(d){return d.status==='pending';}).length;
+      if(badge)badge.textContent=pending||'';
+      tb.innerHTML=data.map(function(d,i){
+        var bg=i%2===0?'':'background:#fafafa';
+        var st=d.status==='replied'?
+          '<span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 8px;border-radius:4px">답변완료</span>':
+          '<span style="background:#fef3c7;color:#92400e;font-size:10px;padding:2px 8px;border-radius:4px">대기중</span>';
+        return '<tr style="border-bottom:1px solid #f0f0f0;'+bg+'">'+
+          '<td style="padding:10px 14px;font-size:12px;color:#666">'+esc(d.company||'-')+'</td>'+
+          '<td style="padding:10px 14px;font-size:13px;font-weight:500">'+esc(d.user_name||d.user_email)+'</td>'+
+          '<td style="padding:10px 14px;font-size:13px">'+esc(d.title)+'</td>'+
+          '<td style="padding:10px 14px;font-size:12px;color:#555;max-width:200px">'+esc(d.content)+'</td>'+
+          '<td style="padding:10px 14px;font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td>'+
+          '<td style="padding:10px 14px">'+st+
+            '<div style="margin-top:6px">'+
+              (d.admin_reply?'<div style="font-size:11px;color:#2563eb;margin-bottom:4px">답변: '+esc(d.admin_reply)+'</div>':'')+
+              '<div style="display:flex;gap:4px">'+
+                '<input id="reply-'+d.id+'" placeholder="답변 입력..." value="'+esc(d.admin_reply||'')+'" style="font-size:11px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;flex:1;min-width:100px">'+
+                '<button onclick="replyInquiry(\''+d.id+'\')" style="padding:4px 10px;background:#2563eb;color:white;border:none;border-radius:6px;font-size:11px;cursor:pointer">답변</button>'+
+              '</div>'+
+            '</div>'+
+          '</td>'+
+          '</tr>';
+      }).join('');
+    });
+}
+function replyInquiry(id){
+  var inp=document.getElementById('reply-'+id);
+  var reply=(inp||{}).value||'';
+  if(!reply.trim()){alert('답변 내용을 입력해주세요.');return;}
+  sb.from('inquiries').update({admin_reply:reply,status:'replied',replied_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',id)
+    .then(function(r){if(r.error){alert('Error: '+r.error.message);return;}loadInquiries();});
 }
