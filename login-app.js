@@ -45,14 +45,28 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   });
 
+  // 드래그 시 닫힘 방지: mousedown 시작점 추적
+  var _mdTarget = null;
+  document.addEventListener('mousedown', function(e){ _mdTarget = e.target; });
+
   ['signupModal','findIdModal','findPwModal'].forEach(function(id) {
-    document.getElementById(id).onclick = function(e) {
-      if(e.target === this) {
+    document.getElementById(id).addEventListener('mouseup', function(e) {
+      if(e.target === this && _mdTarget === this) {
         if(id==='signupModal') closeSignupModal();
         else if(id==='findIdModal') closeFindId();
         else closeFindPw();
       }
-    };
+    });
+  });
+
+  // ESC 키로 모달 닫기
+  document.addEventListener('keydown', function(e) {
+    if(e.key !== 'Escape') return;
+    var modals = [['signupModal',closeSignupModal],['findIdModal',closeFindId],['findPwModal',closeFindPw]];
+    modals.forEach(function(m){
+      var el = document.getElementById(m[0]);
+      if(el && el.style.display === 'flex') m[1]();
+    });
   });
 });
 
@@ -81,7 +95,20 @@ async function checkStatus(user) {
     var r=await sb.from('user_profiles').select('status,role,rejection_reason').eq('id',user.id).maybeSingle();
     var p=r.data;
     if(!p){showView('pending');return;}
-    if(p.status==='approved'){window.location.href=(p.role==='superadmin')?'admin.html':'index.html';return;}
+    if(p.status==='approved'){
+      // 주안메디칼 이외 신규 사용자 로컬 데이터 초기화
+      if(p.company !== '주안메디칼') {
+        var hasOwnData = !!(localStorage.getItem('myschedule_v9') && JSON.parse(localStorage.getItem('myschedule_v9')).hospitals && JSON.parse(localStorage.getItem('myschedule_v9')).hospitals.length > 0);
+        if(!hasOwnData) {
+          // 자신의 데이터가 없으면 철저 클리어
+          localStorage.removeItem('myschedule_v9');
+          localStorage.removeItem('myschedule_v6');
+          localStorage.removeItem('hs_myinfo');
+          localStorage.removeItem('hs_myproducts');
+        }
+      }
+      window.location.href=(p.role==='superadmin')?'admin.html':'index.html';return;
+    }
     if(p.status==='rejected'){document.getElementById('rejectReason').textContent=p.rejection_reason||'자세한 사유는 이메일로 전달드렸습니다.';showView('rejected');return;}
     if(p.status==='inactive'||p.status==='withdrawal_requested'){showView('inactive');return;}
     showView('pending');
@@ -93,6 +120,21 @@ function showView(v) {
   document.getElementById('pendingView').style.display   = v==='pending' ?'block':'none';
   document.getElementById('rejectedView').style.display  = v==='rejected'?'block':'none';
   document.getElementById('inactiveView').style.display  = v==='inactive'?'block':'none';
+}
+
+async function requestWithdrawal() {
+  if(!confirm('정말 탈퇴 신청하시겠습니까?\n\n30일 후 계정과 데이터가 완전 삭제됩니다.')) return;
+  try {
+    var sess = (await sb.auth.getSession()).data.session;
+    if(!sess) return;
+    var r = await sb.from('user_profiles').update({
+      status:'withdrawal_requested', withdrawal_at:new Date().toISOString()
+    }).eq('id', sess.user.id);
+    if(r.error) throw r.error;
+    alert('탈퇴 신청이 완료되었습니다.\n30일 후 계정이 삭제됩니다.\n문의: yunolabs.inc@gmail.com');
+    await sb.auth.signOut();
+    location.reload();
+  } catch(e) { alert('오류: '+e.message); }
 }
 
 async function doLogout() {
