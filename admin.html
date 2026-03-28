@@ -242,7 +242,8 @@
 
   <!-- 전체 사용자 목록 -->
   <div id="allTab" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><p class="section-label" style="margin:0">전체 사용자</p><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="filterCompany" onchange="filterAllUsers()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 회사</option></select><select id="filterStatus" onchange="filterAllUsers()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 상태</option><option value="approved">승인됨</option><option value="pending">대기 중</option><option value="rejected">거절됨</option><option value="inactive">비활성화</option></select><input type="text" id="filterSearch" onkeyup="filterAllUsers()" placeholder="이름/이메일" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;width:120px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><p class="section-label" style="margin:0">전체 사용자</p><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="filterCompany" onchange="filterAllUsers()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 회사</option></select><select id="filterPrice" onchange="filterAllUsers()" style="font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 요금제</option><option value="beta">베타(무료)</option><option value="4950">4,950원/월</option><option value="9900">9,900원/월</option><option value="19800">19,800원/월</option><option value="49500">49,500원/년</option><option value="99000">99,000원/년</option><option value="enterprise">기업회원</option></select>
+        <select id="filterStatus" onchange="filterAllUsers()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 상태</option><option value="approved">승인됨</option><option value="pending">대기 중</option><option value="rejected">거절됨</option><option value="inactive">비활성화</option></select><input type="text" id="filterSearch" onkeyup="filterAllUsers()" placeholder="이름/이메일" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;width:120px">
         <button onclick="exportAllUsers()" style="padding:6px 10px;background:#22c55e;color:white;border:none;border-radius:8px;font-size:12px;cursor:pointer">📊 엑셀</button></div></div><div class="user-list" id="allList">
       <div class="loading">불러오는 중...</div>
     </div>
@@ -325,7 +326,7 @@
   Supabase 연결 — signup.html과 동일하게 수정해주세요
 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin-app-v2.js?v=9"></script>
+<script src="admin-app-v2.js?v=10"></script>
 
 <!-- 비활성화 사유 모달 -->
 <div id="deactivateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;align-items:center;justify-content:center">
