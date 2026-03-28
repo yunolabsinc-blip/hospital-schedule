@@ -3816,8 +3816,7 @@ function injectUijCheok(){
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-window.onload = function() {
+<script>window.onload = function() {
   var _sb = supabase.createClient(
     'https://hslxclmezfudjgmehriy.supabase.co',
     'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
@@ -3825,49 +3824,78 @@ window.onload = function() {
   _sb.auth.getSession().then(function(res) {
     var s = res.data && res.data.session;
     if (!s) { window.location.href = 'login.html'; return; }
-    _sb.from('user_profiles').select('status,role,name').eq('id', s.user.id).maybeSingle().then(function(r) {
+    _sb.from('user_profiles').select('status,role,name,company,job_title,region,phone').eq('id', s.user.id).maybeSingle().then(function(r) {
       var p = r.data;
       if (!p || p.status !== 'approved') { window.location.href = 'login.html'; return; }
-      var logoImg = document.querySelector('header img');
-      if (logoImg) {
-        var d = logoImg.parentElement;
-        d.innerHTML = '<div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div><span style="display:block;font-size:11px;color:#888;margin-top:2px">거래처 관리</span>';
-      }
-      var hb = document.querySelector('.header-btns');
-      if (hb) {
-        if (p.role === 'superadmin') {
-          var a = document.createElement('a');
-          a.href='admin.html'; a.className='btn btn-outline';
-          a.style.cssText='background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;text-decoration:none;display:inline-flex;align-items:center';
-          a.textContent='관리자'; hb.appendChild(a);
-        }
-        var ns = document.createElement('span');
-        ns.style.cssText='font-size:12px;color:#666;display:inline-flex;align-items:center;padding:0 6px;white-space:nowrap';
-        ns.textContent=(p.name||s.user.email)+' 님'; hb.appendChild(ns);
-        var lb = document.createElement('button');
-        lb.className='btn btn-outline';
-        lb.style.cssText='background:#fff0f0;border-color:#ffaaaa;color:#e53e3e';
-        lb.textContent='로그아웃';
-        lb.onclick=function(){if(confirm('로그아웃 하시겠습니까?')){_sb.auth.signOut().then(function(){window.location.href='login.html';});}};
-        hb.appendChild(lb);
-      }
-      document.title='닥터체크Pro';
+
+      // 내정보 localStorage 자동 저장
       try {
-        var v9=localStorage.getItem('myschedule_v9'), v6=localStorage.getItem('myschedule_v6');
-        var mi=localStorage.getItem('hs_myinfo'), mp=localStorage.getItem('hs_myproducts');
-        if(v9||v6){
-          _sb.from('user_app_data').upsert({
-            user_id:s.user.id, email:s.user.email, name:p.name||'',
-            company:(mi?JSON.parse(mi).company:'')||'',
-            data_v9:v9?JSON.parse(v9):null, data_v6:v6?JSON.parse(v6):null,
-            myinfo:mi?JSON.parse(mi):null, myproducts:mp?JSON.parse(mp):null,
-            synced_at:new Date().toISOString()
-          },{onConflict:'user_id'});
+        var mi = JSON.parse(localStorage.getItem('hs_myinfo') || '{}');
+        if (!mi.company && p.company) {
+          localStorage.setItem('hs_myinfo', JSON.stringify({
+            name: p.name || '', company: p.company || '',
+            job_title: p.job_title || '', region: p.region || '',
+            phone: p.phone || '', email: s.user.email
+          }));
         }
-      } catch(e){}
+      } catch(e) {}
+
+      // 닥터체크Pro 로고 교체
+      var logoDiv = document.querySelector('.logo');
+      if (logoDiv) {
+        logoDiv.innerHTML = '<div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div><span style="display:block;font-size:11px;color:#888;margin-top:1px">거래첸 관리</span>';
+      }
+
+      // 이름 + 로그아웃 버튼을 header 오른쪽 고정 div에 삽입
+      var existing = document.getElementById('_userArea');
+      if (!existing) {
+        var header = document.querySelector('header');
+        var userArea = document.createElement('div');
+        userArea.id = '_userArea';
+        userArea.style.cssText = 'position:fixed;top:0;right:0;height:48px;display:flex;align-items:center;gap:6px;padding:0 12px;z-index:1000;background:rgba(255,255,255,0.95);backdrop-filter:blur(4px)';
+
+        if (p.role === 'superadmin' || p.role === 'manager') {
+          var adminLink = document.createElement('a');
+          adminLink.href = 'admin.html';
+          adminLink.style.cssText = 'background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8;text-decoration:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600';
+          adminLink.textContent = p.role === 'superadmin' ? '관리자' : '팔장';
+          userArea.appendChild(adminLink);
+        }
+
+        var nameSpan = document.createElement('span');
+        nameSpan.style.cssText = 'font-size:12px;color:#555;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis';
+        nameSpan.textContent = (p.name || s.user.email) + ' 님';
+        userArea.appendChild(nameSpan);
+
+        var logoutBtn = document.createElement('button');
+        logoutBtn.style.cssText = 'background:#fff0f0;border:1px solid #ffaaaa;color:#e53e3e;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;white-space:nowrap';
+        logoutBtn.textContent = '로그아웃';
+        logoutBtn.onclick = function() {
+          if (confirm('로그아웃 하시겠습니까?')) {
+            _sb.auth.signOut().then(function() { window.location.href = 'login.html'; });
+          }
+        };
+        userArea.appendChild(logoutBtn);
+        document.body.appendChild(userArea);
+      }
+
+      document.title = '닥터체크Pro';
+
+      try {
+        var v9 = localStorage.getItem('myschedule_v9'), v6 = localStorage.getItem('myschedule_v6');
+        var miData = localStorage.getItem('hs_myinfo'), mp = localStorage.getItem('hs_myproducts');
+        if (v9 || v6) {
+          _sb.from('user_app_data').upsert({
+            user_id: s.user.id, email: s.user.email, name: p.name || '',
+            company: p.company || '',
+            data_v9: v9 ? JSON.parse(v9) : null, data_v6: v6 ? JSON.parse(v6) : null,
+            myinfo: miData ? JSON.parse(miData) : null, myproducts: mp ? JSON.parse(mp) : null,
+            synced_at: new Date().toISOString()
+          }, {onConflict: 'user_id'});
+        }
+      } catch(e) {}
     });
   });
-};
-</script>
+};</script>
 </body>
 </html>
