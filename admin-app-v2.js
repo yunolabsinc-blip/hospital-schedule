@@ -5,37 +5,6 @@ const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentRejectUserId = null;
 
-// 1. 로그인 여부 확인
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = 'login.html'; // 로그인 안 됐으면 로그인 페이지로
-    return;
-  }
-
-  // 2. superadmin인지 확인
-  const { data: profile } = await sb
-    .from('user_profiles')
-    .select('role, email, name')
-    .eq('id', session.user.id)
-    .single();
-
-  if (!profile || profile.role !== 'superadmin') {
-    // superadmin이 아니면 앱으로 보냄
-    window.location.href = 'index.html';
-    return;
-  }
-
-  // 3. 관리자 이메일 표시
-  document.getElementById('adminEmail').textContent = profile.email + ' (superadmin)';
-
-  // 4. 데이터 불러오기
-  await loadAll();
-});
-
-
-// ============================================================
-// 전체 데이터 로드
-// ============================================================
 async function loadAll() {
   await Promise.all([
     loadStats(),
@@ -467,10 +436,6 @@ window.loadUserData = loadUserData;
 window.exportExcel = exportExcel;
 window.setPendingRole = setPendingRole;
 
-document.addEventListener("DOMContentLoaded", function() {
-  loadAll();
-});
-
 // ── 로그아웃 ──
 async function logout() {
   await sb.auth.signOut();
@@ -478,4 +443,38 @@ async function logout() {
 }
 
 // ── 앱 시작 ──
-document.addEventListener('DOMContentLoaded', function() { loadAll(); });
+document.addEventListener('DOMContentLoaded', function() {
+  (async function() {
+    // 1. 로그인 여부 확인
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html'; // 로그인 안 됐으면 로그인 페이지로
+        return;
+      }
+    
+      // 2. superadmin인지 확인
+      const { data: profile } = await sb
+        .from('user_profiles')
+        .select('role, email, name')
+        .eq('id', session.user.id)
+        .single();
+    
+      if (!profile || profile.role !== 'superadmin') {
+        // superadmin이 아니면 앱으로 보냄
+        window.location.href = 'index.html';
+        return;
+      }
+    
+      // 3. 관리자 이메일 표시
+      document.getElementById('adminEmail').textContent = profile.email + ' (superadmin)';
+    
+      // 4. 데이터 불러오기
+      await loadAll();
+    });
+    
+    
+    // ============================================================
+    // 전체 데이터 로드
+    // ============================================================
+  })();
+});
