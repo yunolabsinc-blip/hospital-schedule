@@ -3876,7 +3876,12 @@ function injectUijCheok(){
         userArea.appendChild(ns);
         var lb = document.createElement('button');
         lb.style.cssText = 'background:#fff0f0;border:1px solid #ffaaaa;color:#e53e3e;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;white-space:nowrap';
-        lb.textContent = '로그아웃';
+                var iqBtn = document.createElement('button');
+        iqBtn.style.cssText = 'background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;white-space:nowrap';
+        iqBtn.textContent = '문의';
+        iqBtn.onclick = function(){ if(window.openInquiryModal) openInquiryModal(); };
+        userArea.appendChild(iqBtn);
+lb.textContent = '로그아웃';
         lb.onclick = function() {
           if (confirm('로그아웃 하시겠습니까?')) {
             _sb.auth.signOut().then(function() { window.location.href = 'login.html'; });
@@ -3915,6 +3920,86 @@ function injectUijCheok(){
       } catch(e) {}
     });
   });
-};</script>
+};
+
+// ── 고객문의 ──
+var _sbInquiry = null;
+function _getSb(){ if(!_sbInquiry) _sbInquiry=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'); return _sbInquiry; }
+
+function openInquiryModal(){
+  var m=document.getElementById('inquiryModal');
+  if(m) m.style.display='flex';
+  var t=document.getElementById('inquiryTitle');
+  var c=document.getElementById('inquiryContent');
+  if(t) t.value=''; if(c) c.value='';
+}
+function closeInquiryModal(){
+  var m=document.getElementById('inquiryModal');
+  if(m) m.style.display='none';
+}
+function closeMyInquiries(){
+  var m=document.getElementById('myInquiriesModal');
+  if(m) m.style.display='none';
+}
+function submitInquiry(){
+  var title=(document.getElementById('inquiryTitle')||{}).value||'';
+  var content=(document.getElementById('inquiryContent')||{}).value||'';
+  if(!title.trim()||!content.trim()){alert('제목과 내용을 모두 입력해주세요.');return;}
+  var sb2=_getSb();
+  sb2.auth.getSession().then(function(res){
+    var s=res.data&&res.data.session;
+    if(!s){alert('로그인이 필요합니다.');return;}
+    sb2.from('user_profiles').select('name,company').eq('id',s.user.id).maybeSingle().then(function(pr){
+      var p=pr.data||{};
+      sb2.from('inquiries').insert({
+        user_id:s.user.id, user_email:s.user.email,
+        user_name:p.name||s.user.email, company:p.company||'',
+        title:title, content:content, status:'pending'
+      }).then(function(r){
+        if(r.error){alert('Error: '+r.error.message);return;}
+        closeInquiryModal();
+        alert('문의가 접수되었습니다. \n답변은 고객문의 보기에서 확인하세요.');
+      });
+    });
+  });
+}
+function myInquiriesList(){
+  closeInquiryModal();
+  var m=document.getElementById('myInquiriesModal');
+  if(m) m.style.display='flex';
+  var body=document.getElementById('myInquiriesList_body');
+  if(body) body.innerHTML='<p style="text-align:center;color:#aaa;padding:20px">로딩 중...</p>';
+  var sb2=_getSb();
+  sb2.auth.getSession().then(function(res){
+    var s=res.data&&res.data.session;
+    if(!s) return;
+    sb2.from('inquiries').select('*').eq('user_id',s.user.id).order('created_at',{ascending:false}).then(function(r){
+      var data=r.data||[];
+      if(!body) return;
+      if(!data.length){body.innerHTML='<p style="text-align:center;color:#aaa;padding:20px">접수된 문의가 없습니다</p>';return;}
+      body.innerHTML=data.map(function(d){
+        var st=d.status==='replied'?
+          '<span style="background:#dcfce7;color:#166534;font-size:11px;padding:2px 8px;border-radius:12px">답변완료</span>':
+          '<span style="background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:12px">답변대기</span>';
+        var replyHtml=d.admin_reply?
+          '<div style="margin-top:8px;padding:10px 12px;background:#eff6ff;border-radius:8px;font-size:13px;color:#1d4ed8">' +
+            '<span style="font-size:11px;color:#93c5fd;display:block;margin-bottom:2px">관리자 답변 &middot; '+d.replied_at?d.replied_at.substring(0,10):''+'</span>'+
+            d.admin_reply+
+          '</div>':'';
+        return '<div style="border:1px solid #e2e8f0;border-radius:12px;padding:14px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'+
+            '<span style="font-size:14px;font-weight:600;flex:1">'+d.title+'</span>'+st+
+          '</div>'+
+          '<div style="font-size:13px;color:#555;margin-bottom:4px">'+d.content+'</div>'+
+          '<div style="font-size:11px;color:#aaa">'+d.created_at.substring(0,10)+'</div>'+
+          replyHtml+
+        '</div>';
+      }).join('');
+    });
+  });
+}
+
+</script>
+<div id="inquiryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:flex-end;padding-bottom:0"><div style="background:white;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:520px;margin:0 auto;max-height:90vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:17px;font-weight:700;margin:0">고객 문의</h3><button onclick="closeInquiryModal()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button></div><input id="inquiryTitle" placeholder="제목을 입력해주세요" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;margin-bottom:10px"><textarea id="inquiryContent" placeholder="문의 내용을 입력해주세요" rows="5" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;resize:vertical;margin-bottom:14px"></textarea><div style="display:flex;gap:8px"><button onclick="myInquiriesList()" style="flex:1;padding:12px;background:#f1f5f9;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#475569;cursor:pointer">내 문의 보기</button><button onclick="submitInquiry()" style="flex:2;padding:12px;background:#2563eb;border:none;border-radius:10px;font-size:14px;font-weight:700;color:white;cursor:pointer">문의 제출</button></div></div></div><div id="myInquiriesModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:flex-end"><div style="background:white;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:520px;margin:0 auto;max-height:85vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:17px;font-weight:700;margin:0">내 문의 내역</h3><button onclick="closeMyInquiries()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button></div><div id="myInquiriesList_body" style="display:flex;flex-direction:column;gap:10px"><p style="text-align:center;color:#aaa;padding:20px">로딩 중...</p></div></div></div>
 </body>
 </html>
