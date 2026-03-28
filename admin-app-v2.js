@@ -30,10 +30,20 @@ function switchTab(tab){
   document.getElementById('pendingTab').style.display=tab==='pending'?'block':'none';
   document.getElementById('allTab').style.display=tab==='all'?'block':'none';
   document.getElementById('dataTab').style.display=tab==='data'?'block':'none';
+  var iq=document.getElementById('inquiryTab');
+  if(iq)iq.style.display=tab==='inquiry'?'block':'none';
   if(tab==='data')loadUserData();
   if(tab==='all')loadAllList();
+  if(tab==='inquiry')loadInquiries();
 }
-function loadAll(){loadStats();loadPendingList();loadAllList();}
+function loadAll(){loadStats();loadPendingList();loadAllList();loadInquiryBadge();}
+function loadInquiryBadge(){
+  sb.from('inquiries').select('id').eq('status','pending').then(function(r){
+    var cnt=(r.data||[]).length;
+    var b=document.getElementById('inquiryBadge');
+    if(b){b.textContent=cnt>0?cnt:'';b.style.display=cnt>0?'inline':'none';}
+  });
+}
 function loadStats(){
   sb.from('user_profiles').select('status').then(function(r){
     var d=r.data||[];
