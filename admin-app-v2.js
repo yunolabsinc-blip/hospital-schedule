@@ -256,7 +256,7 @@ function loadUserData(){
             var dr=doctors[drIdx];
             var done=!!rec.checked;
             if(done)totalR++;
-            rows.push({company:user.company||(window._pMap&&window._pMap[user.email])||'',user:user.name||user.email,hosp:hosp?hosp.name:hospId,dr:dr?dr.name:drKey,dept:dr?(dr.dept||''):'',date:date,time:rec.time||'',products:Array.isArray(rec.products)?rec.products.join(', '):(rec.product||''),note:rec.note||rec.planNote||'',type:done?'completed':'planned'});
+            rows.push({company:user.company||(window._pMap&&window._pMap[user.email])||'',user:user.name||user.email,hosp:hosp?hosp.name:hospId,dr:dr?dr.name:drKey,dept:dr?(dr.dept||''):'',date:date,time:rec.time||'',products:Array.isArray(rec.products)?rec.products.join(', '):(rec.product||''),note:rec.note||rec.planNote||'',planNote:rec.planNote||rec.plan||rec.note||'',resultNote:rec.resultNote||rec.result||(done?rec.note||'':''),type:done?'completed':'planned'});
           });
         });
       });
@@ -267,30 +267,26 @@ function loadUserData(){
 }
 function _updateFilters(rows){
   var uniq=function(arr){return arr.filter(function(v,i,a){return a.indexOf(v)===i&&v;}).sort();};
-  var mkOpts=function(items,label){return '<option value="">'+label+'</option>'+items.map(function(v){return'<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');};
   var mkSel=function(id,items,label){
-    return '<select id="'+id+'" onchange="filterActivityData()" style="font-size:10px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:5px;width:100%;max-width:100px;background:white">'+mkOpts(items,label)+'</select>';
+    var cur=(document.getElementById(id)||{}).value||'';
+    return '<select id="'+id+'" onchange="filterActivityData()" style="font-size:10px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:5px;max-width:100%;background:white"><option value="">'+label+'</option>'+items.map(function(v){return'<option value="'+esc(v)+'"'+(v===cur?' selected':'')+'>'+esc(v)+'</option>';}).join('')+'</select>';
   };
   var prods=[];rows.forEach(function(r){r.products.split(',').forEach(function(p){var t=p.trim();if(t&&prods.indexOf(t)<0)prods.push(t);});});
   prods.sort();
   var thead=document.getElementById('activityThead');
   if(!thead)return;
+  var cf=(document.getElementById('filterDateFrom')||{}).value||'';
+  var ct=(document.getElementById('filterDateTo')||{}).value||'';
   thead.innerHTML='<tr style="background:#f8fafc">'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:70px;vertical-align:top">회사<br>'+mkSel('filterDataCompany',uniq(rows.map(function(r){return r.company;})),'전체')+'</th>'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:70px;vertical-align:top">사용자<br>'+mkSel('filterDataUser',uniq(rows.map(function(r){return r.user;})),'전체')+'</th>'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:90px;vertical-align:top">거래치<br>'+mkSel('filterDataHosp',uniq(rows.map(function(r){return r.hosp;})),'전체')+'</th>'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:70px;vertical-align:top">의사<br>'+mkSel('filterDataDoctor',uniq(rows.map(function(r){return r.dr;})),'전체')+'</th>'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:100px;vertical-align:top">날짜<br>'+
-      '<div style="display:flex;gap:2px;align-items:center;flex-wrap:wrap">'+
-      '<input type="date" id="filterDateFrom" onchange="filterActivityData()" style="font-size:10px;padding:2px 3px;border:1px solid #e2e8f0;border-radius:5px;max-width:115px">'+
-      '<span style="font-size:10px">~</span>'+
-      '<input type="date" id="filterDateTo" onchange="filterActivityData()" style="font-size:10px;padding:2px 3px;border:1px solid #e2e8f0;border-radius:5px;max-width:115px">'+
-      '</div>'+
-    '</th>'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:60px;vertical-align:top">시간대</th>'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:80px;vertical-align:top">제품<br>'+mkSel('filterDataProduct',prods,'전체')+'</th>'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:80px;vertical-align:top">활동내용</th>'+
-    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:60px;vertical-align:top">구분<br>'+mkSel('filterDataType',['결과','계획'],'전체')+'</th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:60px">회사<br>'+mkSel('filterDataCompany',uniq(rows.map(function(r){return r.company;})),'전체')+'</th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:60px">사용자<br>'+mkSel('filterDataUser',uniq(rows.map(function(r){return r.user;})),'전체')+'</th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:80px">거래치<br>'+mkSel('filterDataHosp',uniq(rows.map(function(r){return r.hosp;})),'전체')+'</th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:70px">의사<br>'+mkSel('filterDataDoctor',uniq(rows.map(function(r){return r.dr;})),'전체')+'</th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;white-space:nowrap">날짜<div style="display:flex;gap:2px;margin-top:2px"><input type="date" id="filterDateFrom" onchange="filterActivityData()" value="'+cf+'" style="font-size:10px;padding:2px;border:1px solid #e2e8f0;border-radius:4px;width:108px"><span style="font-size:9px;color:#aaa">~</span><input type="date" id="filterDateTo" onchange="filterActivityData()" value="'+ct+'" style="font-size:10px;padding:2px;border:1px solid #e2e8f0;border-radius:4px;width:108px"></div></th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;white-space:nowrap">시간대</th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:80px">제품<br>'+mkSel('filterDataProduct',prods,'전체')+'</th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:90px">활동계획<br>'+mkSel('filterDataType',['계획','결과'],'전체+결과')+'</th>'+
+    '<th style="padding:7px 10px;text-align:left;font-weight:500;color:#555;min-width:90px">활동결과</th>'+
   '</tr>';
 }
 function filterActivityData(){
@@ -316,21 +312,25 @@ function filterActivityData(){
   }));
 }
 function renderActivityTable(rows){
-  var tb=document.getElementById('activityTableBody');if(!tb)return;
+  var tb=document.getElementById('activityTableBody');
+  if(!tb)return;
+  _updateFilters(rows);
   if(!rows.length){tb.innerHTML='<tr><td colspan="9" style="padding:30px;text-align:center;color:#aaa">필터 결과 없음</td></tr>';return;}
   tb.innerHTML=rows.map(function(r,i){
     var bg=i%2===0?'':'background:#fafafa';
-    var badge=r.type==='completed'?'<span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px">결과</span>':'<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 6px;border-radius:4px">계획</span>';
+    var pn=esc(r.planNote||r.note||'');
+    var rn=r.type==='completed'?esc(r.resultNote||r.note||''):'<span style="color:#d1d5db">미완료</span>';
     return '<tr style="border-bottom:1px solid #f0f0f0;'+bg+'">'+
-      '<td style="padding:8px 10px;font-size:12px;color:#666;white-space:nowrap;min-width:60px">'+esc(r.company)+'</td>'+
-      '<td style="padding:8px 10px;font-size:12px;font-weight:500;white-space:nowrap;min-width:60px">'+esc(r.user)+'</td>'+
-      '<td style="padding:8px 10px;font-size:13px">'+esc(r.hosp)+'</td>'+
-      '<td style="padding:8px 10px"><div style="font-size:13px;white-space:nowrap">'+esc(r.dr)+'</div><div style="font-size:11px;color:#aaa">'+esc(r.dept)+'</div></td>'+
-      '<td style="padding:8px 10px;font-size:12px;white-space:nowrap;min-width:90px">'+esc(r.date)+'</td>'+
-      '<td style="padding:8px 10px;font-size:12px">'+esc(r.time)+'</td>'+
+      '<td style="padding:8px 10px;font-size:12px;color:#444;white-space:nowrap;font-weight:600">'+esc(r.company)+'</td>'+
+      '<td style="padding:8px 10px;font-size:12px;font-weight:500;white-space:nowrap">'+esc(r.user)+'</td>'+
+      '<td style="padding:8px 10px;font-size:12px">'+esc(r.hosp)+'</td>'+
+      '<td style="padding:8px 10px"><div style="font-size:12px;white-space:nowrap">'+esc(r.dr)+'</div><div style="font-size:10px;color:#aaa">'+esc(r.dept)+'</div></td>'+
+      '<td style="padding:8px 10px;font-size:12px;white-space:nowrap">'+esc(r.date)+'</td>'+
+      '<td style="padding:8px 10px;font-size:12px;white-space:nowrap">'+esc(r.time)+'</td>'+
       '<td style="padding:8px 10px;font-size:11px;color:#2563eb">'+esc(r.products)+'</td>'+
-      '<td style="padding:8px 10px;font-size:11px;color:#555;max-width:150px">'+esc(r.note)+'</td>'+
-      '<td style="padding:8px 10px">'+badge+'</td></tr>';
+      '<td style="padding:8px 10px;font-size:11px;color:#374151;min-width:100px">'+pn+'</td>'+
+      '<td style="padding:8px 10px;font-size:11px;min-width:100px">'+rn+'</td>'+
+    '</tr>';
   }).join('');
 }
 function exportExcel(){
@@ -343,8 +343,8 @@ function exportExcel(){
   var dateTo2=(document.getElementById('filterDateTo')||{}).value||'';
   var rows=_activityRows.filter(function(r){if(user&&r.user!==user)return false;if(hosp&&r.hosp!==hosp)return false;if(doctor&&r.dr!==doctor)return false;if(product&&!r.products.includes(product))return false;if(type&&r.type!==type)return false;return true;});
   if(!rows.length){alert('데이터 없음');return;}
-  var h=['회사','사용자','거래치','의사','진료과','날짜','시간대','제품','활동내용','구분'];
-  var csv=[h.join(',')].concat(rows.map(function(r){return[r.company,r.user,r.hosp,r.dr,r.dept,r.date,r.time,r.products,r.note,r.type==='completed'?'결과':'계획'].map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');})).join('\n');
+  var h=['회사','사용자','거래치','의사','진료과','날짜','시간대','제품','활동계획','활동결과'];
+  var csv=[h.join(',')].concat(rows.map(function(r){return[r.company,r.user,r.hosp,r.dr,r.dept,r.date,r.time,r.products,r.planNote||r.note||'',r.type==='completed'?(r.resultNote||r.note||''):'미완료'].map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');})).join('\n');
   _dlCsv('활동데이터_'+new Date().toISOString().substring(0,10)+'.csv',csv);
 }
 function _dlCsv(filename,csv){
