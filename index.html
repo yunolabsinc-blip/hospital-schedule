@@ -3871,7 +3871,9 @@ function injectUijCheok(){
           userArea.appendChild(al);
         }
         var ns = document.createElement('span');
-        ns.style.cssText = 'font-size:12px;color:#555;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis';
+        ns.style.cssText = 'font-size:12px;color:#555;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-bottom:1px dotted #aaa';
+        ns.title='마이페이지';
+        ns.onclick=function(){openMyPage();};
         ns.textContent = (p.name || s.user.email) + ' 님';
         userArea.appendChild(ns);
         var lb = document.createElement('button');
@@ -4009,7 +4011,65 @@ function confirmDelHosp(id){
   if(ok) delHosp(id);
 }
 // 거래치 삭제 confirm 엔터키 - 브라우저 기본 confirm은 엔터 자동 지원
+
+var _PL={beta:'베타(무료)','4950':'4,950원/월','9900':'9,900원/월','19800':'19,800원/월','49500':'49,500원/년','99000':'99,000원/년',enterprise:'기업회원'};
+function openMyPage(){
+  var m=document.getElementById('myPageModal');
+  if(m)m.style.display='flex';
+  try{
+    var mi=JSON.parse(localStorage.getItem('hs_myinfo')||'{ }');
+    var el=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v||'-';};
+    el('mpName',mi.name);el('mpEmail',mi.email);el('mpCompany',mi.company);
+    el('mpPlan',_PL[localStorage.getItem('hs_plan')||'beta']||'베타(무료)');
+  }catch(e){}
+}
+function closeMyPage(){var m=document.getElementById('myPageModal');if(m)m.style.display='none';}
+function showWithdrawConfirm(){closeMyPage();var m=document.getElementById('withdrawModal2');if(m)m.style.display='flex';}
+function doWithdraw(){
+  var sb3=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
+  sb3.auth.getSession().then(function(res){
+    var s=res.data&&res.data.session;
+    if(!s){alert('로그인이 필요합니다.');return;}
+    sb3.from('user_profiles').update({status:'withdrawal_requested',withdrawal_at:new Date().toISOString()}).eq('id',s.user.id)
+      .then(function(r){
+        if(r.error){alert('오류: '+r.error.message);return;}
+        document.getElementById('withdrawModal2').style.display='none';
+        alert('탈퇴 신청이 접수되었습니다.');
+        sb3.auth.signOut().then(function(){window.location.href='login.html';});
+      });
+  });
+}
 </script>
 <div id="inquiryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;padding:16px"><div style="background:white;border-radius:16px;padding:24px 20px;width:100%;max-width:480px;margin:0 auto;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:17px;font-weight:700;margin:0">고객 문의</h3><button onclick="closeInquiryModal()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button></div><input id="inquiryTitle" placeholder="제목을 입력해주세요" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;margin-bottom:10px"><textarea id="inquiryContent" placeholder="문의 내용을 입력해주세요" rows="5" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;resize:vertical;margin-bottom:14px"></textarea><div style="display:flex;gap:8px"><button onclick="myInquiriesList()" style="flex:1;padding:12px;background:#f1f5f9;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#475569;cursor:pointer">내 문의 보기</button><button onclick="submitInquiry()" style="flex:2;padding:12px;background:#2563eb;border:none;border-radius:10px;font-size:14px;font-weight:700;color:white;cursor:pointer">문의 제출</button></div></div></div><div id="myInquiriesModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;padding:16px"><div style="background:white;border-radius:16px;padding:24px 20px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:17px;font-weight:700;margin:0">내 문의 내역</h3><button onclick="closeMyInquiries()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button></div><div id="myInquiriesList_body" style="display:flex;flex-direction:column;gap:10px"><p style="text-align:center;color:#aaa;padding:20px">로딩 중...</p></div></div></div>
+<div id="myPageModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;padding:20px">
+  <div style="background:white;border-radius:16px;padding:24px 20px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.25)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3 style="font-size:18px;font-weight:700;margin:0">마이페이지</h3>
+      <button onclick="closeMyPage()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button>
+    </div>
+    <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:80px 1fr;gap:8px;font-size:14px">
+        <span style="color:#888">이름</span><b id="mpName"></b>
+        <span style="color:#888">이메일</span><span id="mpEmail" style="word-break:break-all"></span>
+        <span style="color:#888">회사</span><b id="mpCompany"></b>
+        <span style="color:#888">요금제</span><span id="mpPlan" style="color:#2563eb;font-weight:600"></span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="openInquiryModal();closeMyPage();" style="padding:11px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;font-size:14px;color:#1d4ed8;cursor:pointer;font-weight:500">💬 고객 문의</button>
+      <button onclick="showWithdrawConfirm()" style="padding:11px;background:#fff5f5;border:1px solid #fed7d7;border-radius:10px;font-size:14px;color:#e53e3e;cursor:pointer;font-weight:500">회원 탈퇴 신청</button>
+    </div>
+  </div>
+</div>
+<div id="withdrawModal2" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;justify-content:center;align-items:center;padding:20px">
+  <div style="background:white;border-radius:16px;padding:24px;width:100%;max-width:340px">
+    <div style="font-size:17px;font-weight:700;margin-bottom:10px">회원 탈퇴 신청</div>
+    <div style="font-size:14px;color:#555;line-height:1.7;margin-bottom:18px">정말 탈퇴하시겠습니까?<br><span style="color:#e53e3e;font-size:12px">탈퇴 신청 후 관리자 검토 후 처리됩니다.</span></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="document.getElementById('withdrawModal2').style.display='none'" style="flex:1;padding:12px;background:#f1f5f9;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#475569;cursor:pointer">취소</button>
+      <button onclick="doWithdraw()" style="flex:1;padding:12px;background:#e53e3e;border:none;border-radius:10px;font-size:14px;font-weight:600;color:white;cursor:pointer">탈퇴 신청</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
