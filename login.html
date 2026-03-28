@@ -5,157 +5,108 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>닥터체크Pro</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, 'Noto Sans KR', sans-serif;
-  background: #f0f4f8;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.card {
-  background: white;
-  border-radius: 20px;
-  padding: 36px 32px 28px;
-  width: 100%;
-  max-width: 380px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
-}
-.logo-wrap { text-align: center; margin-bottom: 28px; }
-.logo-name { font-size: 26px; font-weight: 700; color: #1a1a1a; }
-.logo-pro { color: #2563eb; font-size: 0.68em; font-weight: 700; }
-.logo-sub { font-size: 13px; color: #888; margin-top: 5px; }
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 12px; font-weight: 500; color: #555; margin-bottom: 6px; }
-.field input {
-  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px;
-  padding: 12px 14px; font-size: 14px; color: #1a1a1a;
-  outline: none; background: #fafafa; font-family: inherit;
-}
-.field input:focus { border-color: #2563eb; background: white; }
-.pw-wrap { position: relative; }
-.pw-wrap input { padding-right: 44px; }
-.pw-eye {
-  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
-  cursor: pointer; font-size: 17px; color: #aaa; user-select: none;
-}
-.remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-.remember-row input[type=checkbox] { width: 15px; height: 15px; accent-color: #2563eb; cursor: pointer; }
-.remember-row label { font-size: 12px; color: #666; cursor: pointer; }
-.btn-login {
-  width: 100%; padding: 14px; background: #2563eb; color: white;
-  border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
-  cursor: pointer; font-family: inherit;
-}
-.btn-login:hover { background: #1d4ed8; }
-.err-box {
-  background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
-  border-radius: 8px; padding: 10px 14px; font-size: 12px;
-  margin-top: 12px; display: none;
-}
-.divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 16px; }
-.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e8e8e8; }
-.divider span { font-size: 12px; color: #aaa; white-space: nowrap; }
-.btn-signup {
-  width: 100%; padding: 13px; background: white; color: #2563eb;
-  border: 1.5px solid #2563eb; border-radius: 10px; font-size: 14px;
-  font-weight: 600; cursor: pointer; font-family: inherit;
-}
-.btn-signup:hover { background: #eff6ff; }
-.beta-notice {
-  background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px;
-  padding: 10px 14px; font-size: 12px; color: #166534;
-  margin-top: 16px; text-align: center; line-height: 1.6;
-}
-.spinner {
-  display: inline-block; width: 15px; height: 15px;
-  border: 2px solid rgba(255,255,255,0.4); border-top-color: white;
-  border-radius: 50%; animation: spin 0.6s linear infinite;
-  vertical-align: middle; margin-right: 6px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.status-view { display: none; text-align: center; padding: 8px 0; }
-.status-icon { font-size: 44px; margin-bottom: 14px; }
-.status-title { font-size: 17px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
-.status-body { font-size: 13px; color: #666; line-height: 1.7; }
-.btn-out {
-  margin-top: 20px; padding: 9px 22px; border: 1.5px solid #e2e8f0;
-  border-radius: 8px; background: white; color: #555; font-size: 13px;
-  cursor: pointer; font-family: inherit;
-}
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45); z-index: 200;
-  align-items: center; justify-content: center; padding: 20px;
-}
-.modal-overlay.open { display: flex; }
-.modal-box {
-  background: white; border-radius: 20px; padding: 28px 28px 24px;
-  width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto;
-  position: relative;
-}
-.modal-close {
-  position: absolute; top: 16px; right: 18px; font-size: 22px;
-  color: #aaa; cursor: pointer; background: none; border: none;
-}
-.modal-logo { text-align: center; padding-bottom: 16px; border-bottom: 1px solid #f0f0f0; margin-bottom: 16px; }
-.sec { font-size: 10px; font-weight: 600; color: #aaa; letter-spacing: 0.07em; text-transform: uppercase; margin: 14px 0 8px; }
-.mfield { margin-bottom: 10px; }
-.mfield label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; color: #555; margin-bottom: 4px; }
-.mfield label .req { color: #e53e3e; font-size: 11px; }
-.mfield input {
-  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px;
-  padding: 9px 12px; font-size: 13px; color: #1a1a1a; outline: none;
-  background: #fafafa; font-family: inherit;
-}
-.mfield input:focus { border-color: #2563eb; background: white; }
-.mfield input.ok { border-color: #22c55e; }
-.mfield input.err { border-color: #ef4444; }
-.pw-bar-wrap { height: 3px; background: #f0f0f0; border-radius: 2px; margin: 3px 0 2px; }
-.pw-bar-fill { height: 100%; border-radius: 2px; width: 0; transition: width .3s, background .3s; }
-.hint { font-size: 11px; margin-top: 2px; }
-.hint.ok { color: #22c55e; }
-.hint.err { color: #ef4444; }
-.hint.gray { color: #aaa; }
-.role-btns { display: flex; gap: 6px; }
-.role-btn {
-  flex: 1; padding: 7px 4px; border: 1.5px solid #e2e8f0; border-radius: 8px;
-  font-size: 11px; text-align: center; cursor: pointer; color: #888;
-  background: white; font-family: inherit;
-}
-.role-btn.on { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 500; }
-.agree-box {
-  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-  padding: 10px 12px; margin: 12px 0 8px; font-size: 11px; color: #555;
-  line-height: 1.7; max-height: 80px; overflow-y: auto;
-}
-.agree-check { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.agree-check input[type=checkbox] { width: 14px; height: 14px; accent-color: #2563eb; cursor: pointer; flex-shrink: 0; }
-.agree-check label { font-size: 12px; color: #333; cursor: pointer; }
-.btn-submit {
-  width: 100%; padding: 12px; background: #2563eb; color: white;
-  border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
-  cursor: pointer; margin-top: 14px; font-family: inherit;
-}
-.btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
-.modal-note { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; line-height: 1.5; }
-.merr-box {
-  background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
-  border-radius: 8px; padding: 10px 14px; font-size: 12px; margin-top: 10px; display: none;
-}
-.signup-success { display: none; text-align: center; padding: 20px 0; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:white;border-radius:20px;padding:36px 32px 28px;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,0.10)}
+
+/* ── 로고 ── */
+.logo-wrap{text-align:center;margin-bottom:28px}
+.logo-main{display:inline-flex;align-items:flex-start;gap:0;line-height:1}
+.logo-text{font-size:28px;font-weight:800;color:#1a1a1a;letter-spacing:-1px}
+.logo-pro{font-size:13px;font-weight:700;color:#2563eb;margin-top:2px;margin-left:1px;letter-spacing:0}
+.logo-sub{font-size:13px;color:#888;margin-top:6px}
+
+/* ── 입력 필드 ── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:6px}
+.field input{width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:14px;color:#1a1a1a;outline:none;background:#fafafa;font-family:inherit;transition:border-color .15s}
+.field input:focus{border-color:#2563eb;background:white}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:44px}
+.pw-eye{position:absolute;right:13px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:17px;color:#aaa;user-select:none}
+
+/* ── 옵션 행 ── */
+.options-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:6px}
+.check-group{display:flex;gap:14px}
+.check-item{display:flex;align-items:center;gap:5px;cursor:pointer}
+.check-item input[type=checkbox]{width:14px;height:14px;accent-color:#2563eb;cursor:pointer}
+.check-item label{font-size:12px;color:#555;cursor:pointer;white-space:nowrap}
+.find-links{display:flex;gap:8px}
+.find-link{font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;padding:0;font-family:inherit}
+.find-link:hover{text-decoration:underline}
+.find-sep{font-size:12px;color:#ddd;line-height:1.5}
+
+/* ── 버튼 ── */
+.btn-login{width:100%;padding:14px;background:#2563eb;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-login:hover{background:#1d4ed8}
+.btn-login:disabled{background:#94a3b8;cursor:not-allowed}
+.btn-signup{width:100%;padding:13px;background:white;color:#2563eb;border:1.5px solid #2563eb;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-signup:hover{background:#eff6ff}
+
+/* ── 에러/구분선 ── */
+.err-box{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:8px;padding:10px 14px;font-size:12px;margin-top:12px;display:none}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0 16px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e8e8e8}
+.divider span{font-size:12px;color:#aaa;white-space:nowrap}
+
+/* ── 베타 배너 ── */
+.beta-notice{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 14px;font-size:12px;color:#166534;margin-top:16px;text-align:center;line-height:1.6}
+
+/* ── 스피너 ── */
+.spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── 상태 화면 ── */
+.status-view{display:none;text-align:center;padding:8px 0}
+.status-icon{font-size:44px;margin-bottom:14px}
+.status-title{font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:8px}
+.status-body{font-size:13px;color:#666;line-height:1.7}
+.btn-out{margin-top:20px;padding:9px 22px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;color:#555;font-size:13px;cursor:pointer;font-family:inherit}
+
+/* ── 모달 ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:20px;padding:28px 28px 24px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:16px;right:18px;font-size:22px;color:#aaa;cursor:pointer;background:none;border:none}
+.modal-logo{text-align:center;padding-bottom:16px;border-bottom:1px solid #f0f0f0;margin-bottom:16px}
+.sec{font-size:10px;font-weight:600;color:#aaa;letter-spacing:.07em;text-transform:uppercase;margin:14px 0 8px}
+.mfield{margin-bottom:10px}
+.mfield label{display:flex;justify-content:space-between;font-size:12px;font-weight:500;color:#555;margin-bottom:4px}
+.mfield label .req{color:#e53e3e;font-size:11px}
+.mfield input{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 12px;font-size:13px;color:#1a1a1a;outline:none;background:#fafafa;font-family:inherit;transition:border-color .15s}
+.mfield input:focus{border-color:#2563eb;background:white}
+.mfield input.ok{border-color:#22c55e}
+.mfield input.err{border-color:#ef4444}
+.pw-bar-wrap{height:3px;background:#f0f0f0;border-radius:2px;margin:3px 0 2px}
+.pw-bar-fill{height:100%;border-radius:2px;width:0;transition:width .3s,background .3s}
+.hint{font-size:11px;margin-top:2px}
+.hint.ok{color:#22c55e}.hint.err{color:#ef4444}.hint.gray{color:#aaa}
+.role-btns{display:flex;gap:6px}
+.role-btn{flex:1;padding:7px 4px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:11px;text-align:center;cursor:pointer;color:#888;background:white;font-family:inherit}
+.role-btn.on{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:500}
+.agree-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin:12px 0 8px;font-size:11px;color:#555;line-height:1.7;max-height:80px;overflow-y:auto}
+.agree-check{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.agree-check input[type=checkbox]{width:14px;height:14px;accent-color:#2563eb;cursor:pointer;flex-shrink:0}
+.agree-check label{font-size:12px;color:#333;cursor:pointer}
+.btn-submit{width:100%;padding:12px;background:#2563eb;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-top:14px;font-family:inherit}
+.btn-submit:disabled{background:#94a3b8;cursor:not-allowed}
+.modal-note{font-size:11px;color:#aaa;text-align:center;margin-top:10px;line-height:1.5}
+.merr-box{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:8px;padding:10px 14px;font-size:12px;margin-top:10px;display:none}
+.signup-success{display:none;text-align:center;padding:20px 0}
 </style>
 </head>
 <body>
 
+<!-- ════ 메인 카드 ════ -->
 <div class="card">
   <div class="logo-wrap">
-    <div class="logo-name">닥터체크<span class="logo-pro">Pro</span></div>
+    <div class="logo-main">
+      <span class="logo-text">닥터체크</span><span class="logo-pro">Pro</span>
+    </div>
     <div class="logo-sub">의료 영업 전용 거래처 관리</div>
   </div>
 
+  <!-- 로그인 폼 -->
   <div id="loginSection">
     <div class="field">
       <label>이메일</label>
@@ -168,23 +119,39 @@ body {
         <span class="pw-eye" id="loginEye">👁</span>
       </div>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <input type="checkbox" id="rememberMe" style="width:15px;height:15px;accent-color:#2563eb;cursor:pointer">
-        <label for="rememberMe" style="font-size:12px;color:#666;cursor:pointer">아이디 기억하기</label>
+
+    <!-- 옵션 행: 체크박스 + 찾기 링크 -->
+    <div class="options-row">
+      <div class="check-group">
+        <div class="check-item">
+          <input type="checkbox" id="rememberMe">
+          <label for="rememberMe">아이디 기억</label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="autoLogin">
+          <label for="autoLogin">자동 로그인</label>
+        </div>
       </div>
-      <button onclick="showForgotPw()" style="font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;padding:0">비밀번호 찾기</button>
+      <div class="find-links">
+        <button class="find-link" id="findIdBtn">아이디 찾기</button>
+        <span class="find-sep">|</span>
+        <button class="find-link" id="findPwBtn">비밀번호 찾기</button>
+      </div>
     </div>
+
     <button class="btn-login" id="loginBtn">로그인</button>
     <div class="err-box" id="loginErr"></div>
+
     <div class="divider"><span>계정이 없으신가요?</span></div>
     <button class="btn-signup" id="openSignupBtn">회원가입 신청</button>
+
     <div class="beta-notice">
       🎉 베타 서비스 무료 운영 중<br>
       지금 가입하시면 정식 출시 전까지 <strong>무료</strong>로 이용하실 수 있습니다
     </div>
   </div>
 
+  <!-- 승인 대기 -->
   <div class="status-view" id="pendingView">
     <div class="status-icon">⏳</div>
     <div class="status-title">승인 대기 중입니다</div>
@@ -192,104 +159,129 @@ body {
       가입 신청을 받았습니다.<br>
       담당자 검토 후 이메일로 알려드릴게요.<br><br>
       보통 <strong>1 영업일 이내</strong> 처리됩니다.<br>
-      문의: <a href="/cdn-cgi/l/email-protection#6a131f0405060b0819440304092a0d070b030644090507" style="color:#2563eb"><span class="__cf_email__" data-cfemail="b9c0ccd7d6d5d8dbca97d0d7daf9ded4d8d0d597dad6d4">[email&#160;protected]</span></a>
+      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
     </div>
     <button class="btn-out" id="logoutBtn1">로그아웃</button>
   </div>
 
+  <!-- 거절 -->
   <div class="status-view" id="rejectedView">
     <div class="status-icon">❌</div>
     <div class="status-title">가입이 거절되었습니다</div>
     <div class="status-body">
       <span id="rejectReason"></span><br><br>
-      문의: <a href="/cdn-cgi/l/email-protection#166f6378797a777465387f787556717b777f7a3875797b" style="color:#2563eb"><span class="__cf_email__" data-cfemail="b2cbc7dcddded3d0c19cdbdcd1f2d5dfd3dbde9cd1dddf">[email&#160;protected]</span></a>
+      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
     </div>
     <button class="btn-out" id="logoutBtn2">로그아웃</button>
   </div>
 
+  <!-- 비활성화 -->
   <div class="status-view" id="inactiveView">
     <div class="status-icon">🔒</div>
     <div class="status-title">계정이 비활성화되었습니다</div>
     <div class="status-body">
       재사용을 원하시면 아래로 연락주세요.<br><br>
-      <a href="/cdn-cgi/l/email-protection#68111d060704090a1b4601060b280f05090104460b0705" style="color:#2563eb"><span class="__cf_email__" data-cfemail="84fdf1eaebe8e5e6f7aaedeae7c4e3e9e5ede8aae7ebe9">[email&#160;protected]</span></a>
+      <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
     </div>
     <button class="btn-out" id="logoutBtn3">로그아웃</button>
   </div>
 </div>
 
 
-<!-- 비밀번호 찾기 모달 -->
-<div class="modal-overlay" id="forgotModal">
+<!-- ════ 아이디 찾기 모달 ════ -->
+<div class="modal-overlay" id="findIdModal">
   <div class="modal-box" style="max-width:340px">
-    <button class="modal-close" onclick="closeForgotPw()">✕</button>
-    <div id="forgotForm">
-      <div class="modal-logo">
-        <div class="logo-name" style="font-size:18px">비밀번호 찾기</div>
-        <div class="logo-sub">가입한 이메일로 재설정 링크를 보내드립니다</div>
+    <button class="modal-close" id="closeFindId">✕</button>
+    <div class="modal-logo">
+      <div class="logo-main"><span class="logo-text" style="font-size:20px">닥터체크</span><span class="logo-pro">Pro</span></div>
+      <div class="logo-sub">아이디(이메일) 찾기</div>
+    </div>
+    <p style="font-size:13px;color:#555;line-height:1.7;margin-bottom:16px">
+      가입 시 등록한 이름과 회사명으로<br>이메일(아이디)을 확인할 수 있습니다.
+    </p>
+    <div id="findIdForm">
+      <div class="mfield">
+        <label>이름 <span class="req">필수</span></label>
+        <input type="text" id="findIdName" placeholder="가입한 이름">
       </div>
       <div class="mfield">
-        <label>이메일 <span class="req">필수</span></label>
-        <input type="email" id="forgotEmail" placeholder="가입한 이메일 입력">
+        <label>회사명 <span class="req">필수</span></label>
+        <input type="text" id="findIdCompany" placeholder="가입한 회사명">
       </div>
-      <button class="btn-submit" id="forgotBtn" onclick="sendResetEmail()">재설정 링크 보내기</button>
-      <div class="merr-box" id="forgotErr"></div>
+      <button class="btn-submit" id="findIdSubmit">이메일 찾기</button>
+      <div class="merr-box" id="findIdErr"></div>
     </div>
-    <div id="forgotSuccess" style="display:none;text-align:center;padding:20px 0">
-      <div style="font-size:40px;margin-bottom:12px">📧</div>
-      <div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:8px">이메일을 확인해주세요!</div>
-      <div style="font-size:13px;color:#666;line-height:1.7">
-        비밀번호 재설정 링크를<br><span id="resetEmail" style="font-weight:600;color:#2563eb"></span>으로<br>보내드렸습니다.
-      </div>
-      <button class="btn-out" onclick="closeForgotPw()" style="margin-top:16px">닫기</button>
+    <div id="findIdResult" style="display:none;text-align:center;padding:16px 0">
+      <div style="font-size:14px;color:#555;margin-bottom:8px">가입된 이메일 주소</div>
+      <div id="foundEmail" style="font-size:18px;font-weight:600;color:#2563eb;word-break:break-all"></div>
+      <button class="btn-out" onclick="closeFindId()" style="margin-top:16px">닫기</button>
     </div>
   </div>
 </div>
 
+
+<!-- ════ 비밀번호 찾기 모달 ════ -->
+<div class="modal-overlay" id="findPwModal">
+  <div class="modal-box" style="max-width:340px">
+    <button class="modal-close" id="closeFindPw">✕</button>
+    <div id="findPwForm">
+      <div class="modal-logo">
+        <div class="logo-main"><span class="logo-text" style="font-size:20px">닥터체크</span><span class="logo-pro">Pro</span></div>
+        <div class="logo-sub">비밀번호 찾기</div>
+      </div>
+      <p style="font-size:13px;color:#555;line-height:1.7;margin-bottom:14px">
+        가입한 이메일로 비밀번호 재설정 링크를 보내드립니다.
+      </p>
+      <div class="mfield">
+        <label>이메일 <span class="req">필수</span></label>
+        <input type="email" id="findPwEmail" placeholder="가입한 이메일 입력">
+      </div>
+      <button class="btn-submit" id="findPwSubmit">재설정 링크 보내기</button>
+      <div class="merr-box" id="findPwErr"></div>
+    </div>
+    <div id="findPwSuccess" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:40px;margin-bottom:12px">📧</div>
+      <div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:8px">이메일을 확인해주세요!</div>
+      <div style="font-size:13px;color:#666;line-height:1.7">
+        비밀번호 재설정 링크를<br>
+        <span id="sentEmail" style="font-weight:600;color:#2563eb"></span>으로<br>
+        보내드렸습니다.
+      </div>
+      <button class="btn-out" onclick="closeFindPw()" style="margin-top:16px">닫기</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════ 회원가입 모달 ════ -->
 <div class="modal-overlay" id="signupModal">
   <div class="modal-box">
-    <button class="modal-close" id="closeSignupBtn">✕</button>
-
+    <button class="modal-close" id="closeSignup">✕</button>
     <div id="signupFormWrap">
       <div class="modal-logo">
-        <div class="logo-name" style="font-size:20px">닥터체크<span class="logo-pro">Pro</span></div>
+        <div class="logo-main"><span class="logo-text" style="font-size:20px">닥터체크</span><span class="logo-pro">Pro</span></div>
         <div class="logo-sub">가입 신청</div>
       </div>
 
       <p class="sec">기본 정보</p>
-      <div class="mfield">
-        <label>이름 <span class="req">필수</span></label>
-        <input type="text" id="sName" placeholder="홍길동">
-      </div>
-      <div class="mfield">
-        <label>이메일 <span class="req">필수</span></label>
-        <input type="email" id="sEmail" placeholder="gildong@company.co.kr">
-      </div>
+      <div class="mfield"><label>이름 <span class="req">필수</span></label><input type="text" id="sName" placeholder="홍길동"></div>
+      <div class="mfield"><label>이메일 <span class="req">필수</span></label><input type="email" id="sEmail" placeholder="gildong@company.co.kr"></div>
 
       <p class="sec">비밀번호</p>
       <div class="mfield">
         <label>비밀번호 <span class="req">필수</span></label>
-        <div class="pw-wrap">
-          <input type="password" id="sPw" placeholder="8자 이상">
-          <span class="pw-eye" id="signupEye1">👁</span>
-        </div>
+        <div class="pw-wrap"><input type="password" id="sPw" placeholder="8자 이상"><span class="pw-eye" id="sEye1">👁</span></div>
         <div class="pw-bar-wrap"><div class="pw-bar-fill" id="pwBar"></div></div>
         <div class="hint gray" id="pwHint">8자 이상, 숫자·특수문자 포함 권장</div>
       </div>
       <div class="mfield">
         <label>비밀번호 확인 <span class="req">필수</span></label>
-        <div class="pw-wrap">
-          <input type="password" id="sPw2" placeholder="비밀번호 다시 입력">
-          <span class="pw-eye" id="signupEye2">👁</span>
-        </div>
+        <div class="pw-wrap"><input type="password" id="sPw2" placeholder="비밀번호 다시 입력"><span class="pw-eye" id="sEye2">👁</span></div>
         <div class="hint gray" id="confirmHint">비밀번호를 한 번 더 입력해주세요</div>
       </div>
 
       <p class="sec">소속 정보</p>
-      <div class="mfield">
-        <label>회사명 <span class="req">필수</span></label>
-        <input type="text" id="sCompany" placeholder="닥터약품">
-      </div>
+      <div class="mfield"><label>회사명 <span class="req">필수</span></label><input type="text" id="sCompany" placeholder="닥터약품"></div>
       <div class="mfield">
         <label>직책</label>
         <div class="role-btns">
@@ -299,10 +291,7 @@ body {
         </div>
         <input type="hidden" id="sRole" value="영업 담당자">
       </div>
-      <div class="mfield">
-        <label>담당 지역 <span style="color:#aaa;font-size:11px">선택</span></label>
-        <input type="text" id="sRegion" placeholder="예: 서울 강남, 종합병원 위주">
-      </div>
+      <div class="mfield"><label>담당 지역 <span style="color:#aaa;font-size:11px">선택</span></label><input type="text" id="sRegion" placeholder="예: 서울 강남, 종합병원 위주"></div>
 
       <p class="sec">개인정보 동의</p>
       <div class="agree-box">
@@ -310,7 +299,7 @@ body {
         수집 항목: 이름, 이메일, 회사명, 직책, 담당지역<br>
         수집 목적: 닥터체크Pro 서비스 제공 및 회원 관리<br>
         보유 기간: 회원 탈퇴 후 30일까지<br>
-        동의를 거부할 권리가 있으나, 거부 시 서비스 이용이 제한됩니다.
+        동의를 거부할 권리가 있으나 거부 시 서비스 이용이 제한됩니다.
       </div>
       <div class="agree-check">
         <input type="checkbox" id="agreeCheck">
@@ -326,9 +315,7 @@ body {
       <div class="status-icon">✅</div>
       <div style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:8px">가입 신청 완료!</div>
       <div style="font-size:13px;color:#666;line-height:1.7">
-        <span id="successEmail"></span>으로<br>
-        관리자 승인 결과를 알려드릴게요.<br><br>
-        보통 <strong>1 영업일 이내</strong> 처리됩니다.
+        <span id="successEmail"></span>으로<br>관리자 승인 결과를 알려드릴게요.<br><br>보통 <strong>1 영업일 이내</strong> 처리됩니다.
       </div>
       <button class="btn-out" id="closeSuccessBtn" style="margin-top:20px">닫기</button>
     </div>
@@ -336,99 +323,99 @@ body {
 </div>
 
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- ════ 스크립트 ════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-var sb = supabase.createClient(
-  'https://hslxclmezfudjgmehriy.supabase.co',
-  'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
-);
+// Supabase는 위 CDN이 로드된 후 초기화
+var sb;
 
-// 페이지 로드
-window.addEventListener('DOMContentLoaded', function() {
+window.onload = function() {
+  // Supabase 초기화
+  sb = supabase.createClient(
+    'https://hslxclmezfudjgmehriy.supabase.co',
+    'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
+  );
 
-  // 저장된 이메일 불러오기
-  var saved = localStorage.getItem('drcheck_email');
-  if (saved) {
-    document.getElementById('email').value = saved;
+  // ── 저장된 로그인 정보 불러오기 ──
+  var savedEmail = localStorage.getItem('drcheck_email');
+  var autoLogin  = localStorage.getItem('drcheck_auto') === 'true';
+
+  if (savedEmail) {
+    document.getElementById('email').value = savedEmail;
     document.getElementById('rememberMe').checked = true;
   }
+  if (autoLogin) {
+    document.getElementById('autoLogin').checked = true;
+    // 자동 로그인: 기존 세션 확인
+    sb.auth.getSession().then(function(r) {
+      if (r.data && r.data.session) {
+        checkStatus(r.data.session.user);
+      }
+    });
+  } else {
+    // 일반 세션 확인
+    sb.auth.getSession().then(function(r) {
+      if (r.data && r.data.session) {
+        checkStatus(r.data.session.user);
+      }
+    });
+  }
 
-  // 이미 로그인된 경우
-  sb.auth.getSession().then(function(r) {
-    if (r.data && r.data.session) {
-      checkStatus(r.data.session.user);
-    }
-  });
+  // ── 이벤트 등록 ──
+  document.getElementById('loginBtn').onclick    = doLogin;
+  document.getElementById('loginEye').onclick    = function() { togglePw('password', this); };
+  document.getElementById('openSignupBtn').onclick = function() { openModal('signupModal'); };
+  document.getElementById('findIdBtn').onclick   = function() { openModal('findIdModal'); };
+  document.getElementById('findPwBtn').onclick   = function() { openModal('findPwModal'); };
+  document.getElementById('closeSignup').onclick = closeSignupModal;
+  document.getElementById('closeFindId').onclick = closeFindId;
+  document.getElementById('closeFindPw').onclick = closeFindPw;
+  document.getElementById('closeSuccessBtn').onclick = closeSignupModal;
+  document.getElementById('logoutBtn1').onclick  = doLogout;
+  document.getElementById('logoutBtn2').onclick  = doLogout;
+  document.getElementById('logoutBtn3').onclick  = doLogout;
+  document.getElementById('submitBtn').onclick   = doSignup;
+  document.getElementById('findIdSubmit').onclick = doFindId;
+  document.getElementById('findPwSubmit').onclick = doFindPw;
+  document.getElementById('sEye1').onclick = function() { togglePw('sPw', this); };
+  document.getElementById('sEye2').onclick = function() { togglePw('sPw2', this); };
 
-  // 로그인 버튼
-  document.getElementById('loginBtn').onclick = doLogin;
-
-  // 엔터키
+  // 엔터키 로그인
   document.getElementById('email').onkeydown = function(e) { if(e.key==='Enter') doLogin(); };
   document.getElementById('password').onkeydown = function(e) { if(e.key==='Enter') doLogin(); };
 
-  // 비밀번호 보이기
-  document.getElementById('loginEye').onclick = function() {
-    var i = document.getElementById('password');
-    i.type = i.type==='password' ? 'text' : 'password';
-    this.textContent = i.type==='password' ? '👁' : '🙈';
-  };
-
-  // 회원가입 열기
-  document.getElementById('openSignupBtn').onclick = function() {
-    document.getElementById('signupModal').classList.add('open');
-  };
-
-  // 회원가입 닫기
-  document.getElementById('closeSignupBtn').onclick = closeSignup;
-  document.getElementById('closeSuccessBtn').onclick = closeSignup;
-  document.getElementById('signupModal').onclick = function(e) {
-    if (e.target === this) closeSignup();
-  };
-  document.getElementById('forgotModal').onclick = function(e) {
-    if (e.target === this) closeForgotPw();
-  };
-
-  // 로그아웃
-  document.getElementById('logoutBtn1').onclick = doLogout;
-  document.getElementById('logoutBtn2').onclick = doLogout;
-  document.getElementById('logoutBtn3').onclick = doLogout;
-
-  // 가입 제출
-  document.getElementById('submitBtn').onclick = doSignup;
-
-  // 비밀번호 눈
-  document.getElementById('signupEye1').onclick = function() {
-    var i = document.getElementById('sPw');
-    i.type = i.type==='password' ? 'text' : 'password';
-    this.textContent = i.type==='password' ? '👁' : '🙈';
-  };
-  document.getElementById('signupEye2').onclick = function() {
-    var i = document.getElementById('sPw2');
-    i.type = i.type==='password' ? 'text' : 'password';
-    this.textContent = i.type==='password' ? '👁' : '🙈';
-  };
-
   // 비밀번호 강도
-  document.getElementById('sPw').oninput = checkPwStrength;
+  document.getElementById('sPw').oninput  = checkPwStrength;
   document.getElementById('sPw2').oninput = checkConfirm;
 
   // 직책 버튼
   document.querySelectorAll('.role-btn').forEach(function(btn) {
     btn.onclick = function() {
-      document.querySelectorAll('.role-btn').forEach(function(b) { b.classList.remove('on'); });
+      document.querySelectorAll('.role-btn').forEach(function(b){ b.classList.remove('on'); });
       this.classList.add('on');
       document.getElementById('sRole').value = this.dataset.role;
     };
   });
-});
+
+  // 모달 바깥 클릭 닫기
+  ['signupModal','findIdModal','findPwModal'].forEach(function(id) {
+    document.getElementById(id).onclick = function(e) {
+      if(e.target === this) {
+        if(id==='signupModal') closeSignupModal();
+        else if(id==='findIdModal') closeFindId();
+        else closeFindPw();
+      }
+    };
+  });
+};
 
 
-// 로그인
+// ── 로그인 ──
 async function doLogin() {
   var email    = document.getElementById('email').value.trim();
   var password = document.getElementById('password').value;
   var remember = document.getElementById('rememberMe').checked;
+  var auto     = document.getElementById('autoLogin').checked;
   var errBox   = document.getElementById('loginErr');
   var btn      = document.getElementById('loginBtn');
 
@@ -436,15 +423,13 @@ async function doLogin() {
 
   if (!email || !password) {
     errBox.textContent = '⚠️ 이메일과 비밀번호를 입력해주세요.';
-    errBox.style.display = 'block';
-    return;
+    errBox.style.display = 'block'; return;
   }
 
-  if (remember) {
-    localStorage.setItem('drcheck_email', email);
-  } else {
-    localStorage.removeItem('drcheck_email');
-  }
+  // 기억하기 / 자동로그인 저장
+  if (remember || auto) localStorage.setItem('drcheck_email', email);
+  else localStorage.removeItem('drcheck_email');
+  localStorage.setItem('drcheck_auto', auto ? 'true' : 'false');
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>로그인 중...';
@@ -459,12 +444,10 @@ async function doLogin() {
         'Too many requests': '잠시 후 다시 시도해주세요.'
       };
       errBox.textContent = '⚠️ ' + (msgs[r.error.message] || r.error.message);
-      errBox.style.display = 'block';
-      return;
+      errBox.style.display = 'block'; return;
     }
 
     await checkStatus(r.data.user);
-
   } catch(e) {
     errBox.textContent = '⚠️ 오류: ' + e.message;
     errBox.style.display = 'block';
@@ -475,42 +458,31 @@ async function doLogin() {
 }
 
 
-// 상태 확인
+// ── 상태 확인 ──
 async function checkStatus(user) {
   try {
-    var r = await sb
-      .from('user_profiles')
+    var r = await sb.from('user_profiles')
       .select('status, role, rejection_reason')
       .eq('id', user.id)
       .maybeSingle();
-
     var p = r.data;
 
     if (!p) { showView('pending'); return; }
-
     if (p.status === 'approved') {
       window.location.href = (p.role === 'superadmin') ? 'admin.html' : 'index.html';
       return;
     }
     if (p.status === 'rejected') {
-      document.getElementById('rejectReason').textContent =
-        p.rejection_reason || '자세한 사유는 이메일로 전달드렸습니다.';
-      showView('rejected');
-      return;
+      document.getElementById('rejectReason').textContent = p.rejection_reason || '자세한 사유는 이메일로 전달드렸습니다.';
+      showView('rejected'); return;
     }
-    if (p.status === 'inactive' || p.status === 'withdrawal_requested') {
-      showView('inactive');
-      return;
-    }
+    if (p.status === 'inactive' || p.status === 'withdrawal_requested') { showView('inactive'); return; }
     showView('pending');
-
-  } catch(e) {
-    showView('pending');
-  }
+  } catch(e) { showView('pending'); }
 }
 
 
-// 화면 전환
+// ── 화면 전환 ──
 function showView(v) {
   document.getElementById('loginSection').style.display  = v==='login'    ? 'block' : 'none';
   document.getElementById('pendingView').style.display   = v==='pending'  ? 'block' : 'none';
@@ -519,27 +491,131 @@ function showView(v) {
 }
 
 
-// 로그아웃
+// ── 로그아웃 ──
 async function doLogout() {
+  localStorage.setItem('drcheck_auto', 'false');
   await sb.auth.signOut();
   location.reload();
 }
 
 
-// 회원가입 닫기
-function closeSignup() {
+// ── 모달 열기/닫기 ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSignupModal() {
   document.getElementById('signupModal').classList.remove('open');
+  document.body.style.overflow = '';
   document.getElementById('signupFormWrap').style.display = 'block';
   document.getElementById('signupSuccess').style.display  = 'none';
   document.getElementById('signupErr').style.display = 'none';
   document.getElementById('agreeCheck').checked = false;
-  ['sName','sEmail','sPw','sPw2','sCompany','sRegion'].forEach(function(id) {
-    document.getElementById(id).value = '';
-  });
+  ['sName','sEmail','sPw','sPw2','sCompany','sRegion'].forEach(function(id){ document.getElementById(id).value=''; });
+}
+function closeFindId() {
+  document.getElementById('findIdModal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('findIdForm').style.display   = 'block';
+  document.getElementById('findIdResult').style.display = 'none';
+  document.getElementById('findIdErr').style.display    = 'none';
+  document.getElementById('findIdName').value = '';
+  document.getElementById('findIdCompany').value = '';
+}
+function closeFindPw() {
+  document.getElementById('findPwModal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('findPwForm').style.display    = 'block';
+  document.getElementById('findPwSuccess').style.display = 'none';
+  document.getElementById('findPwErr').style.display     = 'none';
+  document.getElementById('findPwEmail').value = '';
 }
 
 
-// 비밀번호 강도
+// ── 아이디 찾기 ──
+async function doFindId() {
+  var name    = document.getElementById('findIdName').value.trim();
+  var company = document.getElementById('findIdCompany').value.trim();
+  var errBox  = document.getElementById('findIdErr');
+  var btn     = document.getElementById('findIdSubmit');
+
+  errBox.style.display = 'none';
+  if (!name || !company) {
+    errBox.textContent = '⚠️ 이름과 회사명을 모두 입력해주세요.';
+    errBox.style.display = 'block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = '검색 중...';
+
+  try {
+    var r = await sb.from('user_profiles')
+      .select('email')
+      .eq('name', name)
+      .eq('company', company)
+      .maybeSingle();
+
+    if (r.error || !r.data) {
+      errBox.textContent = '⚠️ 해당 정보로 가입된 계정을 찾을 수 없습니다.';
+      errBox.style.display = 'block'; return;
+    }
+
+    document.getElementById('foundEmail').textContent = r.data.email;
+    document.getElementById('findIdForm').style.display   = 'none';
+    document.getElementById('findIdResult').style.display = 'block';
+  } catch(e) {
+    errBox.textContent = '⚠️ 오류: ' + e.message;
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '이메일 찾기';
+  }
+}
+
+
+// ── 비밀번호 찾기 ──
+async function doFindPw() {
+  var email  = document.getElementById('findPwEmail').value.trim();
+  var errBox = document.getElementById('findPwErr');
+  var btn    = document.getElementById('findPwSubmit');
+
+  errBox.style.display = 'none';
+  if (!email) {
+    errBox.textContent = '⚠️ 이메일을 입력해주세요.';
+    errBox.style.display = 'block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = '전송 중...';
+
+  try {
+    var r = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://yunolabsinc-blip.github.io/hospital-schedule/login.html'
+    });
+
+    if (r.error) {
+      errBox.textContent = '⚠️ ' + r.error.message;
+      errBox.style.display = 'block'; return;
+    }
+
+    document.getElementById('sentEmail').textContent = email;
+    document.getElementById('findPwForm').style.display    = 'none';
+    document.getElementById('findPwSuccess').style.display = 'block';
+  } catch(e) {
+    errBox.textContent = '⚠️ 오류: ' + e.message;
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '재설정 링크 보내기';
+  }
+}
+
+
+// ── 비밀번호 보이기 ──
+function togglePw(inputId, eye) {
+  var inp = document.getElementById(inputId);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  eye.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+
+// ── 비밀번호 강도 ──
 function checkPwStrength() {
   var pw = document.getElementById('sPw').value;
   var score = 0;
@@ -550,7 +626,7 @@ function checkPwStrength() {
     {w:'0%',  c:'#f0f0f0',t:'8자 이상, 숫자·특수문자 포함 권장',cls:'gray'},
     {w:'33%', c:'#ef4444',t:'약함 — 더 길게 만들어주세요',      cls:'err'},
     {w:'66%', c:'#f59e0b',t:'보통 — 특수문자를 추가하면 좋아요',cls:'gray'},
-    {w:'100%',c:'#22c55e',t:'강함 — 좋습니다!',                 cls:'ok'},
+    {w:'100%',c:'#22c55e',t:'강함 — 좋습니다!',                cls:'ok'},
   ][score];
   document.getElementById('pwBar').style.width = info.w;
   document.getElementById('pwBar').style.background = info.c;
@@ -560,7 +636,7 @@ function checkPwStrength() {
 }
 
 
-// 비밀번호 확인
+// ── 비밀번호 확인 ──
 function checkConfirm() {
   var pw  = document.getElementById('sPw').value;
   var pw2 = document.getElementById('sPw2').value;
@@ -572,47 +648,7 @@ function checkConfirm() {
 }
 
 
-// 비밀번호 찾기
-function showForgotPw() {
-  document.getElementById('forgotModal').classList.add('open');
-}
-function closeForgotPw() {
-  document.getElementById('forgotModal').classList.remove('open');
-  document.getElementById('forgotForm').style.display = 'block';
-  document.getElementById('forgotSuccess').style.display = 'none';
-  document.getElementById('forgotEmail').value = '';
-  document.getElementById('forgotErr').style.display = 'none';
-}
-async function sendResetEmail() {
-  var email = document.getElementById('forgotEmail').value.trim();
-  var errBox = document.getElementById('forgotErr');
-  var btn = document.getElementById('forgotBtn');
-
-  errBox.style.display = 'none';
-  if (!email) { errBox.textContent='⚠️ 이메일을 입력해주세요.'; errBox.style.display='block'; return; }
-
-  btn.disabled = true;
-  btn.textContent = '전송 중...';
-
-  var r = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://yunolabsinc-blip.github.io/hospital-schedule/login.html'
-  });
-
-  btn.disabled = false;
-  btn.textContent = '재설정 링크 보내기';
-
-  if (r.error) {
-    errBox.textContent = '⚠️ ' + r.error.message;
-    errBox.style.display = 'block';
-    return;
-  }
-
-  document.getElementById('resetEmail').textContent = email;
-  document.getElementById('forgotForm').style.display = 'none';
-  document.getElementById('forgotSuccess').style.display = 'block';
-}
-
-// 가입 신청
+// ── 가입 신청 ──
 async function doSignup() {
   var name    = document.getElementById('sName').value.trim();
   var email   = document.getElementById('sEmail').value.trim();
@@ -625,11 +661,8 @@ async function doSignup() {
   var btn     = document.getElementById('submitBtn');
 
   errBox.style.display = 'none';
-
   if (!name)    { errBox.textContent='⚠️ 이름을 입력해주세요.'; errBox.style.display='block'; return; }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errBox.textContent='⚠️ 올바른 이메일을 입력해주세요.'; errBox.style.display='block'; return;
-  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errBox.textContent='⚠️ 올바른 이메일을 입력해주세요.'; errBox.style.display='block'; return; }
   if (pw.length < 8) { errBox.textContent='⚠️ 비밀번호는 8자 이상이어야 합니다.'; errBox.style.display='block'; return; }
   if (!checkConfirm()) { errBox.textContent='⚠️ 비밀번호가 일치하지 않습니다.'; errBox.style.display='block'; return; }
   if (!company) { errBox.textContent='⚠️ 회사명을 입력해주세요.'; errBox.style.display='block'; return; }
@@ -640,11 +673,25 @@ async function doSignup() {
 
   try {
     var r = await sb.auth.signUp({
-      email: email,
-      password: pw,
+      email: email, password: pw,
       options: { data: { name:name, company:company, job_title:role, region:region } }
     });
-
     if (r.error) {
       var msgs = { 'User already registered': '이미 가입된 이메일입니다. 로그인해주세요.' };
-      errBox.textContent = '⚠️
+      errBox.textContent = '⚠️ ' + (msgs[r.error.message] || r.error.message);
+      errBox.style.display = 'block'; return;
+    }
+    document.getElementById('signupFormWrap').style.display = 'none';
+    document.getElementById('signupSuccess').style.display  = 'block';
+    document.getElementById('successEmail').textContent = email;
+  } catch(e) {
+    errBox.textContent = '⚠️ 오류: ' + e.message;
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '가입 신청';
+  }
+}
+</script>
+</body>
+</html>
