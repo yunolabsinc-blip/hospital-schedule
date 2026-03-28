@@ -26,6 +26,58 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     'https://hslxclmezfudjgmehriy.supabase.co',
     'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
   );
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+
+  const { data: p } = await sb
+    .from('user_profiles')
+    .select('status, role, name')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
+  if (!p || p.status !== 'approved') {
+    window.location.href = 'login.html'; return;
+  }
+
+  const logo = document.querySelector('.logo');
+  if (logo) {
+    logo.innerHTML = '닥터체크<span style="color:#2563eb;font-size:0.72em;font-weight:700">Pro</span>' +
+      '<span style="display:block;font-size:11px;font-weight:400;color:#888;margin-top:1px">거래처 관리</span>';
+  }
+
+  const headerBtns = document.querySelector('.header-btns');
+  if (headerBtns) {
+    if (p.role === 'superadmin') {
+      const a = document.createElement('a');
+      a.href = 'admin.html';
+      a.className = 'btn btn-outline';
+      a.style.cssText = 'background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;text-decoration:none';
+      a.textContent = '관리자';
+      headerBtns.appendChild(a);
+    }
+    const nameSpan = document.createElement('span');
+    nameSpan.style.cssText = 'font-size:12px;color:#666;display:flex;align-items:center;padding:0 4px;white-space:nowrap';
+    nameSpan.textContent = (p.name || '') + ' 님';
+    headerBtns.appendChild(nameSpan);
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-outline';
+    btn.style.cssText = 'background:#fff0f0;border-color:#ffaaaa;color:#e53e3e';
+    btn.textContent = '로그아웃';
+    btn.onclick = async () => { await sb.auth.signOut(); window.location.href = 'login.html'; };
+    headerBtns.appendChild(btn);
+  }
+
+  document.title = '닥터체크Pro';
+})();
+</script>
+<script>
+(async function() {
+  const sb = supabase.createClient(
+    'https://hslxclmezfudjgmehriy.supabase.co',
+    'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
+  );
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return; }
   const { data: p } = await sb.from('user_profiles')
