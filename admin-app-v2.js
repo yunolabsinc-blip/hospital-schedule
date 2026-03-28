@@ -150,38 +150,55 @@ function filterAllUsers(){
 }
 function renderAllUsers(data){
   var c=document.getElementById('allList');if(!c)return;
-  if(!data.length){c.innerHTML='<p style="color:#aaa;padding:20px;text-align:center">해당 사용자 없음</p>';return;}
   var SL={approved:'승인됨',pending:'대기 중',rejected:'거절됨',inactive:'비활성화',withdrawal_requested:'탈퇴신청'};
-  c.innerHTML=data.map(function(u){
-    var bc=u.status==='approved'?'approved':u.status==='pending'?'pending':'rejected';
+  var companies=[];_allUsersData.forEach(function(u){if(u.company&&companies.indexOf(u.company)<0)companies.push(u.company);});companies.sort();
+  var curCo=(document.getElementById('filterCompany')||{}).value||'';
+  var curSt=(document.getElementById('filterStatus')||{}).value||'';
+  var curPr=(document.getElementById('filterPrice')||{}).value||'';
+  var curKw=(document.getElementById('filterSearch')||{}).value||'';
+  var mkSel=function(id,vals,labels,cur){
+    return '<select id="'+id+'" onchange="filterAllUsers()" style="font-size:10px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:5px;width:100%;background:white"><option value="">전체</option>'+
+      vals.map(function(v,i){return'<option value="'+esc(v)+'"'+(v===cur?' selected':'')+'>'+esc((labels&&labels[i])||v)+'</option>';}).join('')+'</select>';
+  };
+  var searchInput='<input id="filterSearch" oninput="filterAllUsers()" placeholder="이름/이메일" value="'+esc(curKw)+'" style="font-size:10px;padding:2px 5px;border:1px solid #e2e8f0;border-radius:5px;width:100%">';
+  var statuses=['approved','pending','rejected','inactive'];
+  var stLabels=['승인됨','대기 중','거절됨','비활성화'];
+  var priceKeys=Object.keys(PL);
+  var th='<tr style="background:#f8fafc">'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:80px;vertical-align:top">회사<br>'+mkSel('filterCompany',companies,null,curCo)+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:100px;vertical-align:top">이름<br>'+searchInput+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:70px;vertical-align:top">직책/지역</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:70px;vertical-align:top">상태<br>'+mkSel('filterStatus',statuses,stLabels,curSt)+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:90px;vertical-align:top">요금제<br>'+mkSel('filterPrice',priceKeys,priceKeys.map(function(p){return PL[p]||p;}),curPr)+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:60px;vertical-align:top">관리</th>'+
+  '</tr>';
+  if(!data.length){
+    c.innerHTML='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:700px"><thead>'+th+'</thead><tbody><tr><td colspan="6" style="padding:30px;text-align:center;color:#aaa">해당 사용자 없음</td></tr></tbody></table></div>';
+    return;
+  }
+  var rows=data.map(function(u){
     var rl=u.role==='superadmin'?'관리자':u.role==='manager'?'팔장':'담당자';
-    var btns=u.role!=='superadmin'?
-      '<div class="action-btns" style="display:flex;flex-direction:column;gap:4px;min-width:72px">'+
+    var bc=u.status==='approved'?'#22c55e':u.status==='pending'?'#f59e0b':u.status==='inactive'?'#94a3b8':'#e53e3e';
+    var planName=PL[u.price_plan]||u.price_plan||'베타(무료)';
+    var btns=u.role==='superadmin'?'':
+      '<div style="display:flex;flex-direction:column;gap:3px">'+
         (u.status==='inactive'?
-          '<button onclick="reactivateUser(\''+u.id+'\')" style="background:#22c55e;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">재활성화</button>'+
-          '<button onclick="deleteUser(\''+u.id+'\')" style="background:#e53e3e;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">삭제</button>':
-          '<button class="btn-reject" onclick="openDeactivateModal(\''+u.id+'\')" style="background:#f59e0b;border-color:#f59e0b;color:white">비활성화</button>'
+          '<button onclick="reactivateUser(\''+u.id+'\')" style="background:#22c55e;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;white-space:nowrap">재활성화</button>'+
+          '<button onclick="deleteUser(\''+u.id+'\')" style="background:#e53e3e;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer">삭제</button>':
+          '<button onclick="openDeactivateModal(\''+u.id+'\')" style="background:#f59e0b;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;white-space:nowrap">비활성화</button>'
         )+
-        '<button onclick="openPriceModal(\''+u.id+'\',\''+esc(u.price_plan||'beta')+'\')" style="background:#3b82f6;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">가격</button>'+
-      '</div>':'';
-    return '<div class="user-card" id="card-all-'+u.id+'">'+
-      '<div class="avatar">'+esc((u.name||'?')[0].toUpperCase())+'</div>'+
-      '<div class="user-info">'+
-        '<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">'+
-          '<span style="font-size:13px;font-weight:700">'+esc(u.company||'-')+'</span>'+
-          '<span style="font-size:13px;font-weight:500">'+esc(u.name)+'</span>'+
-          '<span style="font-size:12px;color:#666">'+esc(u.email)+'</span>'+
-          '<span style="font-size:11px;background:#f1f5f9;color:#475569;padding:1px 6px;border-radius:4px">'+rl+'</span>'+
-        '</div>'+
-        '<div class="user-meta" style="margin-top:4px">직책: '+esc(u.job_title||'-')+' &middot; 지역: '+esc(u.region||'-')+' &middot; 전화: '+esc(u.phone||'-')+' &middot; 가입일: '+fmtDate(u.created_at)+
-          (u.price_plan?' &middot; 요금: '+(PL[u.price_plan]||u.price_plan):'')+
-          (u.plan_expires_at?' &middot; 만료: '+fmtDate(u.plan_expires_at):'')+
-          (u.inactive_reason?' &middot; <span style="color:#e53e3e">비활세 사유: '+esc(u.inactive_reason)+'</span>':'')+
-        '</div>'+
-      '</div>'+
-      '<span class="status-badge '+bc+'">'+(SL[u.status]||u.status)+'</span>'+
-      btns+'</div>';
+        '<button onclick="openPriceModal(\''+u.id+'\',\''+esc(u.price_plan||'beta')+'\')" style="background:#3b82f6;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;white-space:nowrap">'+esc(planName)+'</button>'+
+      '</div>';
+    return '<tr style="border-bottom:1px solid #f0f0f0">'+
+      '<td style="padding:8px 10px;font-size:12px;white-space:nowrap;font-weight:600">'+esc(u.company||'-')+'</td>'+
+      '<td style="padding:8px 10px"><div style="font-size:13px;font-weight:500">'+esc(u.name)+'</div><div style="font-size:11px;color:#888">'+esc(u.email)+'</div></td>'+
+      '<td style="padding:8px 10px;font-size:11px;color:#555"><div>'+esc(u.job_title||'-')+'</div><div style="color:#aaa">'+esc(u.region||'-')+'</div></td>'+
+      '<td style="padding:8px 10px"><span style="background:'+bc+'22;color:'+bc+';font-size:11px;padding:2px 8px;border-radius:8px;white-space:nowrap">'+(SL[u.status]||u.status)+'</span><br><span style="font-size:10px;color:#aaa">'+rl+'</span></td>'+
+      '<td style="padding:8px 10px;font-size:11px;white-space:nowrap"><div>'+esc(planName)+'</div><div style="color:#aaa;font-size:10px">'+fmtDate(u.plan_expires_at)+'</div></td>'+
+      '<td style="padding:8px 10px">'+btns+'</td>'+
+    '</tr>';
   }).join('');
+  c.innerHTML='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;min-width:700px"><thead>'+th+'</thead><tbody>'+rows+'</tbody></table></div>';
 }
 function openDeactivateModal(uid){currentDeactivateUserId=uid;var m=document.getElementById('deactivateModal');if(m){m.style.display='flex';var i=document.getElementById('deactivateReason');if(i)i.value='';}}
 function closeDeactivateModal(){var m=document.getElementById('deactivateModal');if(m)m.style.display='none';currentDeactivateUserId=null;}
@@ -249,15 +266,35 @@ function loadUserData(){
     });
 }
 function _updateFilters(rows){
-  var uniq=function(arr){return arr.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();};
-  var setOpts=function(id,items,label){var s=document.getElementById(id);if(!s)return;s.innerHTML='<option value="">'+label+'</option>'+items.map(function(v){return'<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');};
-  setOpts('filterDataUser',uniq(rows.map(function(r){return r.user;})),'전체 사용자');
-  setOpts('filterDataHosp',uniq(rows.map(function(r){return r.hosp;})),'전체 거래치');
-  setOpts('filterDataDoctor',uniq(rows.map(function(r){return r.dr;})),'전체 의사');
-  var prods=[];rows.forEach(function(r){r.products.split(',').forEach(function(p){var t=p.trim();if(t)prods.push(t);});});
-  setOpts('filterDataProduct',uniq(prods),'전체 제품');
+  var uniq=function(arr){return arr.filter(function(v,i,a){return a.indexOf(v)===i&&v;}).sort();};
+  var mkOpts=function(items,label){return '<option value="">'+label+'</option>'+items.map(function(v){return'<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');};
+  var mkSel=function(id,items,label){
+    return '<select id="'+id+'" onchange="filterActivityData()" style="font-size:10px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:5px;width:100%;max-width:100px;background:white">'+mkOpts(items,label)+'</select>';
+  };
+  var prods=[];rows.forEach(function(r){r.products.split(',').forEach(function(p){var t=p.trim();if(t&&prods.indexOf(t)<0)prods.push(t);});});
+  prods.sort();
+  var thead=document.getElementById('activityThead');
+  if(!thead)return;
+  thead.innerHTML='<tr style="background:#f8fafc">'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:70px;vertical-align:top">회사<br>'+mkSel('filterDataCompany',uniq(rows.map(function(r){return r.company;})),'전체')+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:70px;vertical-align:top">사용자<br>'+mkSel('filterDataUser',uniq(rows.map(function(r){return r.user;})),'전체')+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:90px;vertical-align:top">거래치<br>'+mkSel('filterDataHosp',uniq(rows.map(function(r){return r.hosp;})),'전체')+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:70px;vertical-align:top">의사<br>'+mkSel('filterDataDoctor',uniq(rows.map(function(r){return r.dr;})),'전체')+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:100px;vertical-align:top">날짜<br>'+
+      '<div style="display:flex;gap:2px;align-items:center;flex-wrap:wrap">'+
+      '<input type="date" id="filterDateFrom" onchange="filterActivityData()" style="font-size:10px;padding:2px 3px;border:1px solid #e2e8f0;border-radius:5px;max-width:115px">'+
+      '<span style="font-size:10px">~</span>'+
+      '<input type="date" id="filterDateTo" onchange="filterActivityData()" style="font-size:10px;padding:2px 3px;border:1px solid #e2e8f0;border-radius:5px;max-width:115px">'+
+      '</div>'+
+    '</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:60px;vertical-align:top">시간대</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:80px;vertical-align:top">제품<br>'+mkSel('filterDataProduct',prods,'전체')+'</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:80px;vertical-align:top">활동내용</th>'+
+    '<th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:500;color:#555;min-width:60px;vertical-align:top">구분<br>'+mkSel('filterDataType',['결과','계획'],'전체')+'</th>'+
+  '</tr>';
 }
 function filterActivityData(){
+  var company=(document.getElementById('filterDataCompany') ||{}).value||'';
   var user   =(document.getElementById('filterDataUser')   ||{}).value||'';
   var hosp   =(document.getElementById('filterDataHosp')   ||{}).value||'';
   var doctor =(document.getElementById('filterDataDoctor') ||{}).value||'';
@@ -265,12 +302,14 @@ function filterActivityData(){
   var type   =(document.getElementById('filterDataType')   ||{}).value||'';
   var dateFrom=(document.getElementById('filterDateFrom')  ||{}).value||'';
   var dateTo  =(document.getElementById('filterDateTo')    ||{}).value||'';
+  var typeEn=type==='결과'?'completed':type==='계획'?'planned':type;
   renderActivityTable(_activityRows.filter(function(r){
+    if(company&&r.company!==company)          return false;
     if(user   &&r.user!==user)               return false;
     if(hosp   &&r.hosp!==hosp)               return false;
     if(doctor &&r.dr!==doctor)               return false;
     if(product&&!r.products.includes(product))return false;
-    if(type   &&r.type!==type)               return false;
+    if(typeEn &&r.type!==typeEn)              return false;
     if(dateFrom&&r.date<dateFrom)            return false;
     if(dateTo  &&r.date>dateTo)              return false;
     return true;
@@ -283,11 +322,11 @@ function renderActivityTable(rows){
     var bg=i%2===0?'':'background:#fafafa';
     var badge=r.type==='completed'?'<span style="background:#dcfce7;color:#166534;font-size:10px;padding:2px 6px;border-radius:4px">결과</span>':'<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;padding:2px 6px;border-radius:4px">계획</span>';
     return '<tr style="border-bottom:1px solid #f0f0f0;'+bg+'">'+
-      '<td style="padding:8px 10px;font-size:12px;color:#666;white-space:nowrap">'+esc(r.company)+'</td>'+
-      '<td style="padding:8px 10px;font-size:13px;font-weight:500;white-space:nowrap">'+esc(r.user)+'</td>'+
+      '<td style="padding:8px 10px;font-size:12px;color:#666;white-space:nowrap;min-width:60px">'+esc(r.company)+'</td>'+
+      '<td style="padding:8px 10px;font-size:12px;font-weight:500;white-space:nowrap;min-width:60px">'+esc(r.user)+'</td>'+
       '<td style="padding:8px 10px;font-size:13px">'+esc(r.hosp)+'</td>'+
       '<td style="padding:8px 10px"><div style="font-size:13px;white-space:nowrap">'+esc(r.dr)+'</div><div style="font-size:11px;color:#aaa">'+esc(r.dept)+'</div></td>'+
-      '<td style="padding:8px 10px;font-size:12px;white-space:nowrap">'+esc(r.date)+'</td>'+
+      '<td style="padding:8px 10px;font-size:12px;white-space:nowrap;min-width:90px">'+esc(r.date)+'</td>'+
       '<td style="padding:8px 10px;font-size:12px">'+esc(r.time)+'</td>'+
       '<td style="padding:8px 10px;font-size:11px;color:#2563eb">'+esc(r.products)+'</td>'+
       '<td style="padding:8px 10px;font-size:11px;color:#555;max-width:150px">'+esc(r.note)+'</td>'+
