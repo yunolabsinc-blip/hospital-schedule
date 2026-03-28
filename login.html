@@ -333,12 +333,11 @@ body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:#f0f4f8;min-
 
 
 <!-- ════ 스크립트 ════ -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-// Supabase는 위 CDN이 로드된 후 초기화
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script defer>
 var sb;
 
-window.onload = function() {
+document.addEventListener('DOMContentLoaded', function() {
   // Supabase 초기화
   sb = supabase.createClient(
     'https://hslxclmezfudjgmehriy.supabase.co',
