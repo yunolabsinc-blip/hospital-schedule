@@ -202,11 +202,10 @@
 
 <!-- 탭 메뉴 -->
 <div class="tabs">
-  <button class="tab active" onclick="switchTab('pending')">
-    가입 신청 <span class="tab-badge" id="pendingBadge">0</span>
-  </button>
+  <button class="tab active" onclick="switchTab('pending')">가입 신청 <span id="pendingBadge" style="background:#e53e3e;color:white;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px;display:none"></span></button>
   <button class="tab" onclick="switchTab('all')">전체 사용자</button>
   <button class="tab" onclick="switchTab('data')">활동 데이터</button>
+  <button class="tab" onclick="switchTab('inquiry')">고객문의 <span id="inquiryBadge" style="background:#e53e3e;color:white;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px;display:none"></span></button>
 </div>
 
 <!-- 컨텐츠 -->
@@ -257,7 +256,8 @@
         <select id="filterDataUser" onchange="filterActivityData()" style="font-size:13px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white">
           <option value="">전체 사용자</option>
         </select>
-        <select id="filterDataHosp" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 거래처</option></select><select id="filterDataDoctor" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 의사</option></select><select id="filterDataProduct" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 제품</option></select><select id="filterDataType" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">계획+결과</option><option value="planned">활동계획</option><option value="completed">활동결과</option></select><button onclick="exportExcel()" style="padding:8px 16px;background:#22c55e;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">📊 엑셀 추출</button>
+        <select id="filterDataHosp" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 거래처</option></select><select id="filterDataDoctor" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 의사</option></select><select id="filterDataProduct" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 제품</option></select><select id="filterDataType" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">계획+결과</option><option value="planned">활동계획</option><option value="completed">활동결과</option></select><input type="date" id="filterDateFrom" onchange="filterActivityData()" style="font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:8px;color:#555"><span style="font-size:12px;color:#888;padding:0 4px">~</span><input type="date" id="filterDateTo" onchange="filterActivityData()" style="font-size:12px;padding:5px 8px;border:1px solid #e2e8f0;border-radius:8px;color:#555">
+        <button onclick="exportExcel()" style="padding:8px 16px;background:#22c55e;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">📊 엑셀 추출</button>
         <button onclick="loadUserData()" style="padding:8px 16px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer">새로고침</button>
       </div>
     </div>
@@ -326,7 +326,32 @@
   Supabase 연결 — signup.html과 동일하게 수정해주세요
 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin-app-v2.js?v=10"></script>
+<script src="admin-app-v2.js?v=11"></script>
+
+  <!-- 고객문의 탭 -->
+  <div id="inquiryTab" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <p class="section-label" style="margin:0">고객 문의</p>
+      <button onclick="loadInquiries()" style="padding:6px 12px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:12px;cursor:pointer">새로고침</button>
+    </div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid #e8e8e8">
+      <table style="width:100%;border-collapse:collapse;min-width:800px">
+        <thead style="background:#f8fafc">
+          <tr>
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555;white-space:nowrap">회사</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">이름</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">제목</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">내용</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555;white-space:nowrap">날짜</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">답변</th>
+          </tr>
+        </thead>
+        <tbody id="inquiryTableBody">
+          <tr><td colspan="6" style="padding:30px;text-align:center;color:#aaa">탭을 클릭하여 문의를 불러옵니다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
 <!-- 비활성화 사유 모달 -->
 <div id="deactivateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;align-items:center;justify-content:center">
