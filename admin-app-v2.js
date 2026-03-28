@@ -1,4 +1,4 @@
-var sb, currentRejectUserId = null;
+var sb, currentRejectUserId = null, currentDeactivateUserId = null, currentPriceUserId = null;
 var _allUsersData = [];
 var _activityRows = [];
 
@@ -8,6 +8,7 @@ var _activityRows = [];
     'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
   );
   document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('keydown', function(e){ if(e.key!=='Escape')return; ['rejectModal','deactivateModal','priceModal'].forEach(function(id){var m=document.getElementById(id);if(m&&m.style.display==='flex')m.style.display='none';}); });
     sb.auth.getSession().then(function(r) {
       var s = r.data && r.data.session;
       if (!s) { window.location.href = 'login.html'; return; }
@@ -329,4 +330,59 @@ function exportExcel() {
   a.href=url; a.download='drcheck_'+new Date().toISOString().substring(0,10)+'.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function openDeactivateModal(uid){currentDeactivateUserId=uid;var m=document.getElementById('deactivateModal');if(m){m.style.display='flex';var i=document.getElementById('deactivateReason');if(i)i.value='';}}
+function closeDeactivateModal(){var m=document.getElementById('deactivateModal');if(m)m.style.display='none';currentDeactivateUserId=null;}
+function confirmDeactivate(){
+  if(!currentDeactivateUserId)return;
+  var reason=(document.getElementById('deactivateReason')||{}).value||'';
+  if(!reason.trim()){alert('비활성화 사유를 입력해주세요.');return;}
+  sb.from('user_profiles').update({status:'inactive',inactive_at:new Date().toISOString(),inactive_reason:reason}).eq('id',currentDeactivateUserId)
+    .then(function(r){if(r.error){alert('Error: '+r.error.message);return;}closeDeactivateModal();loadAll();});
+}
+function reactivateUser(uid){
+  if(!confirm('재활성화하시겠습니까?'))return;
+  sb.from('user_profiles').update({status:'approved',inactive_at:null,inactive_reason:null}).eq('id',uid)
+    .then(function(r){if(r.error){alert('Error: '+r.error.message);return;}loadAll();});
+}
+function deleteUser(uid){
+  if(!confirm('영구 삭제하시겠습니까?
+되돌릴 수 없습니다.'))return;
+  sb.from('user_profiles').delete().eq('id',uid)
+    .then(function(r){if(r.error){alert('Error: '+r.error.message);return;}loadAll();});
+}
+function openPriceModal(uid,plan){currentPriceUserId=uid;var m=document.getElementById('priceModal');if(m)m.style.display='flex';var s=document.getElementById('newPricePlan');if(s)s.value=plan;}
+function closePriceModal(){var m=document.getElementById('priceModal');if(m)m.style.display='none';currentPriceUserId=null;}
+function confirmPriceChange(){
+  if(!currentPriceUserId)return;
+  var plan=(document.getElementById('newPricePlan')||{}).value||'beta';
+  var exp=new Date();
+  if(plan==='49500'||plan==='99000')exp.setFullYear(exp.getFullYear()+1);
+  else exp.setMonth(exp.getMonth()+1);
+  sb.from('user_profiles').update({price_plan:plan,plan_expires_at:exp.toISOString()}).eq('id',currentPriceUserId)
+    .then(function(r){if(r.error){alert('Error: '+r.error.message);return;}alert('요금제 변경 완료!
+만료일: '+exp.toLocaleDateString());closePriceModal();loadAll();});
+}
+function exportAllUsers(){
+  var co=(document.getElementById('filterCompany')||{}).value||'';
+  var st=(document.getElementById('filterStatus')||{}).value||'';
+  var kw=((document.getElementById('filterSearch')||{}).value||'').toLowerCase();
+  var data=_allUsersData.filter(function(u){
+    if(co&&u.company!==co)return false;
+    if(st&&u.status!==st)return false;
+    if(kw&&!(u.name||'').toLowerCase().includes(kw)&&!(u.email||'').toLowerCase().includes(kw))return false;
+    return true;
+  });
+  if(!data.length){alert('데이터 없음');return;}
+  var h=['회사','이름','이메일','역할','직책','지역','전화','상태','요금제','만료일','가입일'];
+  var csv=[h.join(',')].concat(data.map(function(u){
+    return[u.company,u.name,u.email,u.role,u.job_title,u.region,u.phone,u.status,u.price_plan||'',u.plan_expires_at?(new Date(u.plan_expires_at)).toLocaleDateString():'',u.created_at?(new Date(u.created_at)).toLocaleDateString():'']
+      .map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');
+  })).join('
+');
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='사용자목록_'+new Date().toISOString().substring(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 }
