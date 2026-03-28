@@ -139,7 +139,7 @@ function renderAllUsers(data){
           '<button onclick="deleteUser(\''+u.id+'\')" style="background:#e53e3e;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">삭제</button>':
           '<button class="btn-reject" onclick="openDeactivateModal(\''+u.id+'\')" style="background:#f59e0b;border-color:#f59e0b;color:white">비활성화</button>'
         )+
-        '<button onclick="openPriceModal(\''+u.id+'\',\''+esc(u.price_plan||'beta')+'\')" style="background:#3b82f6;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">가격</button>'+
+        '<button onclick="openPriceModal(\''+u.id+'\',\''+esc(u.price_plan||'beta')+'\')" style="background:#3b82f6;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">'+(PL[u.price_plan]||'베타(무료)')+'</button>'+
       '</div>':'';
     return '<div class="user-card" id="card-all-'+u.id+'">'+
       '<div class="avatar">'+esc((u.name||'?')[0].toUpperCase())+'</div>'+
