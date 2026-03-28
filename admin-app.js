@@ -1,3 +1,10 @@
+// ── Supabase 초기화 ──
+const SUPABASE_URL  = 'https://hslxclmezfudjgmehriy.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+let currentRejectUserId = null;
+
 // 1. 로그인 여부 확인
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
@@ -463,3 +470,12 @@ window.setPendingRole = setPendingRole;
 document.addEventListener("DOMContentLoaded", function() {
   loadAll();
 });
+
+// ── 로그아웃 ──
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+// ── 앱 시작 ──
+document.addEventListener('DOMContentLoaded', function() { loadAll(); });
