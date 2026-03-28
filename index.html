@@ -3821,6 +3821,8 @@ function injectUijCheok(){
     'https://hslxclmezfudjgmehriy.supabase.co',
     'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
   );
+  var PROTECTED_EMAIL = 'juanmedicalkorea@gmail.com';
+
   _sb.auth.getSession().then(function(res) {
     var s = res.data && res.data.session;
     if (!s) { window.location.href = 'login.html'; return; }
@@ -3828,70 +3830,87 @@ function injectUijCheok(){
       var p = r.data;
       if (!p || p.status !== 'approved') { window.location.href = 'login.html'; return; }
 
-      // 내정보 localStorage 자동 저장
+      // 내정보 localStorage 저장
       try {
         var mi = JSON.parse(localStorage.getItem('hs_myinfo') || '{}');
         if (!mi.company && p.company) {
           localStorage.setItem('hs_myinfo', JSON.stringify({
-            name: p.name || '', company: p.company || '',
-            job_title: p.job_title || '', region: p.region || '',
-            phone: p.phone || '', email: s.user.email
+            name: p.name||'', company: p.company||'',
+            job_title: p.job_title||'', region: p.region||'',
+            phone: p.phone||'', email: s.user.email
           }));
         }
       } catch(e) {}
 
-      // 닥터체크Pro 로고 교체
+      // juanmedicalkorea 이외 데이터 완전 초기화
+      if (s.user.email !== PROTECTED_EMAIL) {
+        _sb.from('user_app_data').select('user_id,data_v9').eq('user_id', s.user.id).maybeSingle().then(function(dr) {
+          var hasOwn = dr.data && dr.data.data_v9 && dr.data.data_v9.hospitals && dr.data.data_v9.hospitals.length > 0;
+          if (!hasOwn) {
+            ['myschedule_v9','myschedule_v6','hs_myinfo','hs_myproducts'].forEach(function(k){ localStorage.removeItem(k); });
+          }
+        });
+      }
+
+      // 로고 교체
       var logoDiv = document.querySelector('.logo');
       if (logoDiv) {
         logoDiv.innerHTML = '<div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div><span style="display:block;font-size:11px;color:#888;margin-top:1px">거래첸 관리</span>';
       }
 
-      // 이름 + 로그아웃 버튼을 header 오른쪽 고정 div에 삽입
-      var existing = document.getElementById('_userArea');
-      if (!existing) {
-        var header = document.querySelector('header');
+      // 이름+로그아웃 고정 div
+      if (!document.getElementById('_userArea')) {
         var userArea = document.createElement('div');
         userArea.id = '_userArea';
         userArea.style.cssText = 'position:fixed;top:0;right:0;height:48px;display:flex;align-items:center;gap:6px;padding:0 12px;z-index:1000;background:rgba(255,255,255,0.95);backdrop-filter:blur(4px)';
-
         if (p.role === 'superadmin' || p.role === 'manager') {
-          var adminLink = document.createElement('a');
-          adminLink.href = 'admin.html';
-          adminLink.style.cssText = 'background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8;text-decoration:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600';
-          adminLink.textContent = p.role === 'superadmin' ? '관리자' : '팔장';
-          userArea.appendChild(adminLink);
+          var al = document.createElement('a');
+          al.href = 'admin.html';
+          al.style.cssText = 'background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8;text-decoration:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600';
+          al.textContent = p.role === 'superadmin' ? '관리자' : '팔장';
+          userArea.appendChild(al);
         }
-
-        var nameSpan = document.createElement('span');
-        nameSpan.style.cssText = 'font-size:12px;color:#555;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis';
-        nameSpan.textContent = (p.name || s.user.email) + ' 님';
-        userArea.appendChild(nameSpan);
-
-        var logoutBtn = document.createElement('button');
-        logoutBtn.style.cssText = 'background:#fff0f0;border:1px solid #ffaaaa;color:#e53e3e;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;white-space:nowrap';
-        logoutBtn.textContent = '로그아웃';
-        logoutBtn.onclick = function() {
+        var ns = document.createElement('span');
+        ns.style.cssText = 'font-size:12px;color:#555;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis';
+        ns.textContent = (p.name || s.user.email) + ' 님';
+        userArea.appendChild(ns);
+        var lb = document.createElement('button');
+        lb.style.cssText = 'background:#fff0f0;border:1px solid #ffaaaa;color:#e53e3e;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;white-space:nowrap';
+        lb.textContent = '로그아웃';
+        lb.onclick = function() {
           if (confirm('로그아웃 하시겠습니까?')) {
             _sb.auth.signOut().then(function() { window.location.href = 'login.html'; });
           }
         };
-        userArea.appendChild(logoutBtn);
+        userArea.appendChild(lb);
         document.body.appendChild(userArea);
       }
 
       document.title = '닥터체크Pro';
 
+      // 데이터 동기화 - juanmedicalkorea만 데이터 업로드, 나머지는 회사명만 업데이트
       try {
-        var v9 = localStorage.getItem('myschedule_v9'), v6 = localStorage.getItem('myschedule_v6');
-        var miData = localStorage.getItem('hs_myinfo'), mp = localStorage.getItem('hs_myproducts');
-        if (v9 || v6) {
+        var v9 = localStorage.getItem('myschedule_v9');
+        var v6 = localStorage.getItem('myschedule_v6');
+        var miData = localStorage.getItem('hs_myinfo');
+        var mp = localStorage.getItem('hs_myproducts');
+        if (s.user.email === PROTECTED_EMAIL && (v9 || v6)) {
           _sb.from('user_app_data').upsert({
-            user_id: s.user.id, email: s.user.email, name: p.name || '',
-            company: p.company || '',
-            data_v9: v9 ? JSON.parse(v9) : null, data_v6: v6 ? JSON.parse(v6) : null,
-            myinfo: miData ? JSON.parse(miData) : null, myproducts: mp ? JSON.parse(mp) : null,
+            user_id: s.user.id, email: s.user.email, name: p.name||'',
+            company: p.company||'',
+            data_v9: v9 ? JSON.parse(v9) : null,
+            data_v6: v6 ? JSON.parse(v6) : null,
+            myinfo: miData ? JSON.parse(miData) : null,
+            myproducts: mp ? JSON.parse(mp) : null,
             synced_at: new Date().toISOString()
-          }, {onConflict: 'user_id'});
+          }, {onConflict:'user_id'});
+        } else {
+          // 다른 사용자는 회사명만 저장
+          _sb.from('user_app_data').upsert({
+            user_id: s.user.id, email: s.user.email,
+            name: p.name||'', company: p.company||'',
+            synced_at: new Date().toISOString()
+          }, {onConflict:'user_id'});
         }
       } catch(e) {}
     });
