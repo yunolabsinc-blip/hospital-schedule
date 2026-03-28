@@ -241,8 +241,7 @@
 
   <!-- 전체 사용자 목록 -->
   <div id="allTab" style="display:none">
-    <p class="section-label">전체 사용자</p>
-    <div class="user-list" id="allList">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><p class="section-label" style="margin:0">전체 사용자</p><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="filterCompany" onchange="filterAllUsers()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 회사</option></select><select id="filterStatus" onchange="filterAllUsers()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 상태</option><option value="approved">승인됨</option><option value="pending">대기 중</option><option value="rejected">거절됨</option><option value="inactive">비활성화</option></select><input type="text" id="filterSearch" onkeyup="filterAllUsers()" placeholder="이름/이메일" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;width:120px"></div></div><div class="user-list" id="allList">
       <div class="loading">불러오는 중...</div>
     </div>
   </div>
@@ -252,10 +251,10 @@
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <p class="section-label" style="margin:0">사용자 활동 데이터</p>
       <div style="display:flex;gap:8px;align-items:center">
-        <select id="dataUserFilter" style="font-size:13px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white">
-          <option value="all">전체 사용자</option>
+        <select id="filterDataUser" onchange="filterActivityData()" style="font-size:13px;padding:7px 12px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white">
+          <option value="">전체 사용자</option>
         </select>
-        <button onclick="exportExcel()" style="padding:8px 16px;background:#22c55e;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">📊 엑셀 추출</button>
+        <select id="filterDataHosp" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 거래처</option></select><select id="filterDataDoctor" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 의사</option></select><select id="filterDataProduct" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">전체 제품</option></select><select id="filterDataType" onchange="filterActivityData()" style="font-size:12px;padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;color:#555;background:white"><option value="">계획+결과</option><option value="planned">활동계획</option><option value="completed">활동결과</option></select><button onclick="exportExcel()" style="padding:8px 16px;background:#22c55e;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">📊 엑셀 추출</button>
         <button onclick="loadUserData()" style="padding:8px 16px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer">새로고침</button>
       </div>
     </div>
@@ -291,11 +290,12 @@
             <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">날짜</th>
             <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">시간대</th>
             <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">제품</th>
-            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">메모</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">활동내용</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:500;color:#555">구분</th>
           </tr>
         </thead>
         <tbody id="activityTableBody">
-          <tr><td colspan="7" style="padding:40px;text-align:center;color:#aaa">
+          <tr><td colspan="8" style="padding:40px;text-align:center;color:#aaa">
             데이터를 불러오려면 새로고침을 클릭하세요<br>
             <small style="font-size:11px;color:#ccc;margin-top:6px;display:block">* 사용자가 로그인하면 자동으로 데이터가 동기화됩니다</small>
           </td></tr>
@@ -322,6 +322,6 @@
   Supabase 연결 — signup.html과 동일하게 수정해주세요
 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin-app-v2.js"></script>
+<script src="admin-app-v2.js?v=3"></script>
 </body>
 </html>
