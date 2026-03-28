@@ -168,9 +168,12 @@ body {
         <span class="pw-eye" id="loginEye">👁</span>
       </div>
     </div>
-    <div class="remember-row">
-      <input type="checkbox" id="rememberMe">
-      <label for="rememberMe">아이디 기억하기</label>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="rememberMe" style="width:15px;height:15px;accent-color:#2563eb;cursor:pointer">
+        <label for="rememberMe" style="font-size:12px;color:#666;cursor:pointer">아이디 기억하기</label>
+      </div>
+      <button onclick="showForgotPw()" style="font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;padding:0">비밀번호 찾기</button>
     </div>
     <button class="btn-login" id="loginBtn">로그인</button>
     <div class="err-box" id="loginErr"></div>
@@ -189,7 +192,7 @@ body {
       가입 신청을 받았습니다.<br>
       담당자 검토 후 이메일로 알려드릴게요.<br><br>
       보통 <strong>1 영업일 이내</strong> 처리됩니다.<br>
-      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      문의: <a href="/cdn-cgi/l/email-protection#6a131f0405060b0819440304092a0d070b030644090507" style="color:#2563eb"><span class="__cf_email__" data-cfemail="b9c0ccd7d6d5d8dbca97d0d7daf9ded4d8d0d597dad6d4">[email&#160;protected]</span></a>
     </div>
     <button class="btn-out" id="logoutBtn1">로그아웃</button>
   </div>
@@ -199,7 +202,7 @@ body {
     <div class="status-title">가입이 거절되었습니다</div>
     <div class="status-body">
       <span id="rejectReason"></span><br><br>
-      문의: <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      문의: <a href="/cdn-cgi/l/email-protection#166f6378797a777465387f787556717b777f7a3875797b" style="color:#2563eb"><span class="__cf_email__" data-cfemail="b2cbc7dcddded3d0c19cdbdcd1f2d5dfd3dbde9cd1dddf">[email&#160;protected]</span></a>
     </div>
     <button class="btn-out" id="logoutBtn2">로그아웃</button>
   </div>
@@ -209,12 +212,39 @@ body {
     <div class="status-title">계정이 비활성화되었습니다</div>
     <div class="status-body">
       재사용을 원하시면 아래로 연락주세요.<br><br>
-      <a href="mailto:yunolabs.inc@gmail.com" style="color:#2563eb">yunolabs.inc@gmail.com</a>
+      <a href="/cdn-cgi/l/email-protection#68111d060704090a1b4601060b280f05090104460b0705" style="color:#2563eb"><span class="__cf_email__" data-cfemail="84fdf1eaebe8e5e6f7aaedeae7c4e3e9e5ede8aae7ebe9">[email&#160;protected]</span></a>
     </div>
     <button class="btn-out" id="logoutBtn3">로그아웃</button>
   </div>
 </div>
 
+
+<!-- 비밀번호 찾기 모달 -->
+<div class="modal-overlay" id="forgotModal">
+  <div class="modal-box" style="max-width:340px">
+    <button class="modal-close" onclick="closeForgotPw()">✕</button>
+    <div id="forgotForm">
+      <div class="modal-logo">
+        <div class="logo-name" style="font-size:18px">비밀번호 찾기</div>
+        <div class="logo-sub">가입한 이메일로 재설정 링크를 보내드립니다</div>
+      </div>
+      <div class="mfield">
+        <label>이메일 <span class="req">필수</span></label>
+        <input type="email" id="forgotEmail" placeholder="가입한 이메일 입력">
+      </div>
+      <button class="btn-submit" id="forgotBtn" onclick="sendResetEmail()">재설정 링크 보내기</button>
+      <div class="merr-box" id="forgotErr"></div>
+    </div>
+    <div id="forgotSuccess" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:40px;margin-bottom:12px">📧</div>
+      <div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:8px">이메일을 확인해주세요!</div>
+      <div style="font-size:13px;color:#666;line-height:1.7">
+        비밀번호 재설정 링크를<br><span id="resetEmail" style="font-weight:600;color:#2563eb"></span>으로<br>보내드렸습니다.
+      </div>
+      <button class="btn-out" onclick="closeForgotPw()" style="margin-top:16px">닫기</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="signupModal">
   <div class="modal-box">
@@ -306,7 +336,7 @@ body {
 </div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 var sb = supabase.createClient(
   'https://hslxclmezfudjgmehriy.supabase.co',
@@ -354,6 +384,9 @@ window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('closeSuccessBtn').onclick = closeSignup;
   document.getElementById('signupModal').onclick = function(e) {
     if (e.target === this) closeSignup();
+  };
+  document.getElementById('forgotModal').onclick = function(e) {
+    if (e.target === this) closeForgotPw();
   };
 
   // 로그아웃
@@ -539,6 +572,46 @@ function checkConfirm() {
 }
 
 
+// 비밀번호 찾기
+function showForgotPw() {
+  document.getElementById('forgotModal').classList.add('open');
+}
+function closeForgotPw() {
+  document.getElementById('forgotModal').classList.remove('open');
+  document.getElementById('forgotForm').style.display = 'block';
+  document.getElementById('forgotSuccess').style.display = 'none';
+  document.getElementById('forgotEmail').value = '';
+  document.getElementById('forgotErr').style.display = 'none';
+}
+async function sendResetEmail() {
+  var email = document.getElementById('forgotEmail').value.trim();
+  var errBox = document.getElementById('forgotErr');
+  var btn = document.getElementById('forgotBtn');
+
+  errBox.style.display = 'none';
+  if (!email) { errBox.textContent='⚠️ 이메일을 입력해주세요.'; errBox.style.display='block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '전송 중...';
+
+  var r = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://yunolabsinc-blip.github.io/hospital-schedule/login.html'
+  });
+
+  btn.disabled = false;
+  btn.textContent = '재설정 링크 보내기';
+
+  if (r.error) {
+    errBox.textContent = '⚠️ ' + r.error.message;
+    errBox.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('resetEmail').textContent = email;
+  document.getElementById('forgotForm').style.display = 'none';
+  document.getElementById('forgotSuccess').style.display = 'block';
+}
+
 // 가입 신청
 async function doSignup() {
   var name    = document.getElementById('sName').value.trim();
@@ -574,23 +647,4 @@ async function doSignup() {
 
     if (r.error) {
       var msgs = { 'User already registered': '이미 가입된 이메일입니다. 로그인해주세요.' };
-      errBox.textContent = '⚠️ ' + (msgs[r.error.message] || r.error.message);
-      errBox.style.display = 'block';
-      return;
-    }
-
-    document.getElementById('signupFormWrap').style.display = 'none';
-    document.getElementById('signupSuccess').style.display  = 'block';
-    document.getElementById('successEmail').textContent = email;
-
-  } catch(e) {
-    errBox.textContent = '⚠️ 오류: ' + e.message;
-    errBox.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '가입 신청';
-  }
-}
-</script>
-</body>
-</html>
+      errBox.textContent = '⚠️

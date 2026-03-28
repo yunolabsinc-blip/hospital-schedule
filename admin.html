@@ -373,13 +373,19 @@ async function loadPendingList() {
         <div class="user-detail">${esc(user.email)} · ${esc(user.company)}</div>
         <div class="user-meta">
           직책: ${esc(user.job_title || '미입력')}
-          ${user.region ? ' · 지역: ' + esc(user.region) : ''}
+          · 지역: ${esc(user.region || '미입력')}
           · 신청일: ${formatDate(user.created_at)}
+        </div>
+        <div class="user-meta" style="margin-top:4px">
+          <select onchange="setPendingRole('${user.id}', this.value)" style="font-size:11px;padding:2px 6px;border:1px solid #e2e8f0;border-radius:6px;color:#555;background:white;cursor:pointer">
+            <option value="user">역할: 영업 담당자</option>
+            <option value="manager">역할: 팀장 / 관리자</option>
+          </select>
         </div>
       </div>
       <span class="status-badge pending">대기 중</span>
       <div class="action-btns">
-        <button class="btn-approve" onclick="approve('${user.id}')">승인</button>
+        <button class="btn-approve" onclick="approveWithRole('${user.id}')">승인</button>
         <button class="btn-reject"  onclick="openRejectModal('${user.id}')">거절</button>
       </div>
     </div>
@@ -452,23 +458,53 @@ async function loadAllList() {
 
 
 // ============================================================
-// 승인 처리
+// 역할 임시 저장 (승인 전)
 // ============================================================
-async function approve(userId) {
-  if (!confirm('이 사용자를 승인하시겠습니까?')) return;
+const pendingRoles = {};
+function setPendingRole(userId, role) {
+  pendingRoles[userId] = role;
+}
+
+// ============================================================
+// 승인 처리 (역할 포함)
+// ============================================================
+async function approveWithRole(userId) {
+  const role = pendingRoles[userId] || 'user';
+  const roleLabel = role === 'manager' ? '팀장/관리자' : '영업 담당자';
+  if (!confirm(`이 사용자를 [${roleLabel}] 역할로 승인하시겠습니까?`)) return;
 
   const { error } = await sb
     .from('user_profiles')
     .update({
       status:      'approved',
+      role:        role,
       approved_at: new Date().toISOString(),
     })
     .eq('id', userId);
 
   if (error) { alert('오류: ' + error.message); return; }
 
-  alert('✅ 승인되었습니다!');
+  // 승인 이메일 발송 (Supabase 이메일 기능 사용)
+  // 실제 이메일 발송은 관리자가 수동으로 하거나 Edge Function으로 처리
+  // 지금은 알림창으로 대신 안내
+  const userEmail = document.querySelector(`#card-all-${userId} .user-detail`)?.textContent?.split('·')[0]?.trim() || '';
+  const userName  = document.querySelector(`#card-all-${userId} .user-name`)?.textContent?.trim() || '';
+
+  alert(`✅ ${userName}님이 승인되었습니다!\n\n` +
+    `📧 승인 안내를 이메일(${userEmail})로 직접 보내주세요.\n\n` +
+    `─────────────────\n` +
+    `제목: [닥터체크Pro] 가입이 승인되었습니다!\n\n` +
+    `안녕하세요, ${userName}님!\n` +
+    `닥터체크Pro 가입이 승인되었습니다.\n` +
+    `지금 바로 로그인하여 이용하실 수 있습니다.\n\n` +
+    `▶ https://yunolabsinc-blip.github.io/hospital-schedule/login.html\n` +
+    `─────────────────`
+  );
   await loadAll();
+}
+
+async function approve(userId) {
+  await approveWithRole(userId);
 }
 
 
