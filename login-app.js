@@ -71,49 +71,58 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function doLogin() {
-  var email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
-  var remember=document.getElementById('rememberMe').checked, auto=document.getElementById('autoLogin').checked;
-  var errBox=document.getElementById('loginErr'), btn=document.getElementById('loginBtn');
-  errBox.style.display='none';
-  if(!email||!password){errBox.textContent='⚠️ 이메일과 비밀번호를 입력해주세요.';errBox.style.display='block';return;}
-  if(remember||auto) localStorage.setItem('drcheck_email',email); else localStorage.removeItem('drcheck_email');
-  localStorage.setItem('drcheck_auto', auto?'true':'false');
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>로그인 중...';
-  try {
-    var r=await sb.auth.signInWithPassword({email:email,password:password});
-    if(r.error){
-      var msgs={'Invalid login credentials':'이메일 또는 비밀번호가 올바르지 않습니다.','Email not confirmed':'이메일 인증이 필요합니다.','Too many requests':'잠시 후 다시 시도해주세요.'};
-      errBox.textContent='⚠️'+(msgs[r.error.message]||r.error.message); errBox.style.display='block'; return;
-    }
-    await checkStatus(r.data.user);
-  } catch(e){errBox.textContent='⚠️ 오류: '+e.message; errBox.style.display='block';}
-  finally{btn.disabled=false; btn.innerHTML='로그인';}
-}
-
-async function checkStatus(user) {
-  try {
-    var r=await sb.from('user_profiles').select('status,role,rejection_reason').eq('id',user.id).maybeSingle();
-    var p=r.data;
-    if(!p){showView('pending');return;}
-    if(p.status==='approved'){
-      try{var _mi=JSON.parse(localStorage.getItem('hs_myinfo')||'{}');if(!_mi.company&&p.company){localStorage.setItem('hs_myinfo',JSON.stringify({name:p.name||'',company:p.company||'',job_title:p.job_title||'',region:p.region||'',phone:p.phone||'',email:sess.user.email}));};}catch(e){}
-      // 주안메디칼 이외 신규 사용자 로컬 데이터 초기화
-      if(p.company !== '주안메디칼') {
-        var hasOwnData = !!(localStorage.getItem('myschedule_v9') && JSON.parse(localStorage.getItem('myschedule_v9')).hospitals && JSON.parse(localStorage.getItem('myschedule_v9')).hospitals.length > 0);
-        if(!hasOwnData) {
-          // 자신의 데이터가 없으면 철저 클리어
-          localStorage.removeItem('myschedule_v9');
-          localStorage.removeItem('myschedule_v6');
-          localStorage.removeItem('hs_myinfo');
-          localStorage.removeItem('hs_myproducts');
-        }
+  var emailEl = document.getElementById('email');
+  var pwEl = document.getElementById('password');
+  if(!emailEl || !pwEl) return;
+  var email = (emailEl.value || '').trim();
+  var password = pwEl.value || '';
+  var errBox = document.getElementById('loginError');
+  if(!email || !password) {
+    if(errBox) { errBox.textContent = '⚠️ 이메일과 비밀번호를 입력해주세요.'; errBox.style.display='block'; }
+    return;
+  }
+  if(errBox) errBox.style.display='none';
+  var btn = document.getElementById('loginBtn');
+  if(btn) { btn.disabled=true; btn.textContent='로그인 중...'; }
+  sb.auth.signInWithPassword({email:email, password:password})
+    .then(function(r) {
+      if(btn) { btn.disabled=false; btn.textContent='로그인'; }
+      if(r.error) {
+        if(errBox) { errBox.textContent='❌ 이메일 또는 비밀번호가 다릅니다.'; errBox.style.display='block'; }
+        return;
       }
-      window.location.href=(p.role==='superadmin')?'admin.html':'index.html';return;
-    }
-    if(p.status==='rejected'){document.getElementById('rejectReason').textContent=p.rejection_reason||'자세한 사유는 이메일로 전달드렸습니다.';showView('rejected');return;}
-    if(p.status==='inactive'||p.status==='withdrawal_requested'){showView('inactive');return;}
-    showView('pending');
-  } catch(e){showView('pending');}
+      var user = r.data.user;
+      if(!user) return;
+      sb.from('user_profiles').select('*').eq('id',user.id).single()
+        .then(function(pr) {
+          if(pr.error || !pr.data) {
+            if(errBox) { errBox.textContent='⚠️ 프로필 조회 실패.'; errBox.style.display='block'; }
+            return;
+          }
+          var p = pr.data;
+          if(p.status==='pending') {
+            sb.auth.signOut();
+            if(errBox) { errBox.textContent='⏳ 관리자 승인 대기 중입니다.'; errBox.style.display='block'; }
+            return;
+          }
+          if(p.status==='rejected') {
+            sb.auth.signOut();
+            if(errBox) { errBox.textContent='거절된 계정입니다.'; errBox.style.display='block'; }
+            return;
+          }
+          if(p.status==='inactive') {
+            sb.auth.signOut();
+            if(errBox) { errBox.textContent='비활성화된 계정입니다.'; errBox.style.display='block'; }
+            return;
+          }
+          // 로그인 성공 - myinfo 저장
+          var myinfo = {name:p.name,email:p.email,company:p.company,role:p.role};
+          localStorage.setItem('hs_myinfo', JSON.stringify(myinfo));
+          localStorage.setItem('hs_plan', p.price_plan||'beta');
+          // 리다이렉트
+          window.location.href = (p.role==='superadmin')?'admin.html':'index.html';
+        });
+    });
 }
 
 function showView(v) {
