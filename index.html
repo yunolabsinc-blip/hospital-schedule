@@ -29,7 +29,7 @@ header{
 }
 .logo{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;}
 .logo span{color:var(--text2);font-weight:400;font-size:11px;margin-left:4px;}
-.header-btns{display:flex;gap:6px;flex-shrink:0;}
+.header-btns{display:flex;gap:4px;flex-shrink:0;align-items:center;}.header-btns .btn{font-size:11px;padding:5px 8px;}
 .btn{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit;white-space:nowrap;line-height:1;}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover,.btn-primary:active{background:#224830;}
@@ -332,7 +332,7 @@ header{
 .tag-input-row button{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
 
 /* ── GLOBAL SEARCH ── */
-.global-search{position:relative;flex:1;max-width:260px;min-width:120px;}
+.global-search{position:relative;flex:1;max-width:180px;min-width:60px;}
 .global-search input{width:100%;padding:7px 28px 7px 30px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;transition:border-color .12s;}
 .global-search input:focus{border-color:var(--accent);background:var(--surface);}
 .global-search .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none;}
@@ -3847,6 +3847,10 @@ function injectUijCheok(){
         _sb.from('user_app_data').select('user_id,data_v9').eq('user_id', s.user.id).maybeSingle().then(function(dr) {
           var hasOwn = dr.data && dr.data.data_v9 && dr.data.data_v9.hospitals && dr.data.data_v9.hospitals.length > 0;
           if (!hasOwn) {
+              S.hospitals=[]; S.doctors=[]; S.products=[];
+              S.myProducts=[]; S.activities=[];
+              saveData();
+
             ['myschedule_v9','myschedule_v6','hs_myinfo','hs_myproducts'].forEach(function(k){ localStorage.removeItem(k); });
           }
         });
