@@ -199,6 +199,7 @@ function renderAllUsers(data){
           '<button onclick="reactivateUser(\''+u.id+'\')" style="background:#22c55e;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;white-space:nowrap">재활성화</button>'+
           '<button onclick="deleteUser(\''+u.id+'\')" style="background:#e53e3e;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer">삭제</button>':
           '<button onclick="openDeactivateModal(\''+u.id+'\')" style="background:#f59e0b;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;white-space:nowrap">비활성화</button>'+
+          '<button onclick="sendApprovalEmail(\''+u.id+'\',' +'\''+(u.email||'')+'\',' +'\''+(u.name||'')+'\',' +'\''+(u.company||'')+'\')" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">승인메일</button>'+
           '<button onclick="sendApprovalEmail(\''+u.id+'\',' +'\''+(u.email||'')+'\',' +'\''+(u.name||'')+'\',' +'\''+(u.company||'')+'\')'+ 
           ' style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">승인메일</button>'+
             '<button onclick="sendApprovalEmail(\''+u.id+'\',' +
@@ -259,6 +260,18 @@ function exportAllUsers(){
   ].join(' | ');
   var csv=[filterInfo, h.join(',')].concat(data.map(function(u){return[u.company,u.name,u.email,u.role,u.job_title,u.region,u.phone,u.status,PL[u.price_plan]||u.price_plan||'',fmtDate(u.plan_expires_at),fmtDate(u.created_at)].map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');})).join('\n');
   _dlCsv('사용자목록_'+new Date().toISOString().substring(0,10)+'.csv',csv);
+}
+
+window._adminActFilter="all";
+function filterAdminAct(f){
+  window._adminActFilter=f;
+  ["today","week","month","all"].forEach(function(k){
+    var b=document.getElementById("adf-"+k);
+    if(!b)return;
+    if(k===f){b.style.border="1px solid #E8734A";b.style.background="#fff8f5";b.style.color="#E8734A";b.style.fontWeight="600";}
+    else{b.style.border="1px solid #e5e7eb";b.style.background="white";b.style.color="";b.style.fontWeight="";}
+  });
+  loadUserData();
 }
 function loadUserData(){
   var tb=document.getElementById('activityTableBody');if(!tb)return;
@@ -448,3 +461,4 @@ function deleteInquiry(id){
 
 
  
+
