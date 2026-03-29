@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var savedEmail = localStorage.getItem('drcheck_email');
   if(savedEmail) {
     document.getElementById('email').value = savedEmail;
-    (document.getElementById('rememberEmail')?.checked||false) = true;
+    var remEl=document.getElementById('rememberEmail'); if(remEl) remEl.checked=true;
   }
   if(localStorage.getItem('drcheck_auto')==='1') {
-    document.getElementById('autoLogin')?.checked = true;
+    var alEl=document.getElementById('autoLogin'); if(alEl) alEl.checked=true;
     doLogin();
   }
 
@@ -160,3 +160,4 @@ if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.'
 
 
  
+
