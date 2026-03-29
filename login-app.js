@@ -1,4 +1,5 @@
 var sb;
+var sb;
 
 document.addEventListener('DOMContentLoaded', function() {
   sb = supabase.createClient(
@@ -84,7 +85,7 @@ async function doLogin() {
   if(errBox) errBox.style.display='none';
   var btn = document.getElementById('loginBtn');
   if(btn) { btn.disabled=true; btn.textContent='로그인 중...'; }
-  sb.auth.signInWithPassword({email:email, password:password})
+  window.sb.auth.signInWithPassword({email:email, password:password})
     .then(function(r) {
       if(btn) { btn.disabled=false; btn.textContent='로그인'; }
       if(r.error) {
@@ -93,7 +94,7 @@ async function doLogin() {
       }
       var user = r.data.user;
       if(!user) return;
-      sb.from('user_profiles').select('*').eq('id',user.id).single()
+      window.sb.from('user_profiles').select('*').eq('id',user.id).single()
         .then(function(pr) {
           if(pr.error || !pr.data) {
             if(errBox) { errBox.textContent='⚠️ 프로필 조회 실패.'; errBox.style.display='block'; }
@@ -101,17 +102,17 @@ async function doLogin() {
           }
           var p = pr.data;
           if(p.status==='pending') {
-            sb.auth.signOut();
+            window.sb.auth.signOut();
             if(errBox) { errBox.textContent='⏳ 관리자 승인 대기 중입니다.'; errBox.style.display='block'; }
             return;
           }
           if(p.status==='rejected') {
-            sb.auth.signOut();
+            window.sb.auth.signOut();
             if(errBox) { errBox.textContent='거절된 계정입니다.'; errBox.style.display='block'; }
             return;
           }
           if(p.status==='inactive') {
-            sb.auth.signOut();
+            window.sb.auth.signOut();
             if(errBox) { errBox.textContent='비활성화된 계정입니다.'; errBox.style.display='block'; }
             return;
           }
