@@ -332,7 +332,7 @@ header{
 .tag-input-row button{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
 
 /* ── GLOBAL SEARCH ── */
-.global-search{position:relative;width:70px;flex:none;}
+.global-search{position:relative;width:160px;flex:none;}
 .global-search input{width:100%;padding:7px 28px 7px 30px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;transition:border-color .12s;}
 .global-search input:focus{border-color:var(--accent);background:var(--surface);}
 .global-search .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none;}
@@ -418,7 +418,7 @@ header{
 
 <header>
   <div style="display:flex;flex-direction:column;flex-shrink:0;">
-    <div class="logo" onclick="goToFirstHosp()" style="cursor:pointer"><div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div></div>
+    <div class="logo" onclick="goToFirstHosp()" style="cursor:pointer"><div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#E8734A;margin-top:2px">Pro</span></div></div>
     <div id="today-label" style="font-size:12px;font-weight:700;color:var(--text2);padding-left:22px;margin-top:2px;"></div>
   </div>
   <div id="sync-status" style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;"></div>
@@ -429,9 +429,9 @@ header{
     <div class="gs-results" id="gs-results"></div>
   </div>
   <div class="header-btns">
-    <input type="file" id="xlsx-input" accept=".xlsx" style="display:none" onchange="handleXlsx(this)">
-    <button class="btn btn-outline" onclick="downloadTemplate()" style="font-size:10px;padding:3px 6px;white-space:nowrap;flex-shrink:0">📋 양식</button>
-    <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()" style="font-size:10px;padding:3px 6px;white-space:nowrap;flex-shrink:0">📂 업로드</button>
+    
+    
+    
     <button class="btn btn-outline" onclick="openHospModal()" style="font-size:11px;padding:5px 7px">+ 거래처</button>
     <button class="btn btn-outline btn-icon" onclick="openSettings()" title="설정">⚙️</button>
     <!-- mobile FAB - 거래처 추가 -->
@@ -3287,6 +3287,20 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 // Custom confirm
 function showConfirm(msg, onOk){
+  // 엔터키로 확인
+  document.removeEventListener("keydown", window._confirmEnterHandler);
+  window._confirmEnterHandler = function(e){
+    if(e.key==="Enter"){
+      var cm=document.getElementById("confirm-modal");
+      if(cm && cm.classList.contains("open")){
+        e.preventDefault();
+        confirmOk();
+        document.removeEventListener("keydown", window._confirmEnterHandler);
+      }
+    }
+  };
+  document.addEventListener("keydown", window._confirmEnterHandler);
+
   document.getElementById('confirm-msg').textContent=msg;
   S._confirmCb=onOk;
   document.getElementById('confirm-modal').classList.add('open');
@@ -3396,15 +3410,32 @@ function switchSettingsTab(tab){
 }
 
 function openSettings(){
-  const info=getMyInfo();
-  document.getElementById('my-name').value=info.name||'';
-  document.getElementById('my-company').value=info.company||'';
-  document.getElementById('my-title').value=info.title||'';
-  document.getElementById('my-email').value=info.email||'';
-  document.getElementById('my-memo').value=info.memo||'';
-  switchSettingsTab('profile');
-  renderMyProductsList();
-  document.getElementById('settings-modal').classList.add('open');
+  function fillSettings(info){
+    var el; 
+    el=document.getElementById("my-name"); if(el) el.value=info.name||"";
+    el=document.getElementById("my-company"); if(el) el.value=info.company||"";
+    el=document.getElementById("my-title"); if(el) el.value=info.job_title||info.title||"";
+    el=document.getElementById("my-email"); if(el) el.value=info.email||"";
+    el=document.getElementById("my-region"); if(el) el.value=info.region||"";
+    el=document.getElementById("my-phone"); if(el) el.value=info.phone||"";
+    // 상단 표시용 (이름, 이메일, 회사)
+    el=document.getElementById("mypage-name-display"); if(el) el.textContent=info.name||"-";
+    el=document.getElementById("mypage-email-display"); if(el) el.textContent=info.email||"-";
+    el=document.getElementById("mypage-company-display"); if(el) el.textContent=info.company||"-";
+  }
+  if(window.sb && S.user && S.user.id){
+    window.sb.from("user_profiles").select("*").eq("id",S.user.id).single().then(function(r){
+      if(r.data){
+        localStorage.setItem("hs_myinfo",JSON.stringify(r.data));
+        fillSettings(r.data);
+      } else {
+        fillSettings(getMyInfo());
+      }
+    });
+  } else {
+    fillSettings(getMyInfo());
+  }
+  openModal("settings-modal");
 }
 
 function saveSettings(){
@@ -4102,6 +4133,7 @@ document.addEventListener('keydown', function(e){
 </body>
 </html>
  
+
 
 
 
