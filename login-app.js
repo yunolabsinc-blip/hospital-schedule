@@ -128,11 +128,11 @@ function doRegister(){
       if(r.error){showErr('❌ '+r.error.message);return;}
       var uid=r.data?.user?.id;
       if(!uid){showErr('❌ 회원가입 실패.');return;}
-      window.sb.from('user_profiles').insert({
+      window.sb.from('user_profiles').upsert({
         id:uid,email:email,name:name,company:company,
         job_title:jobTitle,region:region,phone:phone,
         role:'user',status:'pending'
-      }).then(function(pr){
+      },{onConflict:'id'}).then(function(pr){
         if(pr.error){showErr('❌ '+pr.error.message);return;}
         alert('✅ 가입 신청이 접수되었습니다.\n관리자 승인 후 로그인하실 수 있습니다.');
         document.getElementById('registerSection').style.display='none';
@@ -141,3 +141,5 @@ function doRegister(){
     });
 }
 
+
+ 
