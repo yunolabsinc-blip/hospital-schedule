@@ -156,11 +156,17 @@ function _doSignUp(name,email,pw,company,jobTitle,region,phone,agreeMarketing,bt
         showErr('registerError','❌ 저장 실패: '+pr.error.message);
         if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';}return;
       }
-      alert('회원가입 신청이 완료되었습니다.\n관리자 승인 후 로그인하실 수 있습니다.');
+      // 토스트 메시지 표시
+      var toast=document.createElement('div');
+      toast.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1e293b;color:white;padding:24px 32px;border-radius:16px;font-size:15px;font-weight:600;z-index:9999;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);line-height:1.6;';
+      toast.innerHTML='✅ 회원가입 신청 완료!<br><span style="font-size:13px;font-weight:400;color:#94a3b8">관리자 승인 후 로그인하실 수 있습니다.</span>';
+      document.body.appendChild(toast);
+      setTimeout(function(){toast.remove();},3000);
       if(typeof showLogin==='function') showLogin();
       if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';}
     });
   });
 }
+
 
 
