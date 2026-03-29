@@ -414,7 +414,7 @@ header{
 </style>
 <!-- btn-fix -->
 </head>
-<body>
+<body style="display:none">
 
 <header>
   <div style="display:flex;flex-direction:column;flex-shrink:0;">
@@ -3822,6 +3822,19 @@ function injectUijCheok(){
     'https://hslxclmezfudjgmehriy.supabase.co',
     'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
   );
+  // 세션 확인 후 화면 표시
+  window.sb.auth.getSession().then(function(r){
+    var s = r.data && r.data.session;
+    if(!s){ window.location.href='login.html'; return; }
+    // superadmin/manager → admin.html
+    window.sb.from('user_profiles').select('role').eq('id',s.user.id).single().then(function(pr){
+      if(pr.data && (pr.data.role==='superadmin'||pr.data.role==='manager')){
+        window.location.href='admin.html'; return;
+      }
+      document.body.style.display='';
+    });
+  });
+
   var PROTECTED_EMAIL = 'juanmedicalkorea@gmail.com';
 
   window.sb.auth.getSession().then(function(res) {
@@ -4092,6 +4105,7 @@ document.addEventListener('keydown', function(e){
 </body>
 </html>
  
+
 
 
 
