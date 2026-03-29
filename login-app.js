@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var savedEmail = localStorage.getItem('drcheck_email');
   if(savedEmail) {
     document.getElementById('email').value = savedEmail;
-    document.getElementById('rememberEmail').checked = true;
+    (document.getElementById('rememberEmail')?.checked||false) = true;
   }
   if(localStorage.getItem('drcheck_auto')==='1') {
-    document.getElementById('autoLogin').checked = true;
+    document.getElementById('autoLogin')?.checked = true;
     doLogin();
   }
 
@@ -67,8 +67,8 @@ function doLogin(){
   var email=(document.getElementById('email').value||'').trim();
   var password=document.getElementById('password').value||'';
   var errBox=document.getElementById('loginError');
-  var remember=document.getElementById('rememberEmail').checked;
-  var autoL=document.getElementById('autoLogin').checked;
+  var remember=(document.getElementById('rememberEmail')?.checked||false);
+  var autoL=document.getElementById('autoLogin')?.checked;
   if(!email||!password){
     if(errBox){errBox.textContent='⚠️ 이메일과 비밀번호를 입력해주세요.';errBox.style.display='block';}
     return;
@@ -158,3 +158,5 @@ if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.'
  
 
 
+
+ 
