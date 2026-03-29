@@ -1,9 +1,12 @@
 '<td style="padding:4px 6px">'+(u.role!=='manager'?('<select onchange="assignManager(\''+u.id+'\',this.value)" style="font-size:11px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;max-width:80px">'+'<option value="">미배정</option>'+_allUsersData.filter(function(m){return m.role==='manager';}).map(function(m){return '<option value="'+m.id+'"'+(u.manager_id===m.id?' selected':'')+'>'+esc(m.name)+'</option>';}).join('')+'</select>'):'-')+'</td>'+
 
 var _allUsersData=[],_activityRows=[];
-(function init(){
-  sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
-  document.addEventListener('DOMContentLoaded',function(){
+(document.addEventListener('DOMContentLoaded', function(){
+  sb = supabase.createClient(
+    'https://hslxclmezfudjgmehriy.supabase.co',
+    'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
+  );
+
   sb = supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
 
   // 로그아웃
@@ -28,8 +31,9 @@ var _allUsersData=[],_activityRows=[];
           loadAll();
         });
     });
-  });
-})();
+  
+});
+)();
 function logout(){sb.auth.signOut().then(function(){window.location.href='login.html';});}
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
@@ -451,4 +455,5 @@ function assignManager(uid, managerId){
  
 
  
+
 
