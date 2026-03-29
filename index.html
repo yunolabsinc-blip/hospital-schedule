@@ -3287,6 +3287,15 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 // Custom confirm
 function showConfirm(msg, onOk){
+  document.removeEventListener("keydown",window._confirmEnterHandler);
+  window._confirmEnterHandler=function(e){
+    if(e.key==="Enter"){
+      var cm=document.getElementById("confirm-modal");
+      if(cm&&cm.classList.contains("open")){e.preventDefault();confirmOk();document.removeEventListener("keydown",window._confirmEnterHandler);}
+    }
+  };
+  document.addEventListener("keydown",window._confirmEnterHandler);
+
   // 엔터키로 확인
   document.removeEventListener("keydown", window._confirmEnterHandler);
   window._confirmEnterHandler = function(e){
@@ -3410,31 +3419,21 @@ function switchSettingsTab(tab){
 }
 
 function openSettings(){
-  function fillSettings(info){
-    var el; 
-    el=document.getElementById("my-name"); if(el) el.value=info.name||"";
-    el=document.getElementById("my-company"); if(el) el.value=info.company||"";
-    el=document.getElementById("my-title"); if(el) el.value=info.job_title||info.title||"";
-    el=document.getElementById("my-email"); if(el) el.value=info.email||"";
-    el=document.getElementById("my-region"); if(el) el.value=info.region||"";
-    el=document.getElementById("my-phone"); if(el) el.value=info.phone||"";
-    // 상단 표시용 (이름, 이메일, 회사)
-    el=document.getElementById("mypage-name-display"); if(el) el.textContent=info.name||"-";
-    el=document.getElementById("mypage-email-display"); if(el) el.textContent=info.email||"-";
-    el=document.getElementById("mypage-company-display"); if(el) el.textContent=info.company||"-";
+  function fill(p){
+    var e;
+    e=document.getElementById("my-name");    if(e) e.value=p.name||"";
+    e=document.getElementById("my-company"); if(e) e.value=p.company||"";
+    e=document.getElementById("my-title");   if(e) e.value=p.job_title||p.title||"";
+    e=document.getElementById("my-email");   if(e) e.value=p.email||"";
+    e=document.getElementById("my-region");  if(e) e.value=p.region||"";
+    e=document.getElementById("my-phone");   if(e) e.value=p.phone||"";
   }
-  if(window.sb && S.user && S.user.id){
+  if(window.sb&&S.user&&S.user.id){
     window.sb.from("user_profiles").select("*").eq("id",S.user.id).single().then(function(r){
-      if(r.data){
-        localStorage.setItem("hs_myinfo",JSON.stringify(r.data));
-        fillSettings(r.data);
-      } else {
-        fillSettings(getMyInfo());
-      }
+      if(r.data){localStorage.setItem("hs_myinfo",JSON.stringify(r.data));fill(r.data);}
+      else fill(getMyInfo());
     });
-  } else {
-    fillSettings(getMyInfo());
-  }
+  } else fill(getMyInfo());
   openModal("settings-modal");
 }
 
@@ -3901,7 +3900,7 @@ function injectUijCheok(){
       // 로고 교체
       var logoDiv = document.querySelector('.logo');
       if (logoDiv) {
-        logoDiv.innerHTML = '<div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#2563eb;margin-top:2px">Pro</span></div>';
+        logoDiv.innerHTML = '<div style="display:flex;align-items:flex-start;line-height:1"><span style="font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-1px">닥터체크</span><span style="font-size:11px;font-weight:700;color:#E8734A;margin-top:2px">Pro</span></div>';
       }
 
       // 이름+로그아웃 고정 div
@@ -4133,6 +4132,7 @@ document.addEventListener('keydown', function(e){
 </body>
 </html>
  
+
 
 
 
