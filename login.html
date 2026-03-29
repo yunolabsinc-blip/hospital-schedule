@@ -66,37 +66,61 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <label>이메일</label>
       <input type="email" id="email" placeholder="이메일 주소" autocomplete="email">
     </div>
+    <div class="field">
+      <label>비밀번호</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" placeholder="비밀번호 입력" autocomplete="current-password">
+        <span class="pw-eye" id="loginEye">👁</span>
+      </div>
+    </div>
+    <div class="options-row">
+      <div class="check-group">
+        <div class="check-item"><input type="checkbox" id="rememberEmail"><label for="rememberEmail">아이디 기억</label></div>
+        <div class="check-item"><input type="checkbox" id="autoLogin"><label for="autoLogin">자동 로그인</label></div>
+      </div>
+      <div class="links">
+        <a href="#" id="findIdLink">아이디 찾기</a>
+        <a href="#" id="findPwLink">비밀번호 찾기</a>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="loginBtn" type="button" onclick="doLogin()">로그인</button>
+    <div class="error-msg" id="loginError"></div>
+    <div class="divider"><span>계정이 없으신가요?</span></div>
+    <button class="btn btn-outline" id="goRegisterBtn" type="button" onclick="document.getElementById('loginSection').style.display='none';document.getElementById('registerSection').style.display='block'">회원가입 신청</button>
+  </div>
     <!-- 홍보 배너 -->
-    <div style="background:#1c1c1e;color:white;padding:28px 24px;border-radius:16px;margin-bottom:0;width:100%;box-sizing:border-box">
+    <div style="background:#1c1c1e;color:white;padding:24px 20px;border-radius:16px;margin:20px 0;box-sizing:border-box">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
         <span style="background:#dc2626;color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">베타 멤버 한정</span>
         <span style="color:#9ca3af;font-size:13px">선착순 200명</span>
       </div>
-      <div style="background:#2a2a2e;border-radius:12px;padding:20px;margin-bottom:20px">
-        <div style="color:#9ca3af;font-size:12px;margin-bottom:10px">베타 멤버 가격 &middot; 평생 보장</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
-          <span style="color:#6b7280;font-size:14px;text-decoration:line-through">19,800원</span>
-          <span style="color:white;font-size:32px;font-weight:800">4,950</span>
-          <span style="color:#9ca3af;font-size:14px">원/월</span>
-          <span style="background:#dc2626;color:white;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">75% 할인</span>
+      <div style="background:#2a2a2e;border-radius:12px;padding:18px;margin-bottom:16px">
+        <div style="color:#9ca3af;font-size:11px;margin-bottom:8px">베타 멤버 가격 &middot; 평생 보장</div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+          <span style="color:#6b7280;font-size:13px;text-decoration:line-through">19,800원</span>
+          <span style="color:white;font-size:30px;font-weight:800">4,950</span>
+          <span style="color:#9ca3af;font-size:13px">원/월</span>
+          <span style="background:#dc2626;color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px">75% 할인</span>
         </div>
-        <div style="color:#9ca3af;font-size:12px;margin-bottom:14px">지금 가입하면 <strong style="color:white">이 가격이 평생 유지</strong>됩니다</div>
-        <hr style="border:none;border-top:1px solid #3a3a3e;margin:14px 0">
-        <div style="color:white;font-size:14px;font-weight:700;line-height:1.6;margin-bottom:8px">진료시간 확인부터 방문 계획까지,<br>더 이상 병원 홈페이지를 밴지지 않아도 됩니다.</div>
+        <div style="color:#9ca3af;font-size:12px;margin-bottom:12px">지금 가입하면 <strong style="color:white">이 가격이 평생 유지</strong>됩니다</div>
+        <hr style="border:none;border-top:1px solid #3a3a3e;margin:12px 0">
+        <div style="color:white;font-size:13px;font-weight:700;line-height:1.6;margin-bottom:6px">진료시간 확인부터 방문 계획까지,<br>더 이상 병원 홈페이지를 밴지지 않아도 됩니다.</div>
         <div style="color:#9ca3af;font-size:12px">방문 1건만 더 성사시켜도 본전, 그 이상은 순수 수입입니다.</div>
       </div>
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px">
-        <span style="color:#22c55e;font-size:8px;margin-top:5px">●</span>
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:12px">
+        <span style="color:#22c55e;font-size:8px;margin-top:4px">●</span>
         <div>
           <div style="color:white;font-size:13px;font-weight:600">5월 정식 출시 전까지 완전 무료</div>
           <div style="color:#9ca3af;font-size:12px">지금 가입하고 출시 전까지 모든 기능을 무료로 사용하세요.</div>
         </div>
       </div>
-      <div style="border-left:3px solid #dc2626;padding-left:12px;margin-bottom:0">
+      <div style="border-left:3px solid #dc2626;padding-left:10px">
         <div style="color:#9ca3af;font-size:12px;line-height:1.6">베타 마감 후에는 이 가격으로 다시 가입할 수 없습니다. 정식 출시 시 월 19,800원이 적용됩니다.</div>
       </div>
     </div>
-<div id="registerSection" style="display:none">
+
+
+  <div id="registerSection" style="display:none">
     <div style="display:flex;align-items:center;margin-bottom:20px;gap:8px">
       <button id="backToLoginBtn" type="button" onclick="document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block'" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">✕ 나가기</button>
       <span style="font-size:16px;font-weight:700">회원가입 신청</span>
@@ -121,18 +145,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="field"><label>담당 지역</label><input type="text" id="regRegion" placeholder="예: 서울/경기"></div>
     <div class="field"><label>전화번호</label><input type="tel" id="regPhone" placeholder="010-0000-0000"></div>
-      <!-- 이용약관 동의 -->
-      <div style="margin-top:12px;margin-bottom:8px">
+      <div style="margin:12px 0 8px">
         <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:8px">
-          <input type="checkbox" id="agreeTerms" style="margin-top:3px;accent-color:#3b82f6;width:15px;height:15px;flex-shrink:0">
-          <span style="font-size:12px;color:#64748b;line-height:1.5">
-            <a href="https://www.drcheckpro.com/terms.html" target="_blank" style="color:#3b82f6;text-decoration:underline">이용약관</a> 및 
-            <a href="https://www.drcheckpro.com/privacy.html" target="_blank" style="color:#3b82f6;text-decoration:underline">개인정보처리방침</a>에 동의합니다. <span style="color:#dc2626">(필수)</span>
-          </span>
+          <input type="checkbox" id="agreeTerms" style="margin-top:3px;width:15px;height:15px;flex-shrink:0;accent-color:#3b82f6">
+          <span style="font-size:12px;color:#64748b;line-height:1.5"><a href="https://www.drcheckpro.com/terms.html" target="_blank" style="color:#3b82f6;text-decoration:underline">이용약관</a> 및 <a href="https://www.drcheckpro.com/privacy.html" target="_blank" style="color:#3b82f6;text-decoration:underline">개인정보처리방침</a>에 동의합니다 <span style="color:#dc2626">(필수)</span></span>
         </label>
         <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
-          <input type="checkbox" id="agreeMarketing" style="margin-top:3px;accent-color:#3b82f6;width:15px;height:15px;flex-shrink:0">
-          <span style="font-size:12px;color:#64748b;line-height:1.5">마케팅 정보 수신에 동의합니다. <span style="color:#94a3b8">(선택)</span></span>
+          <input type="checkbox" id="agreeMarketing" style="margin-top:3px;width:15px;height:15px;flex-shrink:0;accent-color:#3b82f6">
+          <span style="font-size:12px;color:#64748b;line-height:1.5">마케팅 정보 수신 동의 <span style="color:#94a3b8">(선택)</span></span>
         </label>
       </div>
 
