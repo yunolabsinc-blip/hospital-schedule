@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (r.data && r.data.session) checkStatus(r.data.session.user);
   });
 
-  document.getElementById('loginBtn').onclick      = doLogin;
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
   document.getElementById('loginEye').onclick      = function() { togglePw('password', this); };
   document.getElementById('openSignupBtn').onclick = function() { openModal('signupModal'); };
   document.getElementById('findIdBtn').onclick     = function() { openModal('findIdModal'); };
