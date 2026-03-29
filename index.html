@@ -677,6 +677,21 @@ header{
   <div class="modal" style="max-width:500px;">
     <div class="modal-handle"></div>
     <h3>⚙️ 내 정보 설정</h3>
+    <div style="background:#f8f9fa;border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+      <div style="display:grid;grid-template-columns:70px 1fr;gap:6px;font-size:13px;">
+        <span style="color:#94a3b8;font-weight:500">이름</span>
+        <span id="mp-name-display" style="color:#1e293b;font-weight:600">-</span>
+        <span style="color:#94a3b8;font-weight:500">이메일</span>
+        <span id="mp-email-display" style="color:#1e293b;font-size:12px">-</span>
+        <span style="color:#94a3b8;font-weight:500">회사</span>
+        <span id="mp-company-display" style="color:#1e293b">-</span>
+        <span style="color:#94a3b8;font-weight:500">직책</span>
+        <span id="mp-jobtitle-display" style="color:#1e293b">-</span>
+        <span style="color:#94a3b8;font-weight:500">요금제</span>
+        <span style="color:#E8734A;font-weight:600">베타(무료)</span>
+      </div>
+    </div>
+
 
     <!-- 탭 -->
     <div style="display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border);">
@@ -3427,6 +3442,13 @@ function openSettings(){
     e=document.getElementById("my-email");   if(e) e.value=p.email||"";
     e=document.getElementById("my-region");  if(e) e.value=p.region||"";
     e=document.getElementById("my-phone");   if(e) e.value=p.phone||"";
+    // 요약 표시
+    var d;
+    d=document.getElementById("mp-name-display"); if(d) d.textContent=p.name||"-";
+    d=document.getElementById("mp-email-display"); if(d) d.textContent=p.email||"-";
+    d=document.getElementById("mp-company-display"); if(d) d.textContent=p.company||"-";
+    d=document.getElementById("mp-jobtitle-display"); if(d) d.textContent=p.job_title||"-";
+
   }
   if(window.sb&&S.user&&S.user.id){
     window.sb.from("user_profiles").select("*").eq("id",S.user.id).single().then(function(r){
@@ -4132,6 +4154,7 @@ document.addEventListener('keydown', function(e){
 </body>
 </html>
  
+
 
 
 
