@@ -88,8 +88,7 @@ function doLogin(){
       var prevInfo=JSON.parse(localStorage.getItem('hs_myinfo')||'{}');
       if(prevInfo.id && prevInfo.id!==uid){
         // 다른 유저 데이터면 앱 데이터 전부 초기화
-        var keysToRemove=['hs_v9','hs_data','hs_myinfo','hs_myproducts','hs_hospitals','hs_doctors','hs_plans'];
-        keysToRemove.forEach(function(k){localStorage.removeItem(k);});
+        Object.keys(localStorage).filter(function(k){return k.startsWith('hs_');}).forEach(function(k){localStorage.removeItem(k);});
       }
       localStorage.setItem('hs_myinfo',JSON.stringify(profile));
       var role=profile.job_title||profile.role||'';
@@ -162,5 +161,6 @@ function doRegister(){
       });
     });
 }
+
 
 
