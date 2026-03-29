@@ -7,7 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:#f8f9fa;color:#374151;line-height:1.7;}
-.wrap{max-width:760px;margin:0 auto;padding:40px 24px;}
+.wrap{max-width:800px;margin:0 auto;padding:40px 20px;}
 .header{text-align:center;margin-bottom:36px;padding-bottom:20px;border-bottom:2px solid #E8734A;}
 .logo{font-size:22px;font-weight:800;color:#1e293b;}
 .logo sup{color:#E8734A;font-size:12px;}
@@ -15,22 +15,63 @@ h1{font-size:20px;font-weight:700;color:#1e293b;margin:8px 0;}
 .date{color:#94a3b8;font-size:12px;}
 .section{margin-bottom:28px;}
 h2{font-size:15px;font-weight:700;color:#1e293b;margin-bottom:10px;padding-left:10px;border-left:3px solid #E8734A;}
-p,li{font-size:14px;color:#4b5563;margin-bottom:6px;}
-ul{padding-left:18px;}
-.back{display:inline-block;margin-bottom:20px;padding:7px 14px;background:#E8734A;color:white;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;}
+p{font-size:14px;color:#4b5563;margin-bottom:8px;}
+ul{padding-left:18px;margin-bottom:8px;}
+li{font-size:14px;color:#4b5563;margin-bottom:4px;}
+.back{display:inline-block;margin-bottom:24px;padding:8px 16px;background:#E8734A;color:white;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;}
 table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
 th,td{border:1px solid #e5e7eb;padding:9px 12px;text-align:left;}
-th{background:#fff8f5;font-weight:600;}
+th{background:#fff8f5;font-weight:600;color:#374151;}
+@media(max-width:600px){.wrap{padding:24px 16px;}table{font-size:12px;}th,td{padding:7px 8px;}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <a href="login.html" class="back">← 로그인으로 돌아가기</a>
-<div class="header"><div class="logo">닥터체크<sup>Pro</sup></div><h1>개인정보처리방침</h1><div class="date">시행일: 2026년 4월 1일</div></div>
-<div class="section"><h2>제1조 (수집하는 개인정보)</h2>
-<table><tr><th>항목</th><th>수집 목적</th><th>보유 기간</th></tr><tr><td>이름, 이메일</td><td>회원가입/서비스 제공</td><td>탈퇴 시</td></tr><tr><td>회사명, 직책</td><td>서비스 개인화</td><td>탈퇴 시</td></tr><tr><td>방문 활동 데이터</td><td>서비스 제공</td><td>탈퇴 시</td></tr></table></div>
-<div class="section"><h2>제2조 (개인정보 단제 및 제3자 제공)</h2><p>회사는 이용자의 개인정보를 제3자에게 제공하지 않습니다. 다만 법령에 의한 요청에는 예외입니다.</p></div>
-<div class="section"><h2>제3조 (안전성 확보)</h2><ul><li>데이터는 Supabase(AWS) 서버에 암호화하여 저장됩니다.</li><li>비밀번호는 암호화되어 저장되며 조장 불가능합니다.</li></ul></div>
-<div class="section"><h2>제4조 (정보주체의 권리)</h2><ul><li>본인의 개인정보 열람, 정정, 삭제를 요청할 수 있습니다.</li><li>문의: yunolabs.inc@gmail.com</li></ul></div>
-<div class="section"><h2>제5조 (문의처)</h2><p>개인정보 보호 책임자: 유노랩스</p><p>Email: yunolabs.inc@gmail.com</p></div>
-</div></body></html>
+<div class="header">
+  <div class="logo">닥터체크<sup>Pro</sup></div>
+  <h1>개인정보처리방침</h1>
+  <div class="date">시행일: 2026년 4월 1일</div>
+</div>
+
+<div class="section">
+  <h2>제1조 (수집하는 개인정보)</h2>
+  <table>
+    <tr><th>항목</th><th>수집 목적</th><th>보유 기간</th></tr>
+    <tr><td>이름, 이메일</td><td>회원가입 및 서비스 제공</td><td>탈퇴 시 즉시 삭제</td></tr>
+    <tr><td>회사명, 직책</td><td>서비스 개인화</td><td>탈퇴 시 즉시 삭제</td></tr>
+    <tr><td>방문 활동 데이터</td><td>서비스 제공</td><td>탈퇴 시 즉시 삭제</td></tr>
+    <tr><td>접속 로그, 쿠키</td><td>서비스 운영 및 보안</td><td>1년</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <h2>제2조 (개인정보 제3자 제공)</h2>
+  <p>회사는 이용자의 개인정보를 제3자에게 제공하지 않습니다. 단, 법령에 의한 요청에는 예외입니다.</p>
+</div>
+
+<div class="section">
+  <h2>제3조 (안전성 확보)</h2>
+  <ul>
+    <li>데이터는 Supabase(AWS) 서버에 암호화하여 저장됩니다.</li>
+    <li>비밀번호는 암호화되어 저장되며 조회 불가능합니다.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>제4조 (정보주체의 권리)</h2>
+  <ul>
+    <li>본인의 개인정보 열람, 정정, 삭제를 요청할 수 있습니다.</li>
+    <li>문의: yunolabs.inc@gmail.com</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>제5조 (문의처)</h2>
+  <p>개인정보 보호 책임자: 이윤호 (주식회사 유노랩스)</p>
+  <p>Email: yunolabs.inc@gmail.com</p>
+  <p>Tel: 0504-050-0979</p>
+</div>
+</div>
+</body>
+</html>
