@@ -3,19 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>닥터체크 Pro — 로그인</title>
+<title>닥터체크Pro — 로그인</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-.container{width:100%;max-width:420px;}
-.logo-wrap{text-align:center;margin-bottom:8px;cursor:pointer;}
-.logo-wrap h1{font-size:26px;font-weight:800;color:#1e293b;letter-spacing:-0.5px;}
-.logo-wrap h1 sup{font-size:13px;font-weight:700;color:#E8734A;vertical-align:super;margin-left:1px;}
-.tagline{text-align:center;color:#64748b;font-size:13px;margin-bottom:24px;line-height:1.5;}
+body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px 16px 40px;}
+.container{width:100%;max-width:400px;}
+/* 로고 */
+.logo-wrap{text-align:center;margin-bottom:6px;cursor:pointer;padding-top:32px;}
+.logo-wrap h1{font-size:28px;font-weight:800;color:#1e293b;letter-spacing:-0.5px;}
+.logo-wrap h1 sup{font-size:14px;font-weight:700;color:#E8734A;vertical-align:super;margin-left:1px;}
+.tagline{text-align:center;color:#64748b;font-size:13px;margin-bottom:6px;line-height:1.6;}
+.tagline strong{color:#1e293b;font-weight:700;}
+.sub-tagline{text-align:center;color:#94a3b8;font-size:12px;margin-bottom:20px;}
 /* 배너 */
-.promo-banner{background:white;border:1px solid #fef0ea;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 1px 8px rgba(220,38,38,0.08);}
-.promo-top{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.promo-banner{background:white;border:1.5px solid #fbd5c0;border-radius:16px;padding:18px;margin-bottom:20px;box-shadow:0 2px 12px rgba(232,115,74,0.1);}
+.promo-top{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
 .badge-beta{background:#E8734A;color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;}
 .badge-slots{color:#64748b;font-size:12px;}
 .promo-price-box{background:#fff8f5;border:1px solid #fbd5c0;border-radius:10px;padding:14px;margin-bottom:12px;}
@@ -28,8 +31,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
 .promo-guarantee{color:#64748b;font-size:12px;margin-bottom:10px;}
 .promo-guarantee strong{color:#1e293b;}
 .promo-divider{border:none;border-top:1px solid #fbd5c0;margin:10px 0;}
-.promo-copy{color:#1e293b;font-size:13px;font-weight:600;line-height:1.6;margin-bottom:4px;}
-.promo-sub{color:#64748b;font-size:12px;}
+.promo-copy{color:#1e293b;font-size:13px;font-weight:700;line-height:1.6;margin-bottom:4px;}
+.promo-sub{color:#64748b;font-size:12px;line-height:1.5;}
 .promo-free{display:flex;align-items:flex-start;gap:7px;margin-bottom:10px;}
 .promo-free-dot{color:#E8734A;font-size:8px;margin-top:5px;flex-shrink:0;}
 .promo-free-title{color:#1e293b;font-size:13px;font-weight:600;}
@@ -37,35 +40,35 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
 .promo-warning{border-left:3px solid #E8734A;padding-left:10px;}
 .promo-warning p{color:#64748b;font-size:12px;line-height:1.6;}
 /* 카드 */
-.card{background:white;border-radius:16px;padding:28px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
-.login-header{margin-bottom:20px;}
-.login-title{font-size:18px;font-weight:700;color:#1e293b;margin-bottom:4px;}
-.login-desc{font-size:13px;color:#64748b;}
+.card{background:white;border-radius:16px;padding:24px 20px;box-shadow:0 2px 12px rgba(0,0,0,0.07);}
+.login-header{margin-bottom:18px;}
+.login-title{font-size:17px;font-weight:700;color:#1e293b;margin-bottom:3px;}
+.login-desc{font-size:12px;color:#94a3b8;}
 /* 폼 */
-.form-group{margin-bottom:14px;}
-.form-label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;}
-.form-input{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;}
+.form-group{margin-bottom:12px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none;}
 .form-input:focus{border-color:#E8734A;}
 .pw-wrap{position:relative;}
-.pw-wrap .form-input{padding-right:40px;}
-.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:0;}
-.form-select{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;background:white;appearance:none;-webkit-appearance:none;}
+.pw-wrap .form-input{padding-right:42px;}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:4px;}
+.form-select{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;background:white;-webkit-appearance:none;appearance:none;}
 .form-select:focus{border-color:#E8734A;}
 /* 버튼 */
-.btn-primary{width:100%;padding:13px;background:#E8734A;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:background .2s;margin-top:4px;}
+.btn-primary{width:100%;padding:13px;background:#E8734A;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:background .2s;margin-top:4px;-webkit-appearance:none;}
 .btn-primary:hover{background:#d45a30;}
 .btn-primary:disabled{background:#f4b89d;cursor:not-allowed;}
-.btn-outline{width:100%;padding:11px;background:white;color:#E8734A;border:1.5px solid #E8734A;border-radius:10px;font-size:14px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-outline{width:100%;padding:11px;background:white;color:#E8734A;border:1.5px solid #E8734A;border-radius:10px;font-size:14px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .2s;-webkit-appearance:none;}
 .btn-outline:hover{background:#fff8f5;}
-/* 오류 */
-.error-box{background:#fff8f5;border:1px solid #fbd5c0;border-radius:8px;padding:10px 14px;font-size:13px;color:#E8734A;margin-bottom:12px;display:none;}
+/* 에러박스 */
+.error-box{background:#fff8f5;border:1px solid #fbd5c0;border-radius:8px;padding:10px 14px;font-size:13px;color:#E8734A;margin-bottom:12px;display:none;line-height:1.5;}
 /* 구분선 */
-.divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0;}
 .divider span{color:#94a3b8;font-size:12px;white-space:nowrap;}
 .divider::before,.divider::after{content:'';flex:1;border-top:1px solid #e5e7eb;}
 /* 비밀번호 강도 */
-.pw-strength{margin-top:6px;}
-.pw-strength-bar{height:4px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:4px;}
+.pw-strength{margin-top:5px;display:none;}
+.pw-strength-bar{height:4px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:3px;}
 .pw-strength-fill{height:100%;border-radius:4px;transition:width .3s,background .3s;}
 .pw-strength-text{font-size:11px;}
 /* 약관 */
@@ -74,15 +77,26 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
 .terms-item input[type="checkbox"]{margin-top:3px;width:15px;height:15px;flex-shrink:0;accent-color:#E8734A;}
 .terms-text{font-size:12px;color:#64748b;line-height:1.5;}
 .terms-text a{color:#E8734A;text-decoration:underline;}
+/* 모바일 최적화 */
+@media(max-width:480px){
+  body{padding:16px 12px 32px;}
+  .logo-wrap{padding-top:20px;}
+  .logo-wrap h1{font-size:24px;}
+  .card{padding:20px 16px;}
+  .promo-banner{padding:14px;}
+  .price-main{font-size:24px;}
+  .btn-primary{font-size:14px;padding:12px;}
+}
 </style>
 </head>
 <body>
 <div class="container">
   <!-- 로고 -->
-  <div class="logo-wrap" onclick="document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block';">
+  <div class="logo-wrap" onclick="showLogin()">
     <h1>닥터체크<sup>Pro</sup></h1>
   </div>
-  <div class="tagline">제약/의료기기 영업자를 위한<br>스마트 병원 방문 계획 관리 솔루션</div>
+  <p class="tagline"><strong>제약·의료기기 영업사원</strong> 전용<br>병원 홈페이지 밴지는 시간, 영업에 쓰세요.</p>
+  <p class="sub-tagline">진료시간 확인부터 방문 계획, 활동 결과 기록까지</p>
 
   <!-- 홍보 배너 -->
   <div class="promo-banner">
@@ -100,8 +114,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
       </div>
       <div class="promo-guarantee">지금 가입하면 <strong>이 가격이 평생 유지</strong>됩니다</div>
       <hr class="promo-divider">
-      <div class="promo-copy">진료시간 확인부터 방문 계획까지,<br>더 이상 병원 홈페이지를 밴지지 않아도 됩니다.</div>
-      <div class="promo-sub">방문 1건만 더 성사시켜도 본전, 그 이상은 순수 수입입니다.</div>
+      <div class="promo-copy">병원마다 홈페이지 들어가서 진료시간 확인하는 시간,<br>이제 닥터체크Pro 하나로 해결하세요.</div>
+      <div class="promo-sub">방문 1건만 더 성사시켜도 본전, 그 이상은 순수 수익입니다.</div>
     </div>
     <div class="promo-free">
       <span class="promo-free-dot">&#9679;</span>
@@ -111,7 +125,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
       </div>
     </div>
     <div class="promo-warning">
-      <p>베타 마감 후에는 이 가격으로 다시 가입할 수 없습니다. 정식 출시 시 월 19,800원이 적용됩니다.</div>
+      <p>베타 마감 후에는 이 가격으로 다시 가입할 수 없습니다.<br>정식 출시 시 월 19,800원이 적용됩니다.</p>
     </div>
   </div>
 
@@ -136,15 +150,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
       </div>
       <button class="btn-primary" id="loginBtn" type="button" onclick="doLogin()">로그인</button>
       <div class="divider"><span>또는</span></div>
-      <button class="btn-outline" id="goRegisterBtn" type="button" onclick="document.getElementById('loginSection').style.display='none';document.getElementById('registerSection').style.display='block'">회원가입 신청</button>
+      <button class="btn-outline" id="goRegisterBtn" type="button" onclick="showRegister()">회원가입 신청 →</button>
     </div>
   </div>
 
   <!-- 회원가입 섹션 -->
   <div id="registerSection" style="display:none">
     <div class="card">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-        <button id="backToLoginBtn" type="button" onclick="document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block'" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">✕ 나가기</button>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+        <button id="backToLoginBtn" type="button" onclick="showLogin()" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b;font-family:'Noto Sans KR',sans-serif">✕ 나가기</button>
         <div style="font-size:16px;font-weight:700;color:#1e293b">회원가입 신청</div>
       </div>
       <div id="registerError" class="error-box"></div>
@@ -159,11 +173,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
       <div class="form-group">
         <label class="form-label">비밀번호 <span style="color:#E8734A">*</span></label>
         <div class="pw-wrap">
-          <input type="password" id="regPw" class="form-input" placeholder="8자 이상 (영문+숫자+특수문자 권장)" oninput="checkPwStrength(this.value)">
+          <input type="password" id="regPw" class="form-input" placeholder="8자 이상 (영문+숫자 포함)" oninput="checkPwStrength(this.value)">
           <button class="pw-toggle" type="button" onclick="togglePw('regPw',this)">👁</button>
         </div>
-        <div class="pw-strength" id="pwStrengthWrap" style="display:none">
-          <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+        <div class="pw-strength" id="pwStrengthWrap">
+          <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill" style="width:0%"></div></div>
           <div class="pw-strength-text" id="pwStrengthText"></div>
         </div>
       </div>
@@ -187,17 +201,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">지역 (선택)</label>
+        <label class="form-label">지역 <span style="color:#94a3b8;font-weight:400">(선택)</span></label>
         <input type="text" id="regRegion" class="form-input" placeholder="예) 서울/경기">
       </div>
       <div class="form-group">
-        <label class="form-label">연락처 (선택)</label>
+        <label class="form-label">연락처 <span style="color:#94a3b8;font-weight:400">(선택)</span></label>
         <input type="tel" id="regPhone" class="form-input" placeholder="010-0000-0000">
       </div>
       <div class="terms-wrap">
         <label class="terms-item">
           <input type="checkbox" id="agreeTerms">
-          <span class="terms-text"><a href="https://www.drcheckpro.com/terms.html" target="_blank">이용약관</a> 및 <a href="https://www.drcheckpro.com/privacy.html" target="_blank">개인정보처리방침</a>에 동의합니다 <span style="color:#E8734A">(필수)</span></span>
+          <span class="terms-text"><a href="terms.html" target="_blank">이용약관</a> 및 <a href="privacy.html" target="_blank">개인정보처리방침</a>에 동의합니다 <span style="color:#E8734A">(필수)</span></span>
         </label>
         <label class="terms-item">
           <input type="checkbox" id="agreeMarketing">
@@ -210,11 +224,22 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
 </div>
 
 <script>
+// 화면 전환
+function showLogin(){
+  document.getElementById('loginSection').style.display='block';
+  document.getElementById('registerSection').style.display='none';
+}
+function showRegister(){
+  document.getElementById('loginSection').style.display='none';
+  document.getElementById('registerSection').style.display='block';
+}
+// 비밀번호 토글
 function togglePw(id,btn){
   var inp=document.getElementById(id);
   if(inp.type==='password'){inp.type='text';btn.textContent='👁‍🗨';}
   else{inp.type='password';btn.textContent='👁';}
 }
+// 비밀번호 강도
 function checkPwStrength(pw){
   var wrap=document.getElementById('pwStrengthWrap');
   var fill=document.getElementById('pwStrengthFill');
@@ -226,31 +251,24 @@ function checkPwStrength(pw){
   if(pw.length>=12)score++;
   if(/[A-Za-z]/.test(pw)&&/[0-9]/.test(pw))score++;
   if(/[^A-Za-z0-9]/.test(pw))score++;
-  var levels=[
-    {w:'20%',bg:'#E8734A',t:'약함'},
-    {w:'40%',bg:'#f97316',t:'보통'},
-    {w:'70%',bg:'#eab308',t:'양호'},
-    {w:'100%',bg:'#22c55e',t:'강함'}
-  ];
-  var l=levels[Math.min(score,3)];
+  var lvl=[{w:'25%',bg:'#ef4444',t:'약함'},{w:'50%',bg:'#f97316',t:'보통'},{w:'75%',bg:'#eab308',t:'양호'},{w:'100%',bg:'#22c55e',t:'강함'}];
+  var l=lvl[Math.min(score,3)];
   fill.style.width=l.w;fill.style.background=l.bg;
-  text.textContent='비밀번호 강도: '+l.t;
-  text.style.color=l.bg;
+  text.textContent='비밀번호 강도: '+l.t;text.style.color=l.bg;
 }
+// ESC
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    var r=document.getElementById('registerSection');
-    if(r&&r.style.display==='block'){
-      r.style.display='none';
-      document.getElementById('loginSection').style.display='block';
-    }
-  }
+  if(e.key==='Escape'&&document.getElementById('registerSection').style.display==='block') showLogin();
+});
+// 엔터키 로그인
+document.addEventListener('DOMContentLoaded',function(){
+  ['email','password'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.addEventListener('keydown',function(e){if(e.key==='Enter') doLogin();});
+  });
 });
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="login-app.js"></script>
 </body>
 </html>
-
-
