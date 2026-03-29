@@ -29,7 +29,7 @@ header{
 }
 .logo{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;}
 .logo span{color:var(--text2);font-weight:400;font-size:11px;margin-left:4px;}
-.header-btns{display:flex;gap:3px;flex-shrink:0;align-items:center;}.header-btns .btn{font-size:10px;padding:4px 5px;white-space:nowrap;}
+.header-btns{display:flex;gap:3px;align-items:center;flex-shrink:0;}.header-btns .btn{font-size:10px;padding:3px 6px;white-space:nowrap;flex-shrink:0;}
 .btn{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit;white-space:nowrap;line-height:1;}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover,.btn-primary:active{background:#224830;}
@@ -430,8 +430,8 @@ header{
   </div>
   <div class="header-btns">
     <input type="file" id="xlsx-input" accept=".xlsx" style="display:none" onchange="handleXlsx(this)">
-    <button class="btn btn-outline" onclick="downloadTemplate()" style="white-space:nowrap;font-size:10px;padding:3px 6px">양식</button>
-    <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()" style="white-space:nowrap;font-size:10px;padding:3px 6px">업로드</button>
+    <button class="btn btn-outline" onclick="downloadTemplate()" style="font-size:10px;padding:3px 6px;white-space:nowrap">양식</button>
+    <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()" style="font-size:10px;padding:3px 6px;white-space:nowrap">업로드</button>
     <button class="btn btn-outline" onclick="openHospModal()" style="font-size:11px;padding:5px 7px">+ 거래처</button>
     <button class="btn btn-outline btn-icon" onclick="openSettings()" title="설정">⚙️</button>
     <!-- mobile FAB - 거래처 추가 -->
@@ -3818,16 +3818,16 @@ function injectUijCheok(){
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.onload = function() {
-  var _sb = supabase.createClient(
+  var window.sb = supabase.createClient(
     'https://hslxclmezfudjgmehriy.supabase.co',
     'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
   );
   var PROTECTED_EMAIL = 'juanmedicalkorea@gmail.com';
 
-  _sb.auth.getSession().then(function(res) {
+  window.sb.auth.getSession().then(function(res) {
     var s = res.data && res.data.session;
     if (!s) { window.location.href = 'login.html'; return; }
-    _sb.from('user_profiles').select('status,role,name,company,job_title,region,phone').eq('id', s.user.id).maybeSingle().then(function(r) {
+    window.sb.from('user_profiles').select('status,role,name,company,job_title,region,phone').eq('id', s.user.id).maybeSingle().then(function(r) {
       var p = r.data;
       if (!p || p.status !== 'approved') { window.location.href = 'login.html'; return; }
 
@@ -3845,7 +3845,7 @@ function injectUijCheok(){
 
       // juanmedicalkorea 이외 데이터 완전 초기화
       if (s.user.email !== PROTECTED_EMAIL) {
-        _sb.from('user_app_data').select('user_id,data_v9').eq('user_id', s.user.id).maybeSingle().then(function(dr) {
+        window.sb.from('user_app_data').select('user_id,data_v9').eq('user_id', s.user.id).maybeSingle().then(function(dr) {
           var hasOwn = dr.data && dr.data.data_v9 && dr.data.data_v9.hospitals && dr.data.data_v9.hospitals.length > 0;
           if (!hasOwn) {
               S.hospitals=[]; S.doctors=[]; S.products=[];
@@ -3891,7 +3891,7 @@ function injectUijCheok(){
 lb.textContent = '로그아웃';
         lb.onclick = function() {
           if (confirm('로그아웃 하시겠습니까?')) {
-            _sb.auth.signOut().then(function() { window.location.href = 'login.html'; });
+            window.sb.auth.signOut().then(function() { window.location.href = 'login.html'; });
           }
         };
         userArea.appendChild(lb);
@@ -3907,7 +3907,7 @@ lb.textContent = '로그아웃';
         var miData = localStorage.getItem('hs_myinfo');
         var mp = localStorage.getItem('hs_myproducts');
         if (s.user.email === PROTECTED_EMAIL && (v9 || v6)) {
-          _sb.from('user_app_data').upsert({
+          window.sb.from('user_app_data').upsert({
             user_id: s.user.id, email: s.user.email, name: p.name||'',
             company: p.company||'',
             data_v9: v9 ? JSON.parse(v9) : null,
@@ -3918,7 +3918,7 @@ lb.textContent = '로그아웃';
           }, {onConflict:'user_id'});
         } else {
           // 다른 사용자는 회사명만 저장
-          _sb.from('user_app_data').upsert({
+          window.sb.from('user_app_data').upsert({
             user_id: s.user.id, email: s.user.email,
             name: p.name||'', company: p.company||'',
             synced_at: new Date().toISOString()
@@ -4091,4 +4091,5 @@ document.addEventListener('keydown', function(e){
 </body>
 </html>
  
+
 
