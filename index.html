@@ -433,6 +433,7 @@ header{
     
     
     <button class="btn btn-outline" onclick="openHospModal()" style="font-size:11px;padding:5px 7px">+ 거래처</button>
+    <button class="btn btn-outline" onclick="openSettings();setTimeout(function(){switchSettingsTab('products');},150)" style="font-size:11px;padding:5px 9px" title="제품 등록">📦 제품</button>
     <button class="btn btn-outline btn-icon" onclick="openSettings()" title="설정">⚙️</button>
     <!-- mobile FAB - 거래처 추가 -->
     <button class="btn btn-primary btn-icon" id="mob-add-btn" style="display:none" onclick="openHospModal()" title="거래처 추가">＋</button>
@@ -455,6 +456,13 @@ header{
       <button class="desk-tab" id="dt-fav" onclick="switchTab('fav')">⭐ 즐겨찾기</button>
       <button class="desk-tab" id="dt-plan" onclick="switchTab('plan')">📅 활동계획</button>
       <button class="desk-tab" id="dt-report" onclick="switchTab('report')">📊 활동기록</button>
+    </div>
+    <div id="date-filter-bar" style="display:none;align-items:center;gap:6px;padding:6px 14px;background:#f8f9fa;border-bottom:1px solid #e5e7eb;flex-shrink:0;">
+      <span style="font-size:11px;color:#94a3b8;font-weight:600">기간필터:</span>
+      <button onclick="setDateFilter('today')" id="dfBtn-today" class="df-btn" style="font-size:11px;padding:3px 10px;border:1px solid #e5e7eb;border-radius:6px;background:white;cursor:pointer;font-family:inherit">당일</button>
+      <button onclick="setDateFilter('week')" id="dfBtn-week" class="df-btn" style="font-size:11px;padding:3px 10px;border:1px solid #e5e7eb;border-radius:6px;background:white;cursor:pointer;font-family:inherit">지난주</button>
+      <button onclick="setDateFilter('month')" id="dfBtn-month" class="df-btn" style="font-size:11px;padding:3px 10px;border:1px solid #e5e7eb;border-radius:6px;background:white;cursor:pointer;font-family:inherit">당월</button>
+      <button onclick="setDateFilter('all')" id="dfBtn-all" class="df-btn" style="font-size:11px;padding:3px 10px;border:1px solid #E8734A;border-radius:6px;background:#fff8f5;color:#E8734A;cursor:pointer;font-family:inherit;font-weight:600">전체</button>
     </div>
     <div class="schedule-wrap" id="schedule-wrap">
       <div class="schedule-area" id="main"></div>
@@ -1660,6 +1668,9 @@ function switchTab(tab){
   if(tab==='fav') renderFav();
   if(tab==='plan') renderPlan();
   if(tab==='report') renderReport();
+
+  var dfBar=document.getElementById('date-filter-bar');
+  if(dfBar) dfBar.style.display=(tab==='plan'||tab==='report')?'flex':'none';
 }
 
 // 병원명 클릭 → 진료시간표 탭으로 이동
@@ -4119,6 +4130,25 @@ document.addEventListener('keydown', function(e){
     if(myPage && myPage.style.display==='flex') { closeMyPage(); return; }
   }
 });
+
+// ── 날짜 필터 ──
+window._dateFilter="all";
+function setDateFilter(f){
+  window._dateFilter=f;
+  document.querySelectorAll(".df-btn").forEach(function(b){
+    b.style.border="1px solid #e5e7eb";
+    b.style.background="white";
+    b.style.color="";
+    b.style.fontWeight="";
+  });
+  var btn=document.getElementById("dfBtn-"+f);
+  if(btn){btn.style.border="1px solid #E8734A";btn.style.background="#fff8f5";btn.style.color="#E8734A";btn.style.fontWeight="600";}
+  // 활동계획/활동기록 재렌더링
+  var tab=S.activeTab;
+  if(tab==="plan"&&typeof renderWeekPlan==="function") renderWeekPlan();
+  else if(tab==="report"&&typeof renderReport==="function") renderReport();
+  else if(tab==="schedule"&&typeof renderSchedule==="function") renderSchedule();
+}
 </script>
 <div id="inquiryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;padding:16px"><div style="background:white;border-radius:16px;padding:24px 20px;width:100%;max-width:480px;margin:0 auto;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:17px;font-weight:700;margin:0">고객 문의</h3><button onclick="closeInquiryModal()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button></div><input id="inquiryTitle" placeholder="제목을 입력해주세요" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;margin-bottom:10px"><textarea id="inquiryContent" placeholder="문의 내용을 입력해주세요" rows="5" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;resize:vertical;margin-bottom:14px"></textarea><div style="display:flex;gap:8px"><button onclick="myInquiriesList()" style="flex:1;padding:12px;background:#f1f5f9;border:none;border-radius:10px;font-size:14px;font-weight:600;color:#475569;cursor:pointer">내 문의 보기</button><button onclick="submitInquiry()" style="flex:2;padding:12px;background:#2563eb;border:none;border-radius:10px;font-size:14px;font-weight:700;color:white;cursor:pointer">문의 제출</button></div></div></div><div id="myInquiriesModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;padding:16px"><div style="background:white;border-radius:16px;padding:24px 20px;width:100%;max-width:480px;margin:0 auto;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:17px;font-weight:700;margin:0">내 문의 내역</h3><button onclick="closeMyInquiries()" style="background:none;border:none;font-size:22px;color:#888;cursor:pointer">&times;</button></div><div id="myInquiriesList_body" style="display:flex;flex-direction:column;gap:10px"><p style="text-align:center;color:#aaa;padding:20px">로딩 중...</p></div></div></div>
 <div id="myPageModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;padding:20px">
@@ -4154,6 +4184,7 @@ document.addEventListener('keydown', function(e){
 </body>
 </html>
  
+
 
 
 
