@@ -3,182 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>닥터체크Pro — 로그인</title>
+<title>닥터체크 Pro — 로그인</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f6fa;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-.card{background:white;border-radius:20px;padding:32px 28px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
-.logo-wrap{text-align:center;margin-bottom:24px;}
-.logo-main{display:flex;justify-content:center;align-items:flex-start;line-height:1;}
-.logo-text{font-size:28px;font-weight:800;color:#1a1a1a;letter-spacing:-1px;}
-.logo-pro{font-size:13px;font-weight:700;color:#2563eb;margin-top:2px;}
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:13px;color:#555;font-weight:500;margin-bottom:6px;}
-.field input{width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;outline:none;transition:border 0.2s;}
-.field input:focus{border-color:#2563eb;}
+body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.container{width:100%;max-width:420px;}
+.logo-wrap{text-align:center;margin-bottom:8px;cursor:pointer;}
+.logo-wrap h1{font-size:26px;font-weight:800;color:#1e293b;letter-spacing:-0.5px;}
+.logo-wrap h1 sup{font-size:13px;font-weight:700;color:#dc2626;vertical-align:super;margin-left:1px;}
+.tagline{text-align:center;color:#64748b;font-size:13px;margin-bottom:24px;line-height:1.5;}
+/* 배너 */
+.promo-banner{background:white;border:1px solid #fee2e2;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 1px 8px rgba(220,38,38,0.08);}
+.promo-top{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.badge-beta{background:#dc2626;color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.badge-slots{color:#64748b;font-size:12px;}
+.promo-price-box{background:#fff8f8;border:1px solid #fecaca;border-radius:10px;padding:14px;margin-bottom:12px;}
+.promo-label{color:#94a3b8;font-size:11px;margin-bottom:6px;}
+.promo-price-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
+.price-orig{color:#94a3b8;font-size:13px;text-decoration:line-through;}
+.price-main{color:#dc2626;font-size:28px;font-weight:800;}
+.price-unit{color:#64748b;font-size:13px;}
+.price-disc{background:#dc2626;color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;}
+.promo-guarantee{color:#64748b;font-size:12px;margin-bottom:10px;}
+.promo-guarantee strong{color:#1e293b;}
+.promo-divider{border:none;border-top:1px solid #fecaca;margin:10px 0;}
+.promo-copy{color:#1e293b;font-size:13px;font-weight:600;line-height:1.6;margin-bottom:4px;}
+.promo-sub{color:#64748b;font-size:12px;}
+.promo-free{display:flex;align-items:flex-start;gap:7px;margin-bottom:10px;}
+.promo-free-dot{color:#dc2626;font-size:8px;margin-top:5px;flex-shrink:0;}
+.promo-free-title{color:#1e293b;font-size:13px;font-weight:600;}
+.promo-free-desc{color:#64748b;font-size:12px;}
+.promo-warning{border-left:3px solid #dc2626;padding-left:10px;}
+.promo-warning p{color:#64748b;font-size:12px;line-height:1.6;}
+/* 카드 */
+.card{background:white;border-radius:16px;padding:28px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}
+.login-header{margin-bottom:20px;}
+.login-title{font-size:18px;font-weight:700;color:#1e293b;margin-bottom:4px;}
+.login-desc{font-size:13px;color:#64748b;}
+/* 폼 */
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:#dc2626;}
 .pw-wrap{position:relative;}
-.pw-wrap input{padding-right:44px;}
-.pw-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;color:#aaa;}
-.options-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
-.check-group{display:flex;gap:12px;align-items:center;}
-.check-item{display:flex;align-items:center;gap:5px;font-size:13px;color:#666;cursor:pointer;}
-.check-item input{width:15px;height:15px;cursor:pointer;}
-.links{display:flex;gap:12px;align-items:center;}
-.links a{font-size:13px;color:#2563eb;text-decoration:none;}
-.links a:hover{text-decoration:underline;}
-.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;}
-.btn-primary{background:#2563eb;color:white;}
-.btn-primary:hover{background:#1d4ed8;}
-.btn-outline{background:white;color:#2563eb;border:2px solid #2563eb;margin-top:10px;}
-.btn-outline:hover{background:#eff6ff;}
-.divider{text-align:center;color:#aaa;font-size:13px;margin:16px 0;position:relative;}
-.divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#e8e8e8;}
-.divider span{background:white;padding:0 12px;position:relative;}
-.error-msg{color:#e53e3e;font-size:13px;margin-top:8px;display:none;}
+.pw-wrap .form-input{padding-right:40px;}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:0;}
+.form-select{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;background:white;appearance:none;-webkit-appearance:none;}
+.form-select:focus{border-color:#dc2626;}
+/* 버튼 */
+.btn-primary{width:100%;padding:13px;background:#dc2626;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:background .2s;margin-top:4px;}
+.btn-primary:hover{background:#b91c1c;}
+.btn-primary:disabled{background:#fca5a5;cursor:not-allowed;}
+.btn-outline{width:100%;padding:11px;background:white;color:#dc2626;border:1.5px solid #dc2626;border-radius:10px;font-size:14px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-outline:hover{background:#fff8f8;}
+/* 오류 */
+.error-box{background:#fff8f8;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#dc2626;margin-bottom:12px;display:none;}
+/* 구분선 */
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.divider span{color:#94a3b8;font-size:12px;white-space:nowrap;}
+.divider::before,.divider::after{content:'';flex:1;border-top:1px solid #e5e7eb;}
+/* 비밀번호 강도 */
+.pw-strength{margin-top:6px;}
+.pw-strength-bar{height:4px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:4px;}
+.pw-strength-fill{height:100%;border-radius:4px;transition:width .3s,background .3s;}
+.pw-strength-text{font-size:11px;}
+/* 약관 */
+.terms-wrap{margin:12px 0 8px;}
+.terms-item{display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:8px;}
+.terms-item input[type="checkbox"]{margin-top:3px;width:15px;height:15px;flex-shrink:0;accent-color:#dc2626;}
+.terms-text{font-size:12px;color:#64748b;line-height:1.5;}
+.terms-text a{color:#dc2626;text-decoration:underline;}
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo-wrap" onclick="document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block';" style="cursor:pointer">
-    <div class="logo-main">
-      <span class="logo-text">닥터체크</span><span class="logo-pro">Pro</span>
+<div class="container">
+  <!-- 로고 -->
+  <div class="logo-wrap" onclick="document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block';">
+    <h1>닥터체크<sup>Pro</sup></h1>
+  </div>
+  <div class="tagline">제약의료기기 영업자를 위한<br>스마트 병원 방문 계획 관리 설루션</div>
+
+  <!-- 홍보 배너 -->
+  <div class="promo-banner">
+    <div class="promo-top">
+      <span class="badge-beta">베타 멤버 한정</span>
+      <span class="badge-slots">선착순 200명</span>
     </div>
-    <div id="logoDate" style="font-size:13px;color:#94a3b8;text-align:center;margin-top:2px;letter-spacing:0.5px"></div>
+    <div class="promo-price-box">
+      <div class="promo-label">베타 멤버 가격 &middot; 평생 보장</div>
+      <div class="promo-price-row">
+        <span class="price-orig">19,800원</span>
+        <span class="price-main">4,950</span>
+        <span class="price-unit">원/월</span>
+        <span class="price-disc">75% 할인</span>
+      </div>
+      <div class="promo-guarantee">지금 가입하면 <strong>이 가격이 평생 유지</strong>됩니다</div>
+      <hr class="promo-divider">
+      <div class="promo-copy">진료시간 확인부터 방문 계획까지,<br>더 이상 병원 홈페이지를 밴지지 않아도 됩니다.</div>
+      <div class="promo-sub">방문 1건만 더 성사시켜도 본전, 그 이상은 순수 수입입니다.</div>
+    </div>
+    <div class="promo-free">
+      <span class="promo-free-dot">&#9679;</span>
+      <div>
+        <div class="promo-free-title">5월 정식 출시 전까지 완전 무료</div>
+        <div class="promo-free-desc">지금 가입하고 출시 전까지 모든 기능을 무료로 사용하세요.</div>
+      </div>
+    </div>
+    <div class="promo-warning">
+      <p>베타 마감 후에는 이 가격으로 다시 가입할 수 없습니다. 정식 출시 시 월 19,800원이 적용됩니다.</div>
+    </div>
   </div>
 
-  <div style="margin-bottom:18px;padding:14px 16px;background:linear-gradient(135deg,#fef3c7,#fff7ed);border:1px solid #fde68a;border-radius:14px;text-align:left">
-    <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px">🎁 베타 멤버 한정: ‘커피 한 잔’의 기적</div>
-    <div style="font-size:13px;color:#78350f;line-height:1.7;margin-bottom:8px">
-      <span style="font-weight:600">평생 가격 보장:</span>
-      <span style="text-decoration:line-through;color:#b45309;font-size:12px">&#160;19,800원</span>
-      <span style="color:#dc2626;font-weight:800;font-size:16px"> → 4,950원 </span>
-      <span style="background:#dc2626;color:white;font-size:11px;padding:1px 7px;border-radius:10px;font-weight:700;vertical-align:middle">75% 파격 할인</span>
-    </div>
-    <div style="font-size:12px;color:#92400e;line-height:1.7;font-style:italic;margin-bottom:10px">“한 달 4,950원. 딸 커피 한 잔 값으로 ‘영업의 질’을 바꾸세요.”</div>
-    <div style="padding:9px 12px;background:rgba(255,255,255,0.75);border-radius:8px;font-size:12px;color:#78350f;line-height:1.7">
-      ✨ 지금 가입하면 정식 출시 전까지 <b>전 기능 100% 무료</b>!<br>
-      <span style="font-size:11px;color:#a16207">※ 5월 정식 출시 후 30일 이내 결제 시 이 혜택이 <b>평생 유지</b>됩니다.</span>
-    </div>
-  </div>
-
+  <!-- 로그인 섹션 -->
   <div id="loginSection">
-    <div class="field">
-      <label>이메일</label>
-      <input type="email" id="email" placeholder="이메일 주소" autocomplete="email">
-    </div>
-    <div class="field">
-      <label>비밀번호</label>
-      <div class="pw-wrap">
-        <input type="password" id="password" placeholder="비밀번호 입력" autocomplete="current-password">
-        <span class="pw-eye" id="loginEye">👁</span>
+    <div class="card">
+      <div class="login-header">
+        <div class="login-title">로그인</div>
+        <div class="login-desc">계정이 있으시면 이메일과 비밀번호를 입력하세요.</div>
       </div>
-    </div>
-    <div class="options-row">
-      <div class="check-group">
-        <div class="check-item"><input type="checkbox" id="rememberEmail"><label for="rememberEmail">아이디 기억</label></div>
-        <div class="check-item"><input type="checkbox" id="autoLogin"><label for="autoLogin">자동 로그인</label></div>
+      <div id="loginError" class="error-box"></div>
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input type="email" id="email" class="form-input" placeholder="이메일 주소" autocomplete="email">
       </div>
-      <div class="links">
-        <a href="#" id="findIdLink">아이디 찾기</a>
-        <a href="#" id="findPwLink">비밀번호 찾기</a>
+      <div class="form-group">
+        <label class="form-label">비밀번호</label>
+        <div class="pw-wrap">
+          <input type="password" id="password" class="form-input" placeholder="비밀번호" autocomplete="current-password">
+          <button class="pw-toggle" type="button" onclick="togglePw('password',this)">👁</button>
+        </div>
       </div>
+      <button class="btn-primary" id="loginBtn" type="button" onclick="doLogin()">로그인</button>
+      <div class="divider"><span>또는</span></div>
+      <button class="btn-outline" id="goRegisterBtn" type="button" onclick="document.getElementById('loginSection').style.display='none';document.getElementById('registerSection').style.display='block'">회원가입 신청</button>
     </div>
-    <button class="btn btn-primary" id="loginBtn" type="button" onclick="doLogin()">로그인</button>
-    <div class="error-msg" id="loginError"></div>
-    <div class="divider"><span>계정이 없으신가요?</span></div>
-    <button class="btn btn-outline" id="goRegisterBtn" type="button" onclick="document.getElementById('loginSection').style.display='none';document.getElementById('registerSection').style.display='block'">회원가입 신청</button>
   </div>
-    <!-- 홍보 배너 -->
-    <div style="background:#1c1c1e;color:white;padding:24px 20px;border-radius:16px;margin:20px 0;box-sizing:border-box">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <span style="background:#dc2626;color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">베타 멤버 한정</span>
-        <span style="color:#9ca3af;font-size:13px">선착순 200명</span>
-      </div>
-      <div style="background:#2a2a2e;border-radius:12px;padding:18px;margin-bottom:16px">
-        <div style="color:#9ca3af;font-size:11px;margin-bottom:8px">베타 멤버 가격 &middot; 평생 보장</div>
-        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-          <span style="color:#6b7280;font-size:13px;text-decoration:line-through">19,800원</span>
-          <span style="color:white;font-size:30px;font-weight:800">4,950</span>
-          <span style="color:#9ca3af;font-size:13px">원/월</span>
-          <span style="background:#dc2626;color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px">75% 할인</span>
-        </div>
-        <div style="color:#9ca3af;font-size:12px;margin-bottom:12px">지금 가입하면 <strong style="color:white">이 가격이 평생 유지</strong>됩니다</div>
-        <hr style="border:none;border-top:1px solid #3a3a3e;margin:12px 0">
-        <div style="color:white;font-size:13px;font-weight:700;line-height:1.6;margin-bottom:6px">진료시간 확인부터 방문 계획까지,<br>더 이상 병원 홈페이지를 밴지지 않아도 됩니다.</div>
-        <div style="color:#9ca3af;font-size:12px">방문 1건만 더 성사시켜도 본전, 그 이상은 순수 수입입니다.</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:12px">
-        <span style="color:#22c55e;font-size:8px;margin-top:4px">●</span>
-        <div>
-          <div style="color:white;font-size:13px;font-weight:600">5월 정식 출시 전까지 완전 무료</div>
-          <div style="color:#9ca3af;font-size:12px">지금 가입하고 출시 전까지 모든 기능을 무료로 사용하세요.</div>
-        </div>
-      </div>
-      <div style="border-left:3px solid #dc2626;padding-left:10px">
-        <div style="color:#9ca3af;font-size:12px;line-height:1.6">베타 마감 후에는 이 가격으로 다시 가입할 수 없습니다. 정식 출시 시 월 19,800원이 적용됩니다.</div>
-      </div>
-    </div>
 
-
+  <!-- 회원가입 섹션 -->
   <div id="registerSection" style="display:none">
-    <div style="display:flex;align-items:center;margin-bottom:20px;gap:8px">
-      <button id="backToLoginBtn" type="button" onclick="document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block'" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">✕ 나가기</button>
-      <span style="font-size:16px;font-weight:700">회원가입 신청</span>
-    </div>
-    <div class="field"><label>이름 *</label><input type="text" id="regName" placeholder="실명"></div>
-    <div class="field"><label>이메일 *</label><input type="email" id="regEmail" placeholder="이메일 주소"></div>
-    <div class="field">
-      <label>비밀번호 *</label>
-      <div class="pw-wrap">
-        <input type="password" id="regPw" placeholder="8자 이상">
-        <span class="pw-eye" id="regEye">👁</span>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button id="backToLoginBtn" type="button" onclick="document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block'" style="background:#f1f5f9;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">✕ 나가기</button>
+        <div style="font-size:16px;font-weight:700;color:#1e293b">회원가입 신청</div>
       </div>
-    </div>
-    <div class="field"><label>비밀번호 확인 *</label><input type="password" id="regPw2" placeholder="비밀번호 다시 입력"></div>
-    <div class="field"><label>회사명 *</label><input type="text" id="regCompany" placeholder="회사명"></div>
-    <div class="field"><label>직책 *</label>
-      <select id="regJobTitle" style="width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;outline:none;background:white">
-        <option value="">직문 선택</option>
-        <option value="영업">영업</option>
-        <option value="관리자">관리자</option>
-      </select>
-    </div>
-    <div class="field"><label>담당 지역</label><input type="text" id="regRegion" placeholder="예: 서울/경기"></div>
-    <div class="field"><label>전화번호</label><input type="tel" id="regPhone" placeholder="010-0000-0000"></div>
-      <div style="margin:12px 0 8px">
-        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:8px">
-          <input type="checkbox" id="agreeTerms" style="margin-top:3px;width:15px;height:15px;flex-shrink:0;accent-color:#3b82f6">
-          <span style="font-size:12px;color:#64748b;line-height:1.5"><a href="https://www.drcheckpro.com/terms.html" target="_blank" style="color:#3b82f6;text-decoration:underline">이용약관</a> 및 <a href="https://www.drcheckpro.com/privacy.html" target="_blank" style="color:#3b82f6;text-decoration:underline">개인정보처리방침</a>에 동의합니다 <span style="color:#dc2626">(필수)</span></span>
+      <div id="registerError" class="error-box"></div>
+      <div class="form-group">
+        <label class="form-label">이름 <span style="color:#dc2626">*</span></label>
+        <input type="text" id="regName" class="form-input" placeholder="실명">
+      </div>
+      <div class="form-group">
+        <label class="form-label">이메일 <span style="color:#dc2626">*</span></label>
+        <input type="email" id="regEmail" class="form-input" placeholder="이메일 주소">
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호 <span style="color:#dc2626">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="regPw" class="form-input" placeholder="8자 이상 (영문+숫자+특수문자 권장)" oninput="checkPwStrength(this.value)">
+          <button class="pw-toggle" type="button" onclick="togglePw('regPw',this)">👁</button>
+        </div>
+        <div class="pw-strength" id="pwStrengthWrap" style="display:none">
+          <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+          <div class="pw-strength-text" id="pwStrengthText"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호 확인 <span style="color:#dc2626">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="regPw2" class="form-input" placeholder="비밀번호 다시 입력">
+          <button class="pw-toggle" type="button" onclick="togglePw('regPw2',this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">회사명 <span style="color:#dc2626">*</span></label>
+        <input type="text" id="regCompany" class="form-input" placeholder="회사명">
+      </div>
+      <div class="form-group">
+        <label class="form-label">직문 <span style="color:#dc2626">*</span></label>
+        <select id="regJobTitle" class="form-select">
+          <option value="">직문 선택</option>
+          <option value="영업">영업</option>
+          <option value="관리자">관리자</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">지역 (선택)</label>
+        <input type="text" id="regRegion" class="form-input" placeholder="예) 서울/경기">
+      </div>
+      <div class="form-group">
+        <label class="form-label">연락처 (선택)</label>
+        <input type="tel" id="regPhone" class="form-input" placeholder="010-0000-0000">
+      </div>
+      <div class="terms-wrap">
+        <label class="terms-item">
+          <input type="checkbox" id="agreeTerms">
+          <span class="terms-text"><a href="https://www.drcheckpro.com/terms.html" target="_blank">이용약관</a> 및 <a href="https://www.drcheckpro.com/privacy.html" target="_blank">개인정보처리방침</a>에 동의합니다 <span style="color:#dc2626">(필수)</span></span>
         </label>
-        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
-          <input type="checkbox" id="agreeMarketing" style="margin-top:3px;width:15px;height:15px;flex-shrink:0;accent-color:#3b82f6">
-          <span style="font-size:12px;color:#64748b;line-height:1.5">마케팅 정보 수신 동의 <span style="color:#94a3b8">(선택)</span></span>
+        <label class="terms-item">
+          <input type="checkbox" id="agreeMarketing">
+          <span class="terms-text">마케팅 정보 수신 동의 <span style="color:#94a3b8">(선택)</span></span>
         </label>
       </div>
-
-    <button class="btn btn-primary" id="registerBtn" type="button" onclick="doRegister()" style="margin-top:8px">가입 신청 제출</button>
-    <div class="error-msg" id="registerError"></div>
+      <button class="btn-primary" id="registerBtn" type="button" onclick="doRegister()">가입 신청 제출</button>
+    </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="login-app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded',function(){
-  var d=new Date();
-  var el=document.getElementById('logoDate');
-  if(el)el.textContent=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+function togglePw(id,btn){
+  var inp=document.getElementById(id);
+  if(inp.type==='password'){inp.type='text';btn.textContent='👁‍🗨';}
+  else{inp.type='password';btn.textContent='👁';}
+}
+function checkPwStrength(pw){
+  var wrap=document.getElementById('pwStrengthWrap');
+  var fill=document.getElementById('pwStrengthFill');
+  var text=document.getElementById('pwStrengthText');
+  if(!pw){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  var score=0;
+  if(pw.length>=8)score++;
+  if(pw.length>=12)score++;
+  if(/[A-Za-z]/.test(pw)&&/[0-9]/.test(pw))score++;
+  if(/[^A-Za-z0-9]/.test(pw))score++;
+  var levels=[
+    {w:'20%',bg:'#dc2626',t:'약함'},
+    {w:'40%',bg:'#f97316',t:'보통'},
+    {w:'70%',bg:'#eab308',t:'양호'},
+    {w:'100%',bg:'#22c55e',t:'강함'}
+  ];
+  var l=levels[Math.min(score,3)];
+  fill.style.width=l.w;fill.style.background=l.bg;
+  text.textContent='비밀번호 강도: '+l.t;
+  text.style.color=l.bg;
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    var r=document.getElementById('registerSection');
+    if(r&&r.style.display==='block'){
+      r.style.display='none';
+      document.getElementById('loginSection').style.display='block';
+    }
+  }
 });
-</script>
-<script>
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){var r=document.getElementById('registerSection');if(r&&r.style.display==='block'){r.style.display='none';document.getElementById('loginSection').style.display='block';}}})
 </script>
 </body>
 </html>
- 
- 
- 
-
-
-<!-- rebuild -->
-
