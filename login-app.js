@@ -34,21 +34,20 @@ function _getHint(){
 
 function checkEmailDuplicate(email){
   if(!window.sb||!email) return;
-  window.sb.from('user_profiles').select('id,status').eq('email',email).maybeSingle()
+  var h=_getHint();
+  h.style.color='#94a3b8'; h.textContent='… 확인 중';
+  window.sb.rpc('check_email_available',{p_email:email})
     .then(function(r){
-      var h=_getHint();
       if(r.error){h.style.color='#94a3b8';h.textContent='';return;}
-      if(r.data){
-        if(r.data.status==='withdrawn'){
-          h.style.color='#E8734A';
-          h.textContent='⚠️ 탈퇴한 계정입니다. 다시 가입할 수 있습니다.';
-        } else {
-          h.style.color='#dc2626';
-          h.textContent='❌ 이미 사용 중인 이메일입니다.';
-        }
-      } else {
+      if(r.data==='available'){
         h.style.color='#22c55e';
         h.textContent='✅ 사용 가능한 이메일입니다.';
+      } else if(r.data==='withdrawn'){
+        h.style.color='#E8734A';
+        h.textContent='⚠️ 탈퇴한 계정입니다. 다시 가입할 수 있습니다.';
+      } else {
+        h.style.color='#dc2626';
+        h.textContent='❌ 이미 사용 중인 이메일입니다.';
       }
     });
 }
@@ -117,10 +116,10 @@ function doRegister(){
   if(btn){btn.disabled=true;btn.textContent='제출 중...';}
   if(!window.sb){showErr('registerError','⚠️ 서버 연결 실패.');if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';}return;}
 
-  // user_profiles 중복 확인
-  window.sb.from('user_profiles').select('id,status').eq('email',email).maybeSingle()
+  // RPC로 이메일 가용 여부 확인 (auth.users + user_profiles 동시 체크)
+  window.sb.rpc('check_email_available',{p_email:email})
     .then(function(ex){
-      if(ex.data&&ex.data.status!=='withdrawn'){
+      if(ex.data==='taken'){
         showErr('registerError','❌ 이미 사용 중인 이메일입니다.');
         if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';}return;
       }
@@ -163,4 +162,5 @@ function _doSignUp(name,email,pw,company,jobTitle,region,phone,agreeMarketing,bt
     });
   });
 }
+
 
