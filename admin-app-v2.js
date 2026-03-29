@@ -95,6 +95,7 @@ function loadPendingList(){
           '<span class="status-badge pending">대기 중</span>'+
           '<div class="action-btns">'+
             '<button class="btn-approve" onclick="approveUser(\''+u.id+'\')">승인</button>'+
+            '<button onclick="sendApprovalEmail(\''+u.id+'\',' +'\''+(u.email||'')+'\',' +'\''+(u.name||'')+'\',' +'\''+(u.company||'')+'\')" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">승인메일</button>'+
             '<button class="btn-reject" onclick="openRejectModal(\''+u.id+'\')">거절</button>'+
           '</div></div>';
       }).join('');
@@ -103,6 +104,18 @@ function loadPendingList(){
 var pendingRoles={},pendingPrices={};
 function setPendingRole(uid,role){pendingRoles[uid]=role;}
 function setPendingPrice(uid,price){pendingPrices[uid]=price;}
+function sendApprovalEmail(uid, email, name, company){
+  var subject = encodeURIComponent('[닥터체크Pro] 회원가입 승인 안내');
+  var body = encodeURIComponent(
+    name + '님,\n\n' +
+    '닥터체크Pro 회원가입 승인이 완료되었습니다.\n' +
+    '아래 링크에서 로그인하실 수 있습니다.\n' +
+    'https://www.drcheckpro.com/login.html\n\n' +
+    '감사합니다.\n닥터체크Pro 팀'
+  );
+  window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
+}
+
 function approveUser(uid){
   var role=pendingRoles[uid]||'user';
   var price=pendingPrices[uid]||'beta';
@@ -382,7 +395,7 @@ function approveBulk(){
 }
 
 // ── 고객문의 관리 ──
-function loadInquiries(){
++'</td>'+'<td style="padding:8px 10px;text-align:center">'+'<button onclick="deleteInquiry(\'' + d.id + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:600">삭제</button>'+'</td></tr>'dInquiries(){
   var tb=document.getElementById('inquiryTableBody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="6" style="padding:30px;text-align:center;color:#aaa">Loading...</td></tr>';
   sb.from('inquiries').select('*').order('created_at',{ascending:false})
@@ -416,12 +429,12 @@ function loadInquiries(){
       }).join('');
     });
 }
-function replyInquiry(id){
-  var inp=document.getElementById('reply-'+id);
-  var reply=(inp||{}).value||'';
-  if(!reply.trim()){alert('답변 내용을 입력해주세요.');return;}
-  sb.from('inquiries').update({admin_reply:reply,status:'replied',replied_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',id)
-    .then(function(r){if(r.error){alert('Error: '+r.error.message);return;}loadInquiries();});
+
+function deleteInquiry(id){
+  if(!confirm('문의를 삭제하시겠습니까?')) return;
+  sb.from('inquiries').delete().eq('id',id).then(function(r){
+    if(r.error){alert('삭제 실패: '+r.error.message);return;}
+    loadInquiries();
+  });
 }
 
- 
