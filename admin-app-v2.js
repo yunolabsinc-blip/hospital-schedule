@@ -1,13 +1,11 @@
 '<td style="padding:4px 6px">'+(u.role!=='manager'?('<select onchange="assignManager(\''+u.id+'\',this.value)" style="font-size:11px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;max-width:80px">'+'<option value="">미배정</option>'+_allUsersData.filter(function(m){return m.role==='manager';}).map(function(m){return '<option value="'+m.id+'"'+(u.manager_id===m.id?' selected':'')+'>'+esc(m.name)+'</option>';}).join('')+'</select>'):'-')+'</td>'+
-var sb = supabase.createClient(
-  'https://hslxclmezfudjgmehriy.supabase.co',
-  'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
-);
 
 var _allUsersData=[],_activityRows=[];
 (function init(){
   sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
   document.addEventListener('DOMContentLoaded',function(){
+  sb = supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
+
   // 로그아웃
   var lBtn=Array.from(document.querySelectorAll('button')).find(function(b){return b.textContent.trim()==='\uB85C\uADF8\uC544\uC6C3';});
   if(lBtn) lBtn.onclick=function(){if(confirm('\uB85C\uADF8\uC544\uC6C3 \uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?')){sb.auth.signOut().then(function(){window.location.href='login.html';});}}
@@ -453,3 +451,4 @@ function assignManager(uid, managerId){
  
 
  
+
