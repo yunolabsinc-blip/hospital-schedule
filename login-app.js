@@ -1,110 +1,61 @@
-var sb;
-document.addEventListener('DOMContentLoaded', function () {
-  sb = supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co', 'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
-  window.sb = sb;
+// DrCheckPro login-app.js
+var SUPA_URL='https://hslxclmezfudjgmehriy.supabase.co';
+var SUPA_KEY='sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT';
 
-  // ── 로그인 버튼 + 엔터키 ──
-  document.getElementById('loginBtn').addEventListener('click', doLogin);
-  document.getElementById('password').addEventListener('keydown', function(e){
-    if(e.key==='Enter') doLogin();
-  });
-  document.getElementById('email').addEventListener('keydown', function(e){
-    if(e.key==='Enter') doLogin();
-  });
-
-  // ── 회원가입 화면 전환 ──
-  document.getElementById('goRegisterBtn').addEventListener('click', function(){
-    document.getElementById('loginSection').style.display='none';
-    document.getElementById('registerSection').style.display='block';
-  });
-  document.getElementById('backToLoginBtn').addEventListener('click', function(){
-    document.getElementById('registerSection').style.display='none';
-    document.getElementById('loginSection').style.display='block';
-  });
-  document.getElementById('registerBtn').addEventListener('click', doRegister);
-
-  // ── 자동 로그인 체크 ──
-  var savedEmail = localStorage.getItem('drcheck_email');
-  if(savedEmail) {
-    document.getElementById('email').value = savedEmail;
-    var remEl=document.getElementById('rememberEmail'); if(remEl) remEl.checked=true;
+// Supabase 초기화 (DOMContentLoaded 후)
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof supabase !== 'undefined'){
+    window.sb = supabase.createClient(SUPA_URL, SUPA_KEY);
   }
-  if(localStorage.getItem('drcheck_auto')==='1') {
-    var alEl=document.getElementById('autoLogin'); if(alEl) alEl.checked=true;
-    doLogin();
-  }
-
-  // ── 날짜 표시 ──
-  var d=new Date();
-  var el=document.getElementById('logoDate');
-  if(el) el.textContent=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
-
-  // ── 비밀번호 보기 ──
-  var eye=document.getElementById('loginEye');
-  var pw=document.getElementById('password');
-  if(eye&&pw) eye.addEventListener('click',function(){
-    pw.type=pw.type==='password'?'text':'password';
-  });
-  var regEye=document.getElementById('regEye');
-  var regPw=document.getElementById('regPw');
-  if(regEye&&regPw) regEye.addEventListener('click',function(){
-    regPw.type=regPw.type==='password'?'text':'password';
-  });
-
-  // ── ESC 닫기 ──
-  document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){
-      var r=document.getElementById('registerSection');
-      if(r&&r.style.display==='block'){
-        r.style.display='none';
-        document.getElementById('loginSection').style.display='block';
-      }
-    }
-  });
 });
 
-function doLogin(){
-  var email=(document.getElementById('email').value||'').trim();
-  var password=document.getElementById('password').value||'';
-  var errBox=document.getElementById('loginError');
-  var remember=(document.getElementById('rememberEmail')?.checked||false);
-  var autoL=document.getElementById('autoLogin')?.checked;
-  if(!email||!password){
-    if(errBox){errBox.textContent='⚠️ 이메일과 비밀번호를 입력해주세요.';errBox.style.display='block';}
-    return;
-  }
-  if(errBox) errBox.style.display='none';
-  var btn=document.getElementById('loginBtn');
-  if(btn){btn.disabled=true;btn.textContent='로그인 중...';}
-  window.sb.auth.signInWithPassword({email:email,password:password})
-    .then(function(r){
-      if(btn){btn.disabled=false;btn.textContent='로그인';}
-      if(r.error){
-        if(errBox){errBox.textContent='❌ 이메일 또는 비밀번호가 다릅니다.';errBox.style.display='block';}
-        return;
-      }
-      if(remember) localStorage.setItem('drcheck_email',email);
-      else localStorage.removeItem('drcheck_email');
-      if(autoL) localStorage.setItem('drcheck_auto','1');
-      else localStorage.removeItem('drcheck_auto');
-      var user=r.data.user;
-      window.sb.from('user_profiles').select('*').eq('id',user.id).single()
-        .then(function(pr){
-          if(pr.error||!pr.data){
-            if(errBox){errBox.textContent='⚠️ 등록된 계정이 없습니다. 관리자에게 문의하세요.';errBox.style.display='block';}
-            return;
-          }
-          var p=pr.data;
-          if(p.status==='pending'){window.sb.auth.signOut();if(errBox){errBox.textContent='⏳ 관리자 승인 대기 중입니다.';errBox.style.display='block';}return;}
-          if(p.status==='rejected'){window.sb.auth.signOut();if(errBox){errBox.textContent='거절된 계정입니다.';errBox.style.display='block';}return;}
-          if(p.status==='inactive'){window.sb.auth.signOut();if(errBox){errBox.textContent='비활성화된 계정입니다.';errBox.style.display='block';}return;}
-          localStorage.setItem('hs_myinfo',JSON.stringify({name:p.name,email:p.email,company:p.company,role:p.role}));
-          localStorage.setItem('hs_plan',p.price_plan||'beta');
-          window.location.href=(p.role==='superadmin')?'admin.html':'index.html';
-        });
-    });
+// 에러 표시
+function showErr(id, msg){
+  var box = document.getElementById(id);
+  if(!box) return;
+  box.textContent = msg;
+  box.style.display = msg ? 'block' : 'none';
 }
 
+// 로그인
+function doLogin(){
+  var email = (document.getElementById('email')?.value||'').trim();
+  var pw = document.getElementById('password')?.value||'';
+  showErr('loginError','');
+  if(!email || !pw){ showErr('loginError','⚠️ 이메일과 비밀번호를 입력해주세요.'); return; }
+  var btn = document.getElementById('loginBtn');
+  if(btn){ btn.disabled=true; btn.textContent='로그인 중...'; }
+  if(!window.sb){ showErr('loginError','⚠️ 서버 연결 실패. 잠시 후 다시 시도해주세요.'); if(btn){btn.disabled=false;btn.textContent='로그인';} return; }
+  window.sb.auth.signInWithPassword({email:email, password:pw}).then(function(r){
+    if(r.error){
+      var msg = r.error.message||'';
+      if(msg.includes('Invalid login credentials')||msg.includes('invalid')) msg='이메일 또는 비밀번호가 일치하지 않습니다.';
+      else if(msg.includes('Email not confirmed')) msg='이메일 인증이 필요합니다.';
+      else if(msg.includes('Too many')) msg='로그인 시도 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.';
+      showErr('loginError','❌ '+msg);
+      if(btn){btn.disabled=false;btn.textContent='로그인';}
+      return;
+    }
+    var uid = r.data.user?.id;
+    if(!uid){ showErr('loginError','❌ 로그인 정보를 가져오지 못했습니다.'); if(btn){btn.disabled=false;btn.textContent='로그인';} return; }
+    window.sb.from('user_profiles').select('*').eq('id',uid).single().then(function(pr){
+      if(pr.error||!pr.data){
+        showErr('loginError','❌ 등록된 계정이 없습니다. 관리자에게 문의해주세요.');
+        if(btn){btn.disabled=false;btn.textContent='로그인';}
+        return;
+      }
+      var profile = pr.data;
+      var role = profile.job_title||profile.role||'';
+      if(role==='관리자'||role==='superadmin'||role==='manager'){
+        location.href='admin.html';
+      } else {
+        location.href='index.html';
+      }
+    });
+  });
+}
+
+// 회원가입
 function doRegister(){
   var name=(document.getElementById('regName')?.value||'').trim();
   var email=(document.getElementById('regEmail')?.value||'').trim();
@@ -114,52 +65,43 @@ function doRegister(){
   var jobTitle=document.getElementById('regJobTitle')?.value||'';
   var region=(document.getElementById('regRegion')?.value||'').trim();
   var phone=(document.getElementById('regPhone')?.value||'').trim();
-  var errBox=document.getElementById('registerError');
-  var showErr=function(msg){if(errBox){errBox.textContent=msg;errBox.style.display='block';}};
-  if(!name||!email||!pw||!company||!jobTitle){showErr('⚠️ 필수 항목을 모두 입력해주세요.');return;}
-    if(!document.getElementById('agreeTerms')?.checked){
-    showErr('⚠️ 이용약관 및 개인정보처리방침에 동의해주세요.');
-    return;
-  }
-if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.');return;}
-  // 비밀번호 강도 검사
-  if(!/[A-Za-z]/.test(pw)||!/[0-9]/.test(pw)){showErr('⚠️ 비밀번호는 영문자와 숫자를 포함해야 합니다.');return;}
-
-  if(pw!==pw2){showErr('⚠️ 비밀번호가 일치하지 않습니다.');return;}
-  if(errBox) errBox.style.display='none';
-  var regBtn=document.getElementById('registerBtn');
-  if(regBtn){regBtn.disabled=true;regBtn.textContent='제출 중...';}
-  window.sb.auth.signUp({email:email,password:pw})
-    .then(function(r){
-      if(regBtn){regBtn.disabled=false;regBtn.textContent='가입 신청 제출';}
-      if(r.error){
-        var msg=r.error.message;
-        if(msg.includes('already registered')||msg.includes('already been registered'))msg='이미 가입된 이메일입니다.';
-        else if(msg.includes('rate limit'))msg='잠시 후 다시 시도해주세요.';
-        else if(msg.includes('invalid'))msg='이메일 형식이 올바르지 않습니다.';
-        showErr('❌ '+msg);return;
+  showErr('registerError','');
+  if(!name||!email||!pw||!company||!jobTitle){ showErr('registerError','⚠️ 필수 항목을 모두 입력해주세요.'); return; }
+  if(pw.length<8){ showErr('registerError','⚠️ 비밀번호는 8자 이상이어야 합니다.'); return; }
+  if(!/[A-Za-z]/.test(pw)||!/[0-9]/.test(pw)){ showErr('registerError','⚠️ 비밀번호는 영문자와 숫자를 모두 포함해야 합니다.'); return; }
+  if(pw!==pw2){ showErr('registerError','⚠️ 비밀번호가 일치하지 않습니다.'); return; }
+  if(!document.getElementById('agreeTerms')?.checked){ showErr('registerError','⚠️ 이용약관 및 개인정보처리방침에 동의해주세요.'); return; }
+  var btn=document.getElementById('registerBtn');
+  if(btn){btn.disabled=true;btn.textContent='제출 중...';}
+  if(!window.sb){ showErr('registerError','⚠️ 서버 연결 실패.'); if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';} return; }
+  window.sb.auth.signUp({email:email, password:pw}).then(function(r){
+    if(r.error){
+      var msg=r.error.message||'';
+      if(msg.includes('already')||msg.includes('registered')) msg='이미 가입된 이메일입니다.';
+      else if(msg.includes('rate limit')) msg='잠시 후 다시 시도해주세요.';
+      else if(msg.includes('invalid')) msg='이메일 형식이 올바르지 않습니다.';
+      showErr('registerError','❌ '+msg);
+      if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';}
+      return;
+    }
+    var uid=r.data.user?.id;
+    if(!uid){ showErr('registerError','❌ 가입 처리 중 오류가 발생했습니다.'); if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';} return; }
+    window.sb.from('user_profiles').upsert({
+      id:uid, full_name:name, email:email,
+      company:company, job_title:jobTitle,
+      region:region, phone:phone,
+      role:'user', is_approved:false,
+      agree_marketing:document.getElementById('agreeMarketing')?.checked||false
+    },{onConflict:'id'}).then(function(pr){
+      if(pr.error&&!pr.error.message.includes('duplicate key')){
+        showErr('registerError','❌ 저장 실패: '+pr.error.message);
+        if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';}
+        return;
       }
-      var uid=r.data?.user?.id;
-      if(!uid){showErr('❌ 회원가입 실패.');return;}
-      window.sb.from('user_profiles').upsert({
-        id:uid,email:email,name:name,company:company,
-        job_title:jobTitle,region:region,phone:phone,
-        role:'user',status:'pending'
-      },{onConflict:'id'}).then(function(pr){
-        if(pr.error){showErr('❌ '+pr.error.message);return;}
-        alert('✅ 가입 신청이 접수되었습니다.\n관리자 승인 후 로그인하실 수 있습니다.');
-        document.getElementById('registerSection').style.display='none';
-        document.getElementById('loginSection').style.display='block';
-      });
+      alert('회원가입 신청이 완료되었습니다.\n관리자 승인 후 로그인하실 수 있습니다.');
+      if(typeof showLogin === 'function') showLogin();
+      if(btn){btn.disabled=false;btn.textContent='가입 신청 제출';}
     });
+  });
 }
 
-
- 
-
-
-
- 
-
-
- 
