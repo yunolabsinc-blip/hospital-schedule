@@ -83,15 +83,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <a href="#" id="findPwLink">비밀번호 찾기</a>
       </div>
     </div>
-    <button class="btn btn-primary" id="loginBtn" type="button">로그인</button>
+    <button class="btn btn-primary" id="loginBtn" type="button" onclick="doLogin()">로그인</button>
     <div class="error-msg" id="loginError"></div>
     <div class="divider"><span>계정이 없으신가요?</span></div>
-    <button class="btn btn-outline" id="goRegisterBtn" type="button">회원가입 신청</button>
+    <button class="btn btn-outline" id="goRegisterBtn" type="button" onclick="document.getElementById('loginSection').style.display='none';document.getElementById('registerSection').style.display='block'">회원가입 신청</button>
   </div>
 
   <div id="registerSection" style="display:none">
     <div style="display:flex;align-items:center;margin-bottom:20px;gap:8px">
-      <button id="backToLoginBtn" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">←</button>
+      <button id="backToLoginBtn" type="button" onclick="document.getElementById('registerSection').style.display='none';document.getElementById('loginSection').style.display='block'" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">←</button>
       <span style="font-size:16px;font-weight:700">회원가입 신청</span>
     </div>
     <div class="field"><label>이름 *</label><input type="text" id="regName" placeholder="실명"></div>
@@ -114,7 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="field"><label>담당 지역</label><input type="text" id="regRegion" placeholder="예: 서울/경기"></div>
     <div class="field"><label>전화번호</label><input type="tel" id="regPhone" placeholder="010-0000-0000"></div>
-    <button class="btn btn-primary" id="registerBtn" type="button" style="margin-top:8px">가입 신청 제출</button>
+    <button class="btn btn-primary" id="registerBtn" type="button" onclick="doRegister()" style="margin-top:8px">가입 신청 제출</button>
     <div class="error-msg" id="registerError"></div>
   </div>
 </div>
@@ -130,3 +130,4 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 </body>
 </html>
+ 
