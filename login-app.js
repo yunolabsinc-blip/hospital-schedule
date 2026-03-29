@@ -91,7 +91,7 @@ function doLogin(){
       window.sb.from('user_profiles').select('*').eq('id',user.id).single()
         .then(function(pr){
           if(pr.error||!pr.data){
-            if(errBox){errBox.textContent='⚠️ 프로필 조회 실패.';errBox.style.display='block';}
+            if(errBox){errBox.textContent='⚠️ 등록된 계정이 없습니다. 관리자에게 문의하세요.';errBox.style.display='block';}
             return;
           }
           var p=pr.data;
@@ -122,6 +122,9 @@ function doRegister(){
     return;
   }
 if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.');return;}
+  // 비밀번호 강도 검사
+  if(!/[A-Za-z]/.test(pw)||!/[0-9]/.test(pw)){showErr('⚠️ 비밀번호는 영문자와 숫자를 포함해야 합니다.');return;}
+
   if(pw!==pw2){showErr('⚠️ 비밀번호가 일치하지 않습니다.');return;}
   if(errBox) errBox.style.display='none';
   var regBtn=document.getElementById('registerBtn');
@@ -129,7 +132,13 @@ if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.'
   window.sb.auth.signUp({email:email,password:pw})
     .then(function(r){
       if(regBtn){regBtn.disabled=false;regBtn.textContent='가입 신청 제출';}
-      if(r.error){showErr('❌ '+r.error.message);return;}
+      if(r.error){
+        var msg=r.error.message;
+        if(msg.includes('already registered')||msg.includes('already been registered'))msg='이미 가입된 이메일입니다.';
+        else if(msg.includes('rate limit'))msg='잠시 후 다시 시도해주세요.';
+        else if(msg.includes('invalid'))msg='이메일 형식이 올바르지 않습니다.';
+        showErr('❌ '+msg);return;
+      }
       var uid=r.data?.user?.id;
       if(!uid){showErr('❌ 회원가입 실패.');return;}
       window.sb.from('user_profiles').upsert({
@@ -147,4 +156,5 @@ if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.'
 
 
  
+
 
