@@ -279,7 +279,14 @@
       <div class="stat-card"><div class="stat-label">완료 활동기록</div><div class="stat-value" id="statRecords" style="color:#a855f7">-</div></div>
     </div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid #e8e8e8">
-      <table style="width:100%;border-collapse:collapse;min-width:950px">
+      <div id="admin-act-filter-bar" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#f8f9fa;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;flex-wrap:wrap;">
+  <span style="font-size:11px;color:#94a3b8;font-weight:600">기간:</span>
+  <button id="adf-today" onclick="filterAdminAct('today')" style="font-size:11px;padding:3px 10px;border:1px solid #e5e7eb;border-radius:6px;background:white;cursor:pointer;font-family:inherit">당일</button>
+  <button id="adf-week" onclick="filterAdminAct('week')" style="font-size:11px;padding:3px 10px;border:1px solid #e5e7eb;border-radius:6px;background:white;cursor:pointer;font-family:inherit">지난주</button>
+  <button id="adf-month" onclick="filterAdminAct('month')" style="font-size:11px;padding:3px 10px;border:1px solid #e5e7eb;border-radius:6px;background:white;cursor:pointer;font-family:inherit">당월</button>
+  <button id="adf-all" onclick="filterAdminAct('all')" style="font-size:11px;padding:3px 10px;border:1px solid #E8734A;border-radius:6px;background:#fff8f5;color:#E8734A;cursor:pointer;font-family:inherit;font-weight:600">전체</button>
+</div>
+<table style="width:100%;border-collapse:collapse;min-width:950px">
         <thead id="activityThead" style="background:#f8fafc">
           <tr>
             <th style="padding:8px 10px;text-align:left;font-weight:500;color:#555;white-space:nowrap">회사</th>
@@ -374,6 +381,18 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 <script defer src="admin-app-v2.js?v=23"></script>
+<script>
+window._adminActFilter="all";
+function filterAdminAct(f){
+  window._adminActFilter=f;
+  ["today","week","month","all"].forEach(function(k){
+    var b=document.getElementById("adf-"+k);if(!b)return;
+    if(k===f){b.style.border="1px solid #E8734A";b.style.background="#fff8f5";b.style.color="#E8734A";b.style.fontWeight="600";}
+    else{b.style.border="1px solid #e5e7eb";b.style.background="white";b.style.color="";b.style.fontWeight="";}
+  });
+  if(typeof loadUserData==="function") loadUserData();
+}
+</script>
 </body>
 </html>
 
@@ -386,4 +405,5 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
  
+
 
