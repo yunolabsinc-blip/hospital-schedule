@@ -333,6 +333,7 @@ header{
 
 /* ── GLOBAL SEARCH ── */
 .global-search{position:relative;width:160px;flex:none;}
+@media(max-width:639px){.global-search{width:100px;}}
 .global-search input{width:100%;padding:7px 28px 7px 30px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;transition:border-color .12s;}
 .global-search input:focus{border-color:var(--accent);background:var(--surface);}
 .global-search .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none;}
@@ -396,8 +397,7 @@ header{
   .app{bottom:var(--tab-h);}
   /* 헤더: 로고 축소, 검색창 유지, 버튼들 정리 */
   header{padding:0 10px;gap:6px;}
-  .logo{font-size:13px;}
-  .logo span{display:none;}
+  .logo{font-size:16px;}
   header .btn-outline:not(.btn-icon){display:none;}
   .btn-icon{font-size:18px;padding:6px;}
   .main{padding:12px;}
@@ -4184,6 +4184,7 @@ function setDateFilter(f){
 </body>
 </html>
  
+
 
 
 
