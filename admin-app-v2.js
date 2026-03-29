@@ -199,6 +199,8 @@ function renderAllUsers(data){
           '<button onclick="reactivateUser(\''+u.id+'\')" style="background:#22c55e;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;white-space:nowrap">재활성화</button>'+
           '<button onclick="deleteUser(\''+u.id+'\')" style="background:#e53e3e;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer">삭제</button>':
           '<button onclick="openDeactivateModal(\''+u.id+'\')" style="background:#f59e0b;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;white-space:nowrap">비활성화</button>'+
+          '<button onclick="sendApprovalEmail(\''+u.id+'\',' +'\''+(u.email||'')+'\',' +'\''+(u.name||'')+'\',' +'\''+(u.company||'')+'\')'+ 
+          ' style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">승인메일</button>'+
             '<button onclick="sendApprovalEmail(\''+u.id+'\',' +
               '\''+( u.email||'')+'\',' +
               '\''+( u.name||'')+'\',' +
@@ -444,3 +446,5 @@ function deleteInquiry(id){
 }
 
 
+
+ 
