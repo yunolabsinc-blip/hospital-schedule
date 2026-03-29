@@ -357,7 +357,24 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin-app-v2.js?v=16"></script>
+<script>
+var sb;
+document.addEventListener('DOMContentLoaded', function(){
+  sb = supabase.createClient(
+    'https://hslxclmezfudjgmehriy.supabase.co',
+    'sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT'
+  );
+  // 로그아웃 버튼
+  var logoutBtn = document.getElementById('logoutBtn');
+  if(logoutBtn) logoutBtn.addEventListener('click', function(){
+    if(confirm('로그아웃 하시겠습니까?')){
+      sb.auth.signOut().then(function(){ window.location.href='login.html'; });
+    }
+  });
+});
+</script>
+<script src="admin-app-v2.js?v=17"></script>
 </body>
 </html>
+
 
