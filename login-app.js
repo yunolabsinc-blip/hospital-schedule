@@ -17,6 +17,18 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   document.getElementById('loginBtn').addEventListener('click', doLogin);
+  // 회원가입 화면 전환
+  document.getElementById('goRegisterBtn').addEventListener('click', function(){
+    document.getElementById('loginSection').style.display='none';
+    document.getElementById('registerSection').style.display='block';
+  });
+  document.getElementById('backToLoginBtn').addEventListener('click', function(){
+    document.getElementById('registerSection').style.display='none';
+    document.getElementById('loginSection').style.display='block';
+  });
+  // 회원가입 제출 버튼
+  document.getElementById('registerBtn').addEventListener('click', doRegister);
+
   document.getElementById('loginEye').onclick      = function() { togglePw('password', this); };
   document.getElementById('openSignupBtn').onclick = function() { openModal('signupModal'); };
   document.getElementById('findIdBtn').onclick     = function() { openModal('findIdModal'); };
@@ -249,4 +261,43 @@ async function doSignup(){
     document.getElementById('successEmail').textContent=email;
   } catch(e){errBox.textContent='⚠️ 오류: '+e.message; errBox.style.display='block';}
   finally{btn.disabled=false; btn.innerHTML='가입 신청';}
+}
+
+function doRegister(){
+  var name=(document.getElementById('regName')?.value||'').trim();
+  var email=(document.getElementById('regEmail')?.value||'').trim();
+  var pw=document.getElementById('regPw')?.value||'' ;
+  var pw2=document.getElementById('regPw2')?.value||'' ;
+  var company=(document.getElementById('regCompany')?.value||'').trim();
+  var jobTitle=document.getElementById('regJobTitle')?.value||'' ;
+  var region=(document.getElementById('regRegion')?.value||'').trim();
+  var phone=(document.getElementById('regPhone')?.value||'').trim();
+  var errBox=document.getElementById('registerError');
+  var showErr=function(msg){if(errBox){errBox.textContent=msg;errBox.style.display='block';}}
+  if(!name||!email||!pw||!company||!jobTitle){
+    showErr('⚠️ 필수 항목을 모두 입력해주세요.');
+    return;
+  }
+  if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.');return;}
+  if(pw!==pw2){showErr('⚠️ 비밀번호가 일치하지 않습니다.');return;}
+  if(errBox) errBox.style.display='none';
+  var regBtn=document.getElementById('registerBtn');
+  if(regBtn){regBtn.disabled=true;regBtn.textContent='제출 중...';}
+  window.sb.auth.signUp({email:email,password:pw})
+    .then(function(r){
+      if(regBtn){regBtn.disabled=false;regBtn.textContent='가입 신청 제출';}
+      if(r.error){showErr('❌ '+r.error.message);return;}
+      var uid=r.data?.user?.id;
+      if(!uid){showErr('❌ 회원가입 실패.');return;}
+      window.sb.from('user_profiles').insert({
+        id:uid, email:email, name:name, company:company,
+        job_title:jobTitle, region:region, phone:phone,
+        role:'user', status:'pending'
+      }).then(function(pr){
+        if(pr.error){showErr('❌ 프로필 저장 실패: '+pr.error.message);return;}
+        alert('✅ 가입 신청이 접수되었습니다.\n관리자 승인 후 로그인하실 수 있습니다.');
+        document.getElementById('registerSection').style.display='none';
+        document.getElementById('loginSection').style.display='block';
+      });
+    });
 }
