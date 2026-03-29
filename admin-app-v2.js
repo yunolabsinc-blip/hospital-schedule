@@ -1,4 +1,4 @@
-'<td style="padding:4px 6px">'+(u.role!=='manager'?('<select onchange="assignManager(\''+u.id+'\',this.value)" style="font-size:11px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;max-width:80px">'+'<option value="">미배정</option>'+_allUsersData.filter(function(m){return m.role==='manager';}).map(function(m){return '<option value="'+m.id+'"'+(u.manager_id===m.id?' selected':'')+'>'+esc(m.name)+'</option>';}).join('')+'</select>'):'-')+'</td>'+var sb,currentRejectUserId=null,currentDeactivateUserId=null,currentPriceUserId=null;
+var sb,currentRejectUserId=null,currentDeactivateUserId=null,currentPriceUserId=null;
 var _allUsersData=[],_activityRows=[];
 (function init(){
   sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
@@ -424,22 +424,4 @@ function replyInquiry(id){
     .then(function(r){if(r.error){alert('Error: '+r.error.message);return;}loadInquiries();});
 }
 
-function changeUserRole(uid, currentRole){
-  var newRole=currentRole==='manager'?'user':'manager';
-  var label=newRole==='manager'?'관리자':'영업';
-  if(!confirm(label+'로 변경하시겠습니까?')) return;
-  sb.from('user_profiles').update({role:newRole}).eq('id',uid)
-    .then(function(r){
-      if(r.error){alert('오류: '+r.error.message);return;}
-      loadAllList();
-    });
-}
-function assignManager(uid, managerId){
-  sb.from('user_profiles').update({manager_id:managerId||null}).eq('id',uid)
-    .then(function(r){
-      if(r.error){alert('오류: '+r.error.message);return;}
-      // 조용히 저장
-    });
-}
  
-
