@@ -117,7 +117,11 @@ function doRegister(){
   var errBox=document.getElementById('registerError');
   var showErr=function(msg){if(errBox){errBox.textContent=msg;errBox.style.display='block';}};
   if(!name||!email||!pw||!company||!jobTitle){showErr('⚠️ 필수 항목을 모두 입력해주세요.');return;}
-  if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.');return;}
+    if(!document.getElementById('agreeTerms')?.checked){
+    showErr('⚠️ 이용약관 및 개인정보처리방침에 동의해주세요.');
+    return;
+  }
+if(pw.length<8){showErr('⚠️ 비밀번호는 8자 이상이어야 합니다.');return;}
   if(pw!==pw2){showErr('⚠️ 비밀번호가 일치하지 않습니다.');return;}
   if(errBox) errBox.style.display='none';
   var regBtn=document.getElementById('registerBtn');
@@ -143,3 +147,4 @@ function doRegister(){
 
 
  
+
