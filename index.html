@@ -29,7 +29,7 @@ header{
 }
 .logo{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;}
 .logo span{color:var(--text2);font-weight:400;font-size:11px;margin-left:4px;}
-.header-btns{display:flex;gap:3px;align-items:center;flex-shrink:0;}.header-btns .btn{font-size:10px;padding:3px 6px;white-space:nowrap;flex-shrink:0;}
+.header-btns{display:flex;gap:3px;align-items:center;flex-shrink:0;}.header-btns .btn{font-size:10px;padding:3px 5px;white-space:nowrap;flex-shrink:0;}
 .btn{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit;white-space:nowrap;line-height:1;}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-primary:hover,.btn-primary:active{background:#224830;}
@@ -430,8 +430,8 @@ header{
   </div>
   <div class="header-btns">
     <input type="file" id="xlsx-input" accept=".xlsx" style="display:none" onchange="handleXlsx(this)">
-    <button class="btn btn-outline" onclick="downloadTemplate()" style="font-size:10px;padding:3px 6px;white-space:nowrap">📋 양식</button>
-    <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()" style="font-size:10px;padding:3px 6px;white-space:nowrap">📂 업로드</button>
+    <button class="btn btn-outline" onclick="downloadTemplate()" style="font-size:10px;padding:3px 6px;white-space:nowrap;flex-shrink:0">📋 양식</button>
+    <button class="btn btn-outline" onclick="document.getElementById('xlsx-input').click()" style="font-size:10px;padding:3px 6px;white-space:nowrap;flex-shrink:0">📂 업로드</button>
     <button class="btn btn-outline" onclick="openHospModal()" style="font-size:11px;padding:5px 7px">+ 거래처</button>
     <button class="btn btn-outline btn-icon" onclick="openSettings()" title="설정">⚙️</button>
     <!-- mobile FAB - 거래처 추가 -->
@@ -3861,9 +3861,6 @@ function injectUijCheok(){
         window.sb.from('user_app_data').select('user_id,data_v9').eq('user_id', s.user.id).maybeSingle().then(function(dr) {
           var hasOwn = dr.data && dr.data.data_v9 && dr.data.data_v9.hospitals && dr.data.data_v9.hospitals.length > 0;
           if (!hasOwn) {
-              S.hospitals=[]; S.doctors=[]; S.products=[];
-              S.myProducts=[]; S.activities=[];
-              saveData();
 
             ['myschedule_v9','myschedule_v6','hs_myinfo','hs_myproducts'].forEach(function(k){ localStorage.removeItem(k); });
           }
@@ -4105,6 +4102,7 @@ document.addEventListener('keydown', function(e){
 </body>
 </html>
  
+
 
 
 
