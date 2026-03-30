@@ -97,6 +97,8 @@ function loadPendingList(){
           '<div class="action-btns">'+
             '<button class="btn-approve" onclick="approveUser(\''+u.id+'\')">승인</button>'+
             '<button onclick="sendApprovalEmail(\''+u.id+'\',' +'\''+(u.email||'')+'\',' +'\''+(u.name||'')+'\',' +'\''+(u.company||'')+'\')" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">승인메일</button>'+
+          '<button onclick="openTeamModal(\''+u.id+'\',' +'\''+(u.name||'')+'\')'+ 
+          ' style="background:#f0fdf4;color:#16a34a;border:none;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">퐜반배정</button>'+
             '<button class="btn-reject" onclick="openRejectModal(\''+u.id+'\')">거절</button>'+
           '</div></div>';
       }).join('');
@@ -498,5 +500,38 @@ if(typeof toggleAllPending!=="undefined") window.toggleAllPending=toggleAllPendi
 if(typeof syncCheckAll!=="undefined") window.syncCheckAll=syncCheckAll;
 if(typeof approveBulk!=="undefined") window.approveBulk=approveBulk;
 if(typeof deleteInquiry!=="undefined") window.deleteInquiry=deleteInquiry;
-
+// ── 팀 배정 ──
+function openTeamModal(uid,userName){
+  if(!sb)return;
+  sb.from("user_profiles").select("id,name,company").eq("role","manager").eq("status","approved").then(function(r){
+    var managers=r.data||[];
+    sb.from("user_profiles").select("manager_id").eq("id",uid).single().then(function(pr){
+      var cur=pr.data&&pr.data.manager_id?pr.data.manager_id:"";
+      var opts='<option value="">배정 안 함</option>';
+      managers.forEach(function(m){opts+='<option value="'+m.id+'" '+(m.id===cur?"selected":"")+'>'+( m.name||"-")+' ('+(m.company||"-")+")</option>";});
+      var el=document.getElementById("team-modal");if(el)el.remove();
+      var modal=document.createElement("div");
+      modal.id="team-modal";
+      modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;";
+      modal.innerHTML='<div style="background:white;border-radius:16px;padding:28px 24px;width:340px;max-width:95vw;">'+
+        '<h3 style="font-size:16px;font-weight:700;margin-bottom:6px">팀 배정</h3>'+
+        '<p style="font-size:13px;color:#64748b;margin-bottom:16px">'+userName+' 님 담당 관리자</p>'+
+        '<select id="team-mgr-sel" style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;margin-bottom:16px">'+opts+'</select>'+
+        '<div style="display:flex;gap:8px;justify-content:flex-end">'+
+        '<button onclick="document.getElementById('+"'team-modal'"+').remove()" style="background:#f1f5f9;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer">취소</button>'+
+        '<button onclick="assignManager(\''+ uid +'\',\''+userName+'\')" style="background:#E8734A;color:white;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer">저장</button>'+
+        '</div></div>';
+      document.body.appendChild(modal);
+    });
+  });
+}
+function assignManager(uid,userName){
+  var sel=document.getElementById("team-mgr-sel");if(!sel)return;
+  var mgrId=sel.value;
+  sb.from("user_profiles").update(mgrId?{manager_id:mgrId}:{manager_id:null}).eq("id",uid).then(function(r){
+    if(r.error){alert("배정 실패:"+r.error.message);return;}
+    var m=document.getElementById("team-modal");if(m)m.remove();
+    loadAllList();
+  });
+}
 
