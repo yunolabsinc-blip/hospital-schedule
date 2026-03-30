@@ -426,7 +426,21 @@ header{
     <span class="si">🔍</span>
     <input type="text" id="gs-input" placeholder="검색" oninput="onGlobalSearch(this.value)" onfocus="onGlobalSearch(this.value)" autocomplete="off">
     <button class="sc" onclick="clearGlobalSearch()">✕</button>
-    <div class="gs-results" id="gs-results"></div>
+    <div class="gs-results" id="gs-results">
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0">
+    <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:12px">비밀번호 변경</div>
+    <div class="form-row"><label>현재 비밀번호</label>
+      <input type="password" id="my-pw-current" placeholder="현재 비밀번호 입력" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit">
+    </div>
+    <div class="form-row"><label>새 비밀번호</label>
+      <input type="password" id="my-pw-new" placeholder="8자 이상 (영문+숫자 포함)" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit">
+    </div>
+    <div class="form-row"><label>새 비밀번호 확인</label>
+      <input type="password" id="my-pw-new2" placeholder="새 비밀번호 다시 입력" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit">
+    </div>
+    <div id="pw-change-msg" style="font-size:12px;margin-bottom:8px;min-height:18px"></div>
+    <button onclick="changeMyPassword()" style="background:#E8734A;color:white;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">비밀번호 변경</button>
+</div>
   </div>
   <div class="header-btns">
     
@@ -434,6 +448,7 @@ header{
     
     <button class="btn btn-outline" onclick="openHospModal()" style="font-size:11px;padding:5px 7px">+ 거래처</button>
     <button class="btn btn-outline" onclick="openSettings();setTimeout(function(){switchSettingsTab('products');},150)" style="font-size:11px;padding:5px 9px" title="제품 등록">📦 제품</button>
+    <button class="btn btn-outline" onclick="openSettings();setTimeout(function(){switchSettingsTab('products');},100)" style="font-size:11px;padding:5px 9px" title="제품 등록">📦 제품</button>
     <button class="btn btn-outline btn-icon" onclick="openSettings()" title="설정">⚙️</button>
     <!-- mobile FAB - 거래처 추가 -->
     <button class="btn btn-primary btn-icon" id="mob-add-btn" style="display:none" onclick="openHospModal()" title="거래처 추가">＋</button>
@@ -3300,6 +3315,11 @@ function delDr(id){
 }
 
 // Modal
+function openModal(id){
+  var m=document.getElementById(id);
+  if(m){m.style.display="flex";document.body.style.overflow="hidden";}
+}
+
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
@@ -3469,6 +3489,30 @@ function openSettings(){
   } else fill(getMyInfo());
   openModal("settings-modal");
 }
+function changeMyPassword(){
+  var cur=document.getElementById("my-pw-current")?.value||"";
+  var nw=document.getElementById("my-pw-new")?.value||"";
+  var nw2=document.getElementById("my-pw-new2")?.value||"";
+  var msg=document.getElementById("pw-change-msg");
+  if(!cur||!nw||!nw2){if(msg){msg.style.color="#dc2626";msg.textContent="모든 항목을 입력해주세요.";}return;}
+  if(nw.length<8||!/[A-Za-z]/.test(nw)||!/[0-9]/.test(nw)){if(msg){msg.style.color="#dc2626";msg.textContent="8자 이상 영문+숫자 포함이어야 합니다.";}return;}
+  if(nw!==nw2){if(msg){msg.style.color="#dc2626";msg.textContent="새 비밀번호가 일치하지 않습니다.";}return;}
+  if(msg){msg.style.color="#94a3b8";msg.textContent="변경 중입니다...";};
+  // Supabase 비밀번호 재인증 후 변경
+  var info=JSON.parse(localStorage.getItem("hs_myinfo")||"{}"); 
+  if(!sb){if(msg){msg.style.color="#dc2626";msg.textContent="연결 오류";}return;}
+  sb.auth.signInWithPassword({email:info.email,password:cur}).then(function(r){
+    if(r.error){if(msg){msg.style.color="#dc2626";msg.textContent="현재 비밀번호가 틀립니다.";}return;}
+    sb.auth.updateUser({password:nw}).then(function(r2){
+      if(r2.error){if(msg){msg.style.color="#dc2626";msg.textContent="변경 실패: "+r2.error.message;}return;}
+      if(msg){msg.style.color="#22c55e";msg.textContent="비밀번호가 변경되었습니다.";}
+      document.getElementById("my-pw-current").value="";
+      document.getElementById("my-pw-new").value="";
+      document.getElementById("my-pw-new2").value="";
+    });
+  });
+}
+
 
 function saveSettings(){
   const info={
@@ -4184,6 +4228,7 @@ function setDateFilter(f){
 </body>
 </html>
  
+
 
 
 
