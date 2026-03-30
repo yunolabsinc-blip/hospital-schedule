@@ -458,8 +458,43 @@ function deleteInquiry(id){
   });
 }
 
-
-
- 
-
+// === 전역 함수 명시적 노출 ===
+if(typeof logout!=="undefined") window.logout=logout;
+if(typeof switchTab!=="undefined") window.switchTab=switchTab;
+if(typeof loadAll!=="undefined") window.loadAll=loadAll;
+if(typeof loadInquiryBadge!=="undefined") window.loadInquiryBadge=loadInquiryBadge;
+if(typeof loadStats!=="undefined") window.loadStats=loadStats;
+if(typeof esc!=="undefined") window.esc=esc;
+if(typeof fmtDate!=="undefined") window.fmtDate=fmtDate;
+if(typeof loadPendingList!=="undefined") window.loadPendingList=loadPendingList;
+if(typeof setPendingRole!=="undefined") window.setPendingRole=setPendingRole;
+if(typeof setPendingPrice!=="undefined") window.setPendingPrice=setPendingPrice;
+if(typeof sendApprovalEmail!=="undefined") window.sendApprovalEmail=sendApprovalEmail;
+if(typeof approveUser!=="undefined") window.approveUser=approveUser;
+if(typeof openRejectModal!=="undefined") window.openRejectModal=openRejectModal;
+if(typeof closeRejectModal!=="undefined") window.closeRejectModal=closeRejectModal;
+if(typeof confirmReject!=="undefined") window.confirmReject=confirmReject;
+if(typeof loadAllList!=="undefined") window.loadAllList=loadAllList;
+if(typeof filterAllUsers!=="undefined") window.filterAllUsers=filterAllUsers;
+if(typeof renderAllUsers!=="undefined") window.renderAllUsers=renderAllUsers;
+if(typeof openDeactivateModal!=="undefined") window.openDeactivateModal=openDeactivateModal;
+if(typeof closeDeactivateModal!=="undefined") window.closeDeactivateModal=closeDeactivateModal;
+if(typeof confirmDeactivate!=="undefined") window.confirmDeactivate=confirmDeactivate;
+if(typeof reactivateUser!=="undefined") window.reactivateUser=reactivateUser;
+if(typeof deleteUser!=="undefined") window.deleteUser=deleteUser;
+if(typeof openPriceModal!=="undefined") window.openPriceModal=openPriceModal;
+if(typeof closePriceModal!=="undefined") window.closePriceModal=closePriceModal;
+if(typeof confirmPriceChange!=="undefined") window.confirmPriceChange=confirmPriceChange;
+if(typeof exportAllUsers!=="undefined") window.exportAllUsers=exportAllUsers;
+if(typeof filterAdminAct!=="undefined") window.filterAdminAct=filterAdminAct;
+if(typeof loadUserData!=="undefined") window.loadUserData=loadUserData;
+if(typeof _updateFilters!=="undefined") window._updateFilters=_updateFilters;
+if(typeof filterActivityData!=="undefined") window.filterActivityData=filterActivityData;
+if(typeof renderActivityTable!=="undefined") window.renderActivityTable=renderActivityTable;
+if(typeof exportExcel!=="undefined") window.exportExcel=exportExcel;
+if(typeof _dlCsv!=="undefined") window._dlCsv=_dlCsv;
+if(typeof toggleAllPending!=="undefined") window.toggleAllPending=toggleAllPending;
+if(typeof syncCheckAll!=="undefined") window.syncCheckAll=syncCheckAll;
+if(typeof approveBulk!=="undefined") window.approveBulk=approveBulk;
+if(typeof deleteInquiry!=="undefined") window.deleteInquiry=deleteInquiry;
 
