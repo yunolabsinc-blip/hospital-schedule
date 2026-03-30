@@ -107,16 +107,17 @@ function loadPendingList(){
 var pendingRoles={},pendingPrices={};
 function setPendingRole(uid,role){pendingRoles[uid]=role;}
 function setPendingPrice(uid,price){pendingPrices[uid]=price;}
-function sendApprovalEmail(uid, email, name, company){
-  var subject = encodeURIComponent('[닥터체크Pro] 회원가입 승인 안내');
-  var body = encodeURIComponent(
-    name + '님,\n\n' +
-    '닥터체크Pro 회원가입 승인이 완료되었습니다.\n' +
-    '아래 링크에서 로그인하실 수 있습니다.\n' +
-    'https://www.drcheckpro.com/login.html\n\n' +
-    '감사합니다.\n닥터체크Pro 팀'
-  );
-  window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
+function sendApprovalEmail(uid,email,name,company){
+  if(!uid||!email){alert("이메일이 없습니다.");return;}
+  var n=name||"회원";
+  var subj=encodeURIComponent("[닥터체크Pro] 가입 승인 안내");
+  var bd=encodeURIComponent(n+"님, 닥터체크Pro 가입이 승인되었습니다. https://www.drcheckpro.com");
+  var a=document.createElement("a");
+  a.href="mailto:"+email+"?subject="+subj+"&body="+bd;
+  a.target="_blank";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  if(navigator.clipboard)navigator.clipboard.writeText(email).catch(function(){});
+  alert("메일 앱을 열었습니다.");
 }
 
 function approveUser(uid){
@@ -203,9 +204,7 @@ function renderAllUsers(data){
           '<button onclick="deleteUser(\''+u.id+'\')" style="background:#e53e3e;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer">삭제</button>':
           '<button onclick="openDeactivateModal(\''+u.id+'\')" style="background:#f59e0b;color:white;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;white-space:nowrap">비활성화</button>'+
           '<button onclick="sendApprovalEmail(\''+u.id+'\',' +'\''+(u.email||'')+'\',' +'\''+(u.name||'')+'\',' +'\''+(u.company||'')+'\')" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">승인메일</button>'+
-          '<button onclick="sendApprovalEmail(\''+u.id+'\',' +'\''+(u.email||'')+'\',' +'\''+(u.name||'')+'\',' +'\''+(u.company||'')+'\')'+ 
           ' style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">승인메일</button>'+
-            '<button onclick="sendApprovalEmail(\''+u.id+'\',' +
               '\''+( u.email||'')+'\',' +
               '\''+( u.name||'')+'\',' +
               '\''+( u.company||'')+'\')'+ 
@@ -535,5 +534,6 @@ function assignManager(uid,userName){
     loadAllList();
   });
 }
+
 
 
