@@ -97,6 +97,8 @@ function loadPendingList(){
           '<div class="action-btns">'+
             '<button class="btn-approve" onclick="approveUser(\''+u.id+'\')">승인</button>'+
             '<button onclick="sendApprovalEmail(\''+u.id+'\',' +'\''+(u.email||'')+'\',' +'\''+(u.name||'')+'\',' +'\''+(u.company||'')+'\')" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">승인메일</button>'+
+          '<button onclick="openTeamModal(\''+u.id+'\',' +'\''+(u.name||'')+'\')'+ 
+          ' style="background:#f0fdf4;color:#16a34a;border:none;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600;margin-left:2px">퐜반배정</button>'+
             '<button class="btn-reject" onclick="openRejectModal(\''+u.id+'\')">거절</button>'+
           '</div></div>';
       }).join('');
@@ -499,6 +501,60 @@ if(typeof syncCheckAll!=="undefined") window.syncCheckAll=syncCheckAll;
 if(typeof approveBulk!=="undefined") window.approveBulk=approveBulk;
 if(typeof deleteInquiry!=="undefined") window.deleteInquiry=deleteInquiry;
 
+
+// ══════════════════════════════
+// 팀 배정 (관리자 ↔ 영업사원 연결)
+// ══════════════════════════════
+
+// 팀 배정 모달 열기
+function openTeamModal(uid, userName){
+  if(!sb) return;
+  // 관리자(manager) 목록 가져오기
+  sb.from("user_profiles").select("id,name,company").eq("role","manager").eq("status","approved")
+    .then(function(r){
+      var managers = r.data||[];
+      // 현재 배정된 manager_id 가져오기
+      sb.from("user_profiles").select("manager_id").eq("id",uid).single()
+        .then(function(pr){
+          var currentMgr = pr.data?.manager_id||"";
+          var opts = '<option value="">배정 안 함</option>';
+          managers.forEach(function(m){
+            opts+='<option value="'+m.id+'" '+(m.id===currentMgr?"selected":"")+'>'+
+              (m.name||"-")+' ('+( m.company||"-")+")</option>";
+          });
+          // 모달 HTML 동적 생성
+          var existing=document.getElementById("team-modal");
+          if(existing)existing.remove();
+          var modal=document.createElement("div");
+          modal.id="team-modal";
+          modal.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;";
+          modal.innerHTML='<div style="background:white;border-radius:16px;padding:28px 24px;width:340px;max-width:95vw;">'+
+            '<h3 style="font-size:16px;font-weight:700;margin-bottom:6px">팀 배정</h3>'+
+            '<p style="font-size:13px;color:#64748b;margin-bottom:16px">'+userName+' 님의 담당 관리자를 선택하세요.</p>'+
+            '<select id="team-mgr-select" style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:14px;font-family:inherit;margin-bottom:16px">'+opts+'</select>'+
+            '<div style="display:flex;gap:8px;justify-content:flex-end">'+
+            '<button onclick="document.getElementById('+"'team-modal'"+"'"+').remove()" style="background:#f1f5f9;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit">취소</button>'+
+            '<button onclick="assignManager(\''+uid+'\',\''+userName+'\')" style="background:#E8734A;color:white;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">배정 저장</button>'+
+            '</div></div>';
+          document.body.appendChild(modal);
+        });
+    });
+}
+
+// 관리자 배정 저장
+function assignManager(uid, userName){
+  var sel=document.getElementById("team-mgr-select");
+  if(!sel) return;
+  var mgrId=sel.value;
+  var updateData = mgrId ? {manager_id:mgrId} : {manager_id:null};
+  sb.from("user_profiles").update(updateData).eq("id",uid).then(function(r){
+    if(r.error){alert("배정 실패: "+r.error.message);return;}
+    var modal=document.getElementById("team-modal");
+    if(modal)modal.remove();
+    alert(userName+" 님의 담당 관리자가 배정되었습니다.");
+    loadAllList();
+  });
+}
 // === 전역 노출 ===
 if(typeof logout!=="undefined")window.logout=logout;
 if(typeof switchTab!=="undefined")window.switchTab=switchTab;
@@ -541,3 +597,4 @@ if(typeof deleteInquiry!=="undefined")window.deleteInquiry=deleteInquiry;
 
 
 // v3.final
+
