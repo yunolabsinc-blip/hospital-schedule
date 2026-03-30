@@ -1,6 +1,4 @@
-var sb,currentRejectUserId=null,currentDeactivateUserId=null,currentPriceUserId=null;
-var _allUsersData=[],_activityRows=[];
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded",function(){
 sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
   document.addEventListener('DOMContentLoaded',function(){
     document.addEventListener('keydown',function(e){
@@ -19,7 +17,7 @@ sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publisha
           var el=document.getElementById('adminEmail');
           if(el)el.textContent=s.user.email+' (superadmin)';
           loadAll();
-        });
+    });
 function logout(){sb.auth.signOut().then(function(){window.location.href='login.html';});}
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
@@ -407,7 +405,8 @@ function approveBulk(){
   var done=0;
   ids.forEach(function(uid){
     sb.from('user_profiles').update({status:'approved',role:role,approved_at:new Date().toISOString(),price_plan:price,plan_expires_at:exp.toISOString()}).eq('id',uid)
-      .then(function(r){done++;if(done===ids.length){alert('일괄 승인 완료! ('+done+'명)');loadAll();}});
+      .then(function(r){done++;if(done===ids.length){alert('일괄 승인 완료! ('+done+'명)');loadAll();
+});}});
   });
 }
 
@@ -494,7 +493,6 @@ if(typeof toggleAllPending!=="undefined") window.toggleAllPending=toggleAllPendi
 if(typeof syncCheckAll!=="undefined") window.syncCheckAll=syncCheckAll;
 if(typeof approveBulk!=="undefined") window.approveBulk=approveBulk;
 if(typeof deleteInquiry!=="undefined") window.deleteInquiry=deleteInquiry;
-
 
 
 
