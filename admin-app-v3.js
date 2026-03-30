@@ -20,8 +20,6 @@ sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publisha
           if(el)el.textContent=s.user.email+' (superadmin)';
           loadAll();
         });
-    });
-  });
 function logout(){sb.auth.signOut().then(function(){window.location.href='login.html';});}
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
