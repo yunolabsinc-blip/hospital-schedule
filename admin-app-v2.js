@@ -418,7 +418,8 @@ function approveBulk(){
 }
 
 // ── 고객문의 관리 ──
-+'</td>'+'<td style="padding:8px 10px;text-align:center">'+'<button onclick="deleteInquiry(\'' + d.id + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:600">삭제</button>'+'</td></tr>'dInquiries(){
++'</td>'+'<td style="padding:8px 10px;text-align:center">'+'<button onclick="deleteInquiry(\'' + d.id + '\')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:600">삭제</button>'+'</td></tr>';
+function loadInquiries(){
   var tb=document.getElementById('inquiryTableBody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="6" style="padding:30px;text-align:center;color:#aaa">Loading...</td></tr>';
   sb.from('inquiries').select('*').order('created_at',{ascending:false})
@@ -534,4 +535,5 @@ function assignManager(uid,userName){
     loadAllList();
   });
 }
+
 
