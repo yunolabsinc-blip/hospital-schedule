@@ -365,17 +365,8 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script src="admin-app-v2.js?v=27"></script>
-<script>
-// 캐시 무효화 보험: v25 미로드 시 강제 로드
-window.addEventListener("DOMContentLoaded",function(){
-  if(typeof loadUserData==="undefined"){
-    var s=document.createElement("script");
-    s.src="/admin-app-v2.js?v=25&t="+Date.now();
-    document.head.appendChild(s);
-  }
-});
-</script>
+
+
 <script>
 window._adminActFilter="all";
 function filterAdminAct(f){
@@ -388,6 +379,7 @@ function filterAdminAct(f){
   if(typeof loadUserData==="function") loadUserData();
 }
 </script>
+<script src="admin-app-v3.js"></script>
 </body>
 </html>
 
@@ -400,6 +392,7 @@ function filterAdminAct(f){
 
 
  
+
 
 
 
