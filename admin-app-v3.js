@@ -22,8 +22,6 @@ sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publisha
         });
     });
   });
-});
-;
 function logout(){sb.auth.signOut().then(function(){window.location.href='login.html';});}
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
@@ -498,6 +496,7 @@ if(typeof toggleAllPending!=="undefined") window.toggleAllPending=toggleAllPendi
 if(typeof syncCheckAll!=="undefined") window.syncCheckAll=syncCheckAll;
 if(typeof approveBulk!=="undefined") window.approveBulk=approveBulk;
 if(typeof deleteInquiry!=="undefined") window.deleteInquiry=deleteInquiry;
+
 
 
 
