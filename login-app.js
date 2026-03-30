@@ -22,16 +22,31 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 // 이메일 중복 확인 (RPC)
-function checkEmailDuplicate(email){
-  if(!window.sb||!email) return;
-  var h=document.getElementById('email-dup-hint');
-  window.sb.rpc('check_email_available',{p_email:email}).then(function(r){
-    if(!h) return;
-    if(r.error){h.style.color='#94a3b8';h.textContent='';return;}
-    if(r.data==='available'){h.style.color='#22c55e';h.textContent='✅ 사용 가능한 이메일입니다.';}
-    else if(r.data==='withdrawn'){h.style.color='#E8734A';h.textContent='⚠️ 탈퇴한 계정입니다. 다시 가입할 수 있습니다.';}
-    else{h.style.color='#dc2626';h.textContent='❌ 이미 사용 중인 이메일입니다.';}
-  });
+function checkEmailDuplicate(){
+  var email=(document.getElementById("regEmail")?.value||"").trim().toLowerCase();
+  var msgEl=document.getElementById("emailDupMsg");
+  if(!email||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+    if(msgEl){msgEl.style.color="#dc2626";msgEl.textContent="✏️ 유효한 이메일을 입력해주세요.";}
+    return;
+  }
+  if(msgEl){msgEl.style.color="#94a3b8";msgEl.textContent="확인 중...";}
+  sb.rpc("check_email_available",{p_email:email}).then(function(r){
+    var st=r.data;
+    if(st==="available"){
+      if(msgEl){msgEl.style.color="#22c55e";msgEl.textContent="✅ 사용 가능한 이메일입니다.";}
+      window._emailOk=email;
+    } else if(st==="withdrawn"){
+      if(msgEl){msgEl.style.color="#94a3b8";msgEl.textContent="정리 중...";}
+      sb.rpc("cleanup_user_by_email",{p_email:email}).then(function(cr){
+        if(cr.error){if(msgEl){msgEl.style.color="#dc2626";msgEl.textContent="오류: "+cr.error.message;}return;}
+        if(msgEl){msgEl.style.color="#22c55e";msgEl.textContent="✅ 재가입 가능한 이메일입니다.";}
+        window._emailOk=email;
+      });
+    } else {
+      if(msgEl){msgEl.style.color="#dc2626";msgEl.textContent="⚠️ 이미 사용 중인 이메일입니다.";}
+      window._emailOk=null;
+    }
+  }).catch(function(e){if(msgEl){msgEl.style.color="#dc2626";msgEl.textContent="오류: "+e.message;}});
 }
 
 function showErr(id,msg){
@@ -96,59 +111,53 @@ function doLogin(){
 
 // 이메일 찾기 (이름 + 연락처)
 function doFindId(){
-  var name=(document.getElementById('findIdName')?.value||'').trim();
-  var phone=(document.getElementById('findIdPhone')?.value||'').trim();
-  showErr('findIdError',''); showSuccess('findIdSuccess','');
-  if(!name||!phone){showErr('findIdError','⚠️ 이름과 연락처를 입력해주세요.');return;}
-  if(!window.sb){showErr('findIdError','⚠️ 서버 연결 실패.');return;}
-  // 폰 번호 정제 (숫자만)
-  var phoneNorm=phone.replace(/[^0-9]/g,'');
-  window.sb.from('user_profiles').select('email,name,phone')
-    .ilike('name',name).then(function(r){
-      if(r.error||!r.data||r.data.length===0){
-        showErr('findIdError','❌ 일치하는 정보가 없습니다.');return;
+  var name=(document.getElementById("findIdName")?.value||"").trim();
+  var raw=(document.getElementById("findIdPhone")?.value||"").replace(/-/g,"").trim();
+  var phone=raw.replace(/(\d{3})(\d{3,4})(\d{4})/,"$1-$2-$3");
+  var errEl=document.getElementById("findIdError");
+  var sucEl=document.getElementById("findIdSuccess");
+  if(errEl)errEl.textContent=""; if(sucEl)sucEl.textContent="";
+  if(!name||!raw){
+    if(errEl){errEl.style.color="#dc2626";errEl.textContent="⚠️ 이름과 연락처를 입력해주세요.";}
+    return;
+  }
+  sb.from("user_profiles").select("email").eq("name",name).eq("phone",phone).maybeSingle()
+    .then(function(r){
+      if(r.error||!r.data){
+        if(errEl){errEl.style.color="#dc2626";errEl.textContent="⚠️ 일치하는 회원 정보가 없습니다.";}
+        return;
       }
-      var matched=r.data.filter(function(p){
-        return (p.phone||'').replace(/[^0-9]/g,'')=== phoneNorm;
-      });
-      if(matched.length===0){
-        showErr('findIdError','❌ 일치하는 정보가 없습니다.');return;
-      }
-      var email=matched[0].email;
-      // 이메일 일부 마스킹
-      var masked=email.replace(/(.{2})(.*)(@.*)/,function(m,a,b,c){return a+b.replace(/./g,'*')+c;});
-      showSuccess('findIdSuccess','가입된 이메일: '+masked);
-    });
+      var em=r.data.email;
+      var masked=em.replace(/(.(?=.*@))/g,"*");
+      if(sucEl){sucEl.style.color="#22c55e";sucEl.textContent="✅ 등록된 이메일: "+masked;}
+    }).catch(function(e){if(errEl){errEl.style.color="#dc2626";errEl.textContent="오류: "+e.message;}});
 }
 
 // 비밀번호 재설정 (이름 + 이메일 + 연락처 확인 후 링크 발송)
 function doFindPw(){
-  var name=(document.getElementById('findPwName')?.value||'').trim();
-  var email=(document.getElementById('findPwEmail')?.value||'').trim();
-  var phone=(document.getElementById('findPwPhone')?.value||'').trim();
-  showErr('findPwError',''); showSuccess('findPwSuccess','');
-  if(!name||!email||!phone){showErr('findPwError','⚠️ 모든 항목을 입력해주세요.');return;}
-  if(!window.sb){showErr('findPwError','⚠️ 서버 연결 실패.');return;}
-  var phoneNorm=phone.replace(/[^0-9]/g,'');
-  // 사용자 확인
-  window.sb.from('user_profiles').select('email,name,phone').eq('email',email).single()
+  var name=(document.getElementById("findPwName")?.value||"").trim();
+  var email=(document.getElementById("findPwEmail")?.value||"").trim().toLowerCase();
+  var raw=(document.getElementById("findPwPhone")?.value||"").replace(/-/g,"").trim();
+  var phone=raw.replace(/(\d{3})(\d{3,4})(\d{4})/,"$1-$2-$3");
+  var errEl=document.getElementById("findPwError");
+  var sucEl=document.getElementById("findPwSuccess");
+  if(errEl)errEl.textContent=""; if(sucEl)sucEl.textContent="";
+  if(!name||!email||!raw){
+    if(errEl){errEl.style.color="#dc2626";errEl.textContent="⚠️ 모든 항목을 입력해주세요.";}
+    return;
+  }
+  sb.from("user_profiles").select("id").eq("name",name).eq("email",email).eq("phone",phone).maybeSingle()
     .then(function(r){
-      if(r.error||!r.data){showErr('findPwError','❌ 일치하는 정보가 없습니다.');return;}
-      var p=r.data;
-      if(p.name!==name||(p.phone||'').replace(/[^0-9]/g,'')!==phoneNorm){
-        showErr('findPwError','❌ 이름 또는 연락처가 일치하지 않습니다.');return;
+      if(r.error||!r.data){
+        if(errEl){errEl.style.color="#dc2626";errEl.textContent="⚠️ 일치하는 회원 정보가 없습니다.";}
+        return;
       }
-      // 비밀번호 재설정 이메일 발송
-      var btn=document.querySelector('#findPwSection .btn-primary');
-      if(btn){btn.disabled=true;btn.textContent='발송 중...';}
-      window.sb.auth.resetPasswordForEmail(email,{
-        redirectTo:'https://www.drcheckpro.com/login.html'
-      }).then(function(res){
-        if(btn){btn.disabled=false;btn.textContent='비밀번호 재설정 이메일 발송';}
-        if(res.error){showErr('findPwError','❌ 발송 실패: '+res.error.message);return;}
-        showSuccess('findPwSuccess','✅ 비밀번호 재설정 이메일을 발송했습니다.\n이메일을 확인해주세요.');
-      });
-    });
+      sb.auth.resetPasswordForEmail(email,{redirectTo:"https://www.drcheckpro.com/login.html?mode=reset"})
+        .then(function(res){
+          if(res.error){if(errEl){errEl.style.color="#dc2626";errEl.textContent="전송 실패: "+res.error.message;}return;}
+          if(sucEl){sucEl.style.color="#22c55e";sucEl.textContent="✅ 비밀번호 재설정 메일을 발송했습니다.";}
+        });
+    }).catch(function(e){if(errEl){errEl.style.color="#dc2626";errEl.textContent="오류: "+e.message;}});
 }
 
 // 회원가입
@@ -214,5 +223,11 @@ function _doSignUp(name,email,pw,company,jobTitle,region,phone,agreeMarketing,bt
       if(btn){btn.disabled=false;btn.textContent='회원가입';}
     });
   });
+}
+function formatPhone(input){
+  var v=input.value.replace(/\D/g,"");
+  if(v.length<=3)input.value=v;
+  else if(v.length<=7)input.value=v.slice(0,3)+"-"+v.slice(3);
+  else input.value=v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7,11);
 }
 
