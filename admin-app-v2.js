@@ -1,7 +1,7 @@
 var sb,currentRejectUserId=null,currentDeactivateUserId=null,currentPriceUserId=null;
 var _allUsersData=[],_activityRows=[];
-(function init(){
-  sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
+document.addEventListener("DOMContentLoaded", function() {
+sb=supabase.createClient('https://hslxclmezfudjgmehriy.supabase.co','sb_publishable_EwCNrDIsMbHp-A8LOLqgNg_HznuhiCT');
   document.addEventListener('DOMContentLoaded',function(){
     document.addEventListener('keydown',function(e){
       if(e.key!=='Escape')return;
@@ -22,7 +22,8 @@ var _allUsersData=[],_activityRows=[];
         });
     });
   });
-})();
+});
+;
 function logout(){sb.auth.signOut().then(function(){window.location.href='login.html';});}
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
@@ -497,4 +498,5 @@ if(typeof toggleAllPending!=="undefined") window.toggleAllPending=toggleAllPendi
 if(typeof syncCheckAll!=="undefined") window.syncCheckAll=syncCheckAll;
 if(typeof approveBulk!=="undefined") window.approveBulk=approveBulk;
 if(typeof deleteInquiry!=="undefined") window.deleteInquiry=deleteInquiry;
+
 
