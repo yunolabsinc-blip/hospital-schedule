@@ -208,7 +208,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
       </div>
       <div class="form-group">
         <label class="form-label">연락처 <span style="color:#94a3b8;font-weight:400">(선택)</span></label>
-        <input type="tel" id="regPhone" class="form-input" placeholder="010-0000-0000">
+        <input type="tel" id="regPhone" class="form-input" placeholder="010-0000-0000" oninput="formatPhone(this)">
       </div>
       <div class="form-group">
         <label class="form-label">지역 <span style="color:#94a3b8;font-weight:400">(선택)</span></label>
@@ -260,7 +260,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
       </div>
       <div class="form-group">
         <label class="form-label">연락처</label>
-        <input type="tel" id="findIdPhone" class="form-input" placeholder="010-0000-0000">
+        <input type="tel" id="findIdPhone" class="form-input" placeholder="010-0000-0000" oninput="formatPhone(this)">
       </div>
       <button class="btn-primary" type="button" onclick="doFindId()">이메일 찾기</button>
     </div>
@@ -286,7 +286,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa;min-height:100vh;d
       </div>
       <div class="form-group">
         <label class="form-label">연락처</label>
-        <input type="tel" id="findPwPhone" class="form-input" placeholder="010-0000-0000">
+        <input type="tel" id="findPwPhone" class="form-input" placeholder="010-0000-0000" oninput="formatPhone(this)">
       </div>
       <button class="btn-primary" type="button" onclick="doFindPw()">비밀번호 재설정 이메일 발송</button>
     </div>
@@ -422,4 +422,5 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="login-app.js"></script>
 </body>
 </html>
+
 
